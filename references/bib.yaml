@@ -1,0 +1,220 @@
+# Bibliography keys for The Agentic EA
+# Cite as [@id] in chapters.
+
+- id: orbus-infinity-product
+  title: "Orbus Infinity — Enterprise Architecture Platform"
+  url: "https://www.orbussoftware.com/enterprise-architecture/orbus-infinity"
+  accessed: "2026-10-07"
+  tags: [orbus, baseline]
+
+- id: orbus-coreea
+  title: "Orbus Infinity CoreEA Metamodel (product documentation)"
+  url: "https://www.orbussoftware.com/"
+  accessed: "2026-10-07"
+  tags: [orbus, metamodel]
+  note: "Product metamodel naming; confirm against current Orbus docs for your tenant."
+
+- id: togaf-10
+  title: "TOGAF Standard, 10th Edition — Content Metamodel"
+  url: "https://www.opengroup.org/togaf"
+  accessed: "2026-10-07"
+  tags: [togaf, open-group, metamodel]
+
+- id: archimate-3-2
+  title: "ArchiMate 3.2 Specification"
+  url: "https://pubs.opengroup.org/architecture/archimate32-doc/"
+  accessed: "2026-10-07"
+  tags: [archimate, open-group, metamodel]
+
+- id: backstage-software-catalog
+  title: "Backstage Software Catalog"
+  url: "https://backstage.io/docs/features/software-catalog/"
+  accessed: "2026-10-07"
+  tags: [backstage, cncf, catalog]
+
+- id: c4-model
+  title: "The C4 Model for Visualising Software Architecture"
+  url: "https://c4model.com/"
+  accessed: "2026-10-07"
+  tags: [c4, architecture]
+
+- id: archify-github
+  title: "Archify — typed JSON to interactive HTML/SVG diagrams"
+  url: "https://github.com/tt-a1i/archify"
+  accessed: "2026-10-07"
+  tags: [archify, visualization]
+
+- id: databricks-autoloader
+  title: "Databricks Auto Loader"
+  url: "https://docs.databricks.com/en/ingestion/auto-loader/index.html"
+  accessed: "2026-10-07"
+  tags: [databricks, ingestion]
+
+- id: databricks-lakeflow
+  title: "Databricks Lakeflow Connect"
+  url: "https://docs.databricks.com/en/ingestion/lakeflow-connect/index.html"
+  accessed: "2026-10-07"
+  tags: [databricks, ingestion]
+
+- id: databricks-workflows
+  title: "Databricks Workflows / Jobs"
+  url: "https://docs.databricks.com/en/jobs/index.html"
+  accessed: "2026-10-07"
+  tags: [databricks, orchestration]
+
+- id: databricks-dlt
+  title: "Delta Live Tables / Lakeflow Declarative Pipelines"
+  url: "https://docs.databricks.com/en/delta-live-tables/index.html"
+  accessed: "2026-10-07"
+  tags: [databricks, orchestration]
+
+- id: databricks-unity-catalog
+  title: "Unity Catalog"
+  url: "https://docs.databricks.com/en/data-governance/unity-catalog/index.html"
+  accessed: "2026-10-07"
+  tags: [databricks, governance]
+
+- id: databricks-mlflow
+  title: "MLflow on Databricks"
+  url: "https://docs.databricks.com/en/mlflow/index.html"
+  accessed: "2026-10-07"
+  tags: [databricks, ml]
+
+- id: databricks-genie-code
+  title: "Introducing Genie Code"
+  url: "https://www.databricks.com/blog/introducing-genie-code"
+  accessed: "2026-10-07"
+  tags: [databricks, genie, agents]
+
+- id: databricks-apps
+  title: "Databricks Apps"
+  url: "https://docs.databricks.com/en/dev-tools/databricks-apps/index.html"
+  accessed: "2026-10-07"
+  tags: [databricks, apps]
+
+- id: snowflake-snowpipe
+  title: "Snowpipe"
+  url: "https://docs.snowflake.com/en/user-guide/data-load-snowpipe-intro"
+  accessed: "2026-10-07"
+  tags: [snowflake, ingestion]
+
+- id: snowflake-dynamic-tables
+  title: "Dynamic Tables"
+  url: "https://docs.snowflake.com/en/user-guide/dynamic-tables-about"
+  accessed: "2026-10-07"
+  tags: [snowflake, orchestration]
+
+- id: snowflake-tasks
+  title: "Introduction to Tasks"
+  url: "https://docs.snowflake.com/en/user-guide/tasks-intro"
+  accessed: "2026-10-07"
+  tags: [snowflake, orchestration]
+
+- id: snowflake-execute-job-service
+  title: "EXECUTE JOB SERVICE"
+  url: "https://docs.snowflake.com/en/sql-reference/sql/execute-job-service"
+  accessed: "2026-10-07"
+  tags: [snowflake, spcs]
+
+- id: snowflake-spcs-jobs-as-tasks
+  title: "Running a Snowpark Container Services job as a Snowflake task"
+  url: "https://docs.snowflake.com/en/developer-guide/snowpark-container-services/jobs-as-tasks"
+  accessed: "2026-10-07"
+  tags: [snowflake, spcs, orchestration]
+
+- id: snowflake-horizon
+  title: "Snowflake Horizon Catalog"
+  url: "https://docs.snowflake.com/en/user-guide/horizon.html"
+  accessed: "2026-10-07"
+  tags: [snowflake, governance]
+
+- id: snowflake-cortex
+  title: "Snowflake Cortex AI"
+  url: "https://docs.snowflake.com/en/user-guide/snowflake-cortex/overview"
+  accessed: "2026-10-07"
+  tags: [snowflake, ai]
+
+- id: snowflake-streamlit
+  title: "Streamlit in Snowflake"
+  url: "https://docs.snowflake.com/en/developer-guide/streamlit/about-streamlit"
+  accessed: "2026-10-07"
+  tags: [snowflake, apps]
+
+- id: snowflake-model-registry
+  title: "Snowflake Model Registry"
+  url: "https://docs.snowflake.com/en/developer-guide/snowflake-ml/model-registry/overview"
+  accessed: "2026-10-07"
+  tags: [snowflake, ml]
+
+- id: openapi-spec
+  title: "OpenAPI Specification"
+  url: "https://spec.openapis.org/oas/latest.html"
+  accessed: "2026-10-07"
+  tags: [api, standards]
+
+- id: openlineage
+  title: "OpenLineage"
+  url: "https://openlineage.io/"
+  accessed: "2026-10-07"
+  tags: [lineage, standards]
+
+- id: cyclonedx
+  title: "CycloneDX SBOM Standard"
+  url: "https://cyclonedx.org/"
+  accessed: "2026-10-07"
+  tags: [sbom, supply-chain]
+
+- id: opa-conftest
+  title: "Open Policy Agent / Conftest"
+  url: "https://www.openpolicyagent.org/"
+  accessed: "2026-10-07"
+  tags: [policy, governance]
+
+- id: gartner-time
+  title: "Gartner TIME Model (Tolerate, Invest, Migrate, Eliminate) — industry usage"
+  url: "https://www.gartner.com/"
+  accessed: "2026-10-07"
+  tags: [apm, framework]
+  note: "TIME is widely cited in APM practice; cite Gartner primary material when licensing allows."
+
+- id: team-topologies
+  title: "Team Topologies (Skelton & Pais)"
+  url: "https://teamtopologies.com/"
+  accessed: "2026-10-07"
+  tags: [org, conway]
+
+- id: endoflife-date
+  title: "endoflife.date"
+  url: "https://endoflife.date/"
+  accessed: "2026-10-07"
+  tags: [eol, tooling]
+
+- id: eraser-io
+  title: "Eraser.io Diagram-as-Code / Agent integrations"
+  url: "https://www.eraser.io/docs/agent-integrations"
+  accessed: "2026-10-07"
+  tags: [visualization, agents]
+
+- id: structurizr
+  title: "Structurizr DSL"
+  url: "https://docs.structurizr.com/dsl"
+  accessed: "2026-10-07"
+  tags: [c4, dsl]
+
+- id: likec4
+  title: "LikeC4"
+  url: "https://likec4.dev/"
+  accessed: "2026-10-07"
+  tags: [architecture, dsl]
+
+- id: wcid-agy-research
+  title: "Internal research — Herdr WCID-agy synthesis (2026-10-07)"
+  url: "internal://herdr/wV:t7"
+  accessed: "2026-10-07"
+  tags: [internal, research]
+
+- id: notebooklm-oss-agent-native-orbus
+  title: "NotebookLM — OSS Agent Native Orbis (internal notebook; Orbus spelling preferred in this manual)"
+  url: "https://notebooklm.google.com/notebook/cf714601-0f3e-4952-b3b1-11cac07644c5"
+  accessed: "2026-10-07"
+  tags: [internal, research]
