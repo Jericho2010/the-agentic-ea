@@ -77,131 +77,135 @@ Legend — **NB** runs natively in a notebook (Python/Spark, no container) · **
 
 Ranking rule: **1** = best fit for that scenario under the licence constraint, then descending. Reasons are deliberate and short.
 
+**Host tags** name where a platform option actually runs: `Notebook` (Snowflake Notebooks or Databricks notebooks) · `Job` (Databricks Workflows or Spark Declarative Pipelines) · `SPCS job` / `SPCS service` (Snowpark Container Services) · `SiS` (Streamlit in Snowflake) · `App` (Databricks Apps) · `Task` / `Stream` / `Dynamic Table` / `Alert` (Snowflake) · `Cortex` (Snowflake). Every scenario below has at least one option hosted on Snowflake or Databricks.
+
 ### S01 — Application portfolio rationalization (APM / TIME)
 
-1. **Snowflake** + Streamlit + Cortex Agents — governed metrics and executive dashboards on a platform already licensed.
-2. **Databricks** + Lakeflow Connect (CMDB, cost) + Genie Code + Apps — better when the portfolio joins are Spark-scale.
-3. **GitHub + Backstage + Archi/coArchi** — free portfolio register and ArchiMate views; no licence, but manual upkeep.
+1. **Snowflake** — `host: Notebook + Dynamic Table + SiS + Cortex Agent` — governed metrics and executive dashboards on a platform already licensed.
+2. **Databricks** — `host: Lakeflow Connect job + App` — better when the portfolio joins are Spark-scale.
+3. **GitHub + Backstage + Archi/coArchi** — `host: GitHub Actions + Pages` — free portfolio register and ArchiMate views; manual upkeep.
+4. **Apache Superset (OSS BI)** — `host: Databricks App or SPCS service` — free BI where you want it inside the platform.
 
 ### S02 — Technology obsolescence and lifecycle risk (EOL / EOS)
 
-1. **GitHub + Renovate + Syft/Grype/Trivy + endoflife.date** — free, and it opens the upgrade PR instead of only reporting.
-2. **Databricks** + Spark Declarative Pipelines — scans the whole fleet against CVE and EOL feeds at scale.
-3. **Snowflake** + Dynamic Tables + Tasks + Alerts — feed-driven lifecycle tracking with alerting.
+1. **GitHub** — `host: GitHub Actions` — Renovate + Syft/Grype/Trivy + endoflife.date; free, and it opens the upgrade PR instead of only reporting.
+2. **Databricks** — `host: Job (shell step) + Delta table` — scans the whole fleet against CVE and EOL feeds at scale.
+3. **Snowflake** — `host: SPCS job + Task + Alert` — feed-driven lifecycle scanning and alerting inside the platform.
+4. **Either platform** — `host: Notebook` — endoflife.date lookups via External Access Integration.
 
 ### S03 — Target state architecture and cloud migration roadmapping
 
-1. **GitHub + LikeC4/Structurizr + OpenTofu + Infracost CLI + Archify** — free, and it models networks and microservices, not just data.
-2. **Databricks** + Migration Manager + Lakehouse Federation + Genie Code — legacy queries in place, stored-procedure conversion to PySpark.
-3. **Snowflake** + SnowConvert + Open Catalog (Polaris/Iceberg) — SQL/DDL conversion onto open Iceberg.
+1. **GitHub** — `host: GitHub Actions + Pages` — LikeC4/Structurizr + OpenTofu + Infracost + Archify; free, and it models networks and microservices, not just data.
+2. **Databricks** — `host: Notebook + Job` — Migration Manager + Lakehouse Federation + Genie Code; legacy queries in place, stored-procedure conversion to PySpark.
+3. **Snowflake** — `host: Notebook + SPCS job` — SnowConvert + Open Catalog (Polaris/Iceberg) + Archify render; SQL/DDL conversion onto open Iceberg.
 
 ### S04 — Business capability modelling and investment alignment
 
-1. **Snowflake** + Horizon semantics + Cortex Search/Agents — governed capability→cost views with executive question answering.
-2. **Databricks** + Lakeflow Connect (Workday/SAP) + Genie Code — strongest where finance and HR joins are heavy.
-3. **GitHub + Backstage + Markdown capability trees** — free and developer-friendly; weakest executive polish.
+1. **Snowflake** — `host: Notebook + SiS + Cortex Search/Agent` — governed capability→cost views with executive question answering.
+2. **Databricks** — `host: Lakeflow Connect job + App` — strongest where finance and HR joins are heavy.
+3. **GitHub + Backstage** — `host: Actions; Backstage as Databricks App or SPCS service` — free capability trees; weakest executive polish.
 
 ### S05 — Architecture review board (ARB) and design approvals
 
-1. **GitHub PR + OPA/Conftest + Archify diff + CodeQL** — free, and governance happens at the point of change.
-2. **Databricks Apps** intake → Spark Declarative Pipelines → Unity Catalog ledger — everything inside one licensed platform.
-3. **Snowflake** SPCS webhook listener + Tasks + tamper-evident audit tables — warehouse-native approval ledger.
+1. **GitHub** — `host: GitHub Actions` — PR + OPA/Conftest + Archify diff + CodeQL; governance happens at the point of change.
+2. **Databricks** — `host: App + Job + Delta ledger` — intake, checks and approval history inside one licensed platform.
+3. **Snowflake** — `host: SPCS service + Task + audit table` — warehouse-native approval ledger.
 
 ### S06 — Continuous ServiceNow CMDB synchronization and baseline hygiene
 
-1. **Databricks** + **Lakeflow Connect ServiceNow connector** + Spark Declarative Pipelines — managed ingestion plus PySpark fuzzy matching across millions of CIs.
-2. **Snowflake** + ServiceNow connector + Dynamic Tables — simplest continuous SQL reconciliation.
-3. **GitHub Actions + Steampipe or CloudQuery + Splink + PostgreSQL** — free reconciliation for smaller estates.
+1. **Databricks** — `host: Lakeflow Connect ServiceNow pipeline + SDP + Unity Catalog` — managed ingestion plus PySpark fuzzy matching across millions of CIs.
+2. **Snowflake** — `host: ServiceNow connector + Dynamic Tables + Task` — simplest continuous SQL reconciliation.
+3. **GitHub + Steampipe/CloudQuery + Splink** — `host: Actions; Splink in a Databricks Notebook` — free reconciliation for smaller estates.
 
 > **Correction to earlier drafts.** ServiceNow connectivity is **not** a Snowflake differentiator. Databricks ingests ServiceNow through a managed Lakeflow Connect connector (streaming tables, Unity Catalog, up to 250 tables per pipeline). Both platforms also ingest Salesforce (GA), Workday (GA), and NetSuite, and both support query-based database ingestion (Oracle, SQL Server, PostgreSQL, MySQL, MariaDB, Teradata). Choose on **compute shape (Spark vs SQL)**, not on connectors.
 
 ### S07 — M&A day-one IT landscape discovery
 
-1. **GitHub Actions + CLI agents + Archify** — free, and it scans a foreign estate in minutes with nothing installed in the target.
-2. **Databricks** + Unity Catalog Clean Rooms + Lakeflow — legally fenced analysis at scale.
-3. **Snowflake** + Data Clean Rooms + encrypted stages — joint analysis without exposing proprietary data.
+1. **GitHub + CLI agents + Archify** — `host: GitHub Actions + Pages` — scans a foreign estate in minutes with nothing installed in the target.
+2. **Databricks** — `host: Job + Unity Catalog Clean Rooms + Notebook` — legally fenced analysis at scale.
+3. **Snowflake** — `host: SPCS job + Data Clean Rooms + SiS` — joint analysis without exposing proprietary data.
 
 ### S08 — Regulatory compliance and data privacy (GDPR / DORA)
 
-1. **Snowflake** + Horizon classification, tag-based masking, Access History, Iceberg v3 row lineage — the most defensible audit package.
-2. **Databricks** + Unity Catalog column lineage + evidence jobs — strongest where the data already lives.
-3. **GitHub + Semgrep + Presidio + OpenTelemetry + Archify** — free; finds PII in code and traffic, weaker as regulator-facing proof.
+1. **Snowflake** — `host: Task + SiS` — Horizon classification, tag-based masking, Access History, Iceberg v3 row lineage; the most defensible audit package.
+2. **Databricks** — `host: Notebook + Job + App` — Unity Catalog column lineage and evidence jobs; strongest where the data already lives.
+3. **GitHub + Semgrep + Presidio + OpenTelemetry + Archify** — `host: Actions; Presidio in a Databricks Notebook` — free; finds PII in code and traffic, weaker as regulator-facing proof.
 
 ### S09 — Interface and integration landscape rationalization
 
-1. **GitHub + Cilium + Tetragon + OpenAPI/AsyncAPI scanning + Archify** — free, and the only option that sees real service-to-service traffic *and* can enforce policy.
-2. **Databricks** — declared specifications versus gateway logs for zombie-API detection.
-3. **Snowflake** — Snowpipe Streaming on gateway logs plus Dynamic Tables for declared-versus-actual.
-4. **Kong Gateway OSS** — free runtime registry where enforcement at the gateway is wanted.
+1. **GitHub + Cilium + Tetragon + OpenAPI/AsyncAPI scanning + Archify** — `host: Actions; eBPF runs on the cluster` — the only option that sees real service-to-service traffic *and* can enforce policy.
+2. **Databricks** — `host: Job + App` — declared specifications versus gateway logs for zombie-API detection.
+3. **Snowflake** — `host: Snowpipe Streaming + Dynamic Tables + SiS` — declared-versus-actual in SQL.
+4. **Kong Gateway OSS** — `host: cluster or SPCS service` — free runtime registry where enforcement at the gateway is wanted.
 
 ### S10 — Business process optimization and journey traceability
 
-1. **Databricks + PM4Py/ProM** — Spark-scale process mining using open-source miners (Celonis excluded as commercial).
-2. **Snowflake + PM4Py/ProM** on Snowpark or SPCS — warehouse-native mining with no data movement.
-3. **GitHub + OpenTelemetry + Archify** — free; handles a small number of critical journeys well.
+1. **Databricks** — `host: Notebook + Job + App` — PM4Py at Spark scale using open-source miners (Celonis excluded as commercial).
+2. **Snowflake** — `host: Notebook or SPCS job + Dynamic Tables + SiS` — PM4Py warehouse-native with no data movement.
+3. **GitHub + OpenTelemetry + Archify** — `host: GitHub Actions` — free; handles a small number of critical journeys well.
 
 > Databricks can feed process mining from the same ServiceNow connector used in S06. Process mining itself is a partner/OSS play on both platforms, not a native capability.
 
 ### S11 — AI governance and ML model cataloging (EU AI Act)
 
-1. **Databricks** + MLflow + Unity Catalog + Mosaic AI Gateway + Agent Bricks — full training-to-serving lineage.
-2. **Snowflake** + Model Registry + Cortex Agents audit + Horizon tags — strong governance, thinner training chain.
-3. **GitHub + MLflow OSS + Evidently AI + OpenLineage + OPA** — free, and it gates promotion at the pull request with drift and quality evidence.
+1. **Databricks** — `host: MLflow + Job + App` — Unity Catalog and Mosaic AI Gateway give full training-to-serving lineage.
+2. **Snowflake** — `host: Model Registry + Cortex Agent + Task` — strong governance, thinner training chain.
+3. **GitHub + MLflow OSS + Evidently AI + OpenLineage + OPA** — `host: Actions; Evidently in a Notebook` — gates promotion at the pull request with drift and quality evidence.
 
 ### S12 — Disaster recovery and business continuity (RTO/RPO)
 
-1. **GitHub + OpenTofu + Litmus Chaos or Chaos Mesh + Archify lifecycle** — free, and it covers compute, network and DNS, not just databases.
-2. **Databricks** + Lakeflow + Workflows — replication logs and RTO/RPO checks at scale.
-3. **Snowflake** + replication usage views + Tasks + Alerts — simplest SLA monitoring.
+1. **GitHub + OpenTofu + Litmus Chaos or Chaos Mesh + Archify lifecycle** — `host: Actions; chaos runs on the cluster` — covers compute, network and DNS, not just databases.
+2. **Databricks** — `host: Job + App` — replication logs and RTO/RPO checks at scale.
+3. **Snowflake** — `host: Task + Alert + SiS` — simplest SLA monitoring.
 
 ### S13 — Technical debt quantification and refactoring justification
 
-1. **GitHub + code-maat/Git churn + SonarQube Community Edition + Archify heatmap** — free, and it ties debt to actual code.
-2. **Databricks** + Spark Declarative Pipelines — portfolio-scale churn versus cyclomatic complexity.
-3. **Snowflake** + Git Integration + Dynamic Tables — SQL-first debt reporting.
+1. **GitHub + code-maat/Git churn + SonarQube Community Edition + Archify heatmap** — `host: GitHub Actions` — ties debt to actual code.
+2. **Databricks** — `host: Notebook/Job + App` — portfolio-scale churn versus cyclomatic complexity.
+3. **Snowflake** — `host: Git Integration + Notebook + Dynamic Tables + SiS` — SQL-first debt reporting.
 
 ### S14 — Zero-trust security architecture and network micro-segmentation
 
-1. **Cilium + Tetragon + Kyverno + Archify** — free; layer 4–7 truth plus runtime enforcement.
-2. **Databricks** — VPC flow logs compared against declared policy in Spark.
-3. **Snowflake** — VPC flow logs plus Dynamic Tables building IP-to-IP matrices.
+1. **Cilium + Tetragon + Kyverno** — `host: Kubernetes cluster` (the part that cannot be platform-hosted) — layer 4–7 truth plus runtime enforcement; Archify render in `Actions`.
+2. **Databricks** — `host: Notebook/Job + App` — VPC flow logs compared against declared policy in Spark.
+3. **Snowflake** — `host: Snowpipe Streaming + Dynamic Tables + SiS` — IP-to-IP matrices in SQL.
 
 ### S15 — Software supply chain and OSS licensing (SBOM)
 
-1. **GitHub Actions + Syft + Grype/Trivy + Cosign + Dependency-Track** — free, and it blocks the deploy.
-2. **Databricks** — Auto Loader on the SBOM bucket, build-triggered job, deploy block.
-3. **Snowflake** — Snowpipe on SBOMs, Stream→Task, SPCS registry scan.
-4. **OSS Review Toolkit + ScanCode** — free copyleft and licence analysis.
+1. **GitHub + Syft + Grype/Trivy + Cosign** — `host: Actions; Dependency-Track as SPCS service` — blocks the deploy.
+2. **Databricks** — `host: Job on a volume + CI callback` — SBOM parsing and deploy block.
+3. **Snowflake** — `host: Snowpipe + Stream/Task + SPCS job + SiS` — licence and vulnerability checks in-platform.
+4. **ORT + ScanCode** — `host: SPCS job or Notebook` — free copyleft and licence analysis.
 
 ### S16 — FinOps cloud cost allocation and unit economics
 
-1. **Snowflake** + billing data + Horizon semantics + Streamlit — best cost/governance mix on an allowed platform.
-2. **Databricks** + cost exports + usage system tables + unit-cost job — better where Spark/ML spend dominates.
-3. **OpenCost (+ Kubecost free) + Cloud Carbon Footprint + Superset** — free cost visibility with no additional licence.
+1. **Snowflake** — `host: Notebook + Dynamic Tables + SiS` — billing data and Horizon semantics give the best cost/governance mix.
+2. **Databricks** — `host: Job + App` — cost exports and usage system tables; better where Spark/ML spend dominates.
+3. **OpenCost + Cloud Carbon Footprint** — `host: cluster (OpenCost); CCF as a Databricks App` — free cost visibility with no additional licence.
 
 ### S17 — Master data management and golden record lineage
 
-1. **Snowflake** + managed connectors CDC + Dynamic Tables SCD Type 2 + Streamlit curation.
-2. **Databricks** + Lakeflow Connect + Lakebase + matching pipelines.
-3. **GitHub + dbt Core or SQLMesh + Splink + PostgreSQL** — free entity resolution and data contracts.
+1. **Snowflake** — `host: connectors + Dynamic Tables SCD2 + SiS` — curation portal in-platform.
+2. **Databricks** — `host: Lakeflow + Lakebase + Notebook + App` — matching plus operational Postgres.
+3. **GitHub + dbt Core or SQLMesh + Splink** — `host: Databricks Job or Snowflake Notebook` — free entity resolution and data contracts.
 
 ### S18 — ESG and green IT carbon footprint accounting
 
-1. **Databricks** — Spark modelling using free Cloud Carbon Footprint emission factors.
-2. **Snowflake** — Snowpipe on carbon exports plus Cortex Search for utility PDFs.
-3. **GitHub + Cloud Carbon Footprint + OpenLCA + Archify heatmap** — free measurement and life-cycle modelling.
+1. **Databricks** — `host: Notebook/Job + App` — LCA modelling using free Cloud Carbon Footprint emission factors.
+2. **Snowflake** — `host: Snowpipe + Cortex Search + SiS` — carbon exports plus utility PDFs.
+3. **GitHub + Cloud Carbon Footprint + OpenLCA + Archify heatmap** — `host: Actions; CCF as a Databricks App` — free measurement and life-cycle modelling.
 
 ### S19 — Team topologies and Conway alignment
 
-1. **GitHub + CODEOWNERS + code-maat co-change graph + Archify** — free, and it shows real ownership from commits rather than an org chart.
-2. **Databricks** — cross-team pull-request modification matrix at scale.
-3. **Snowflake** + Git Integration + Dynamic Tables co-authorship analysis.
+1. **GitHub + CODEOWNERS + code-maat co-change graph + Archify** — `host: GitHub Actions` — shows real ownership from commits rather than an org chart.
+2. **Databricks** — `host: Notebook/Job + App` — cross-team pull-request modification matrix at scale.
+3. **Snowflake** — `host: Git Integration + Notebook + Dynamic Tables + SiS` — co-authorship analysis in SQL.
 
 ### S20 — Strategic vendor lock-in assessment and exit planning
 
-1. **GitHub + Semgrep SDK-import scan + ScanCode + Archify** — free; code coupling is the real lock-in risk.
-2. **Snowflake** + Cortex Search over contracts + 90-day renewal alerts.
-3. **Databricks** + contract parsing (docling or Apache Tika) + dependency trees.
+1. **GitHub + Semgrep SDK-import scan + ScanCode + Archify** — `host: GitHub Actions` — code coupling is the real lock-in risk.
+2. **Snowflake** — `host: Notebook + Cortex Search + Task + SiS` — contracts plus 90-day renewal alerts.
+3. **Databricks** — `host: Notebook/Job + App` — docling or Apache Tika contract parsing plus dependency trees.
 
 ---
 
@@ -327,6 +331,7 @@ Primary sources checked 2026-10-13. Proposed bibliography keys in brackets for `
 | Licence constraint honoured (only GitHub/Databricks/Snowflake may be paid) | PASS |
 | Baseline fidelity (Orbus behaviour stated, not invented) | PASS |
 | Modern option completeness (≥ 3 ranked options per scenario) | PASS |
+| Host coverage (every scenario has ≥ 1 Snowflake- or Databricks-hosted option) | PASS |
 | API hygiene (vendor capabilities taken from primary docs; no invented APIs) | PASS |
 | Archify accuracy (types limited to the five supported) | PASS |
 | Internal consistency (scenario IDs stable S01–S20) | PASS |
