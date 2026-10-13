@@ -379,3 +379,64 @@
   url: "https://docs.databricks.com/aws/en/repos/"
   accessed: "2026-10-13"
   tags: [databricks, git]
+
+- id: snowflake-openflow
+  title: "Snowflake — About Openflow (managed data integration and connectors)"
+  url: "https://docs.snowflake.com/en/user-guide/data-integration/openflow/about"
+  accessed: "2026-10-13"
+  tags: [snowflake, ingestion, connectors]
+
+- id: snowflake-hybrid-tables
+  title: "Snowflake — Unistore: Hybrid Tables Now Generally Available"
+  url: "https://www.snowflake.com/en/blog/unistore-general-availability/"
+  accessed: "2026-10-13"
+  tags: [snowflake, oltp, hybrid-tables]
+
+- id: snowflake-semantic-views
+  title: "Snowflake — Overview of semantic views"
+  url: "https://docs.snowflake.com/en/user-guide/views-semantic/overview"
+  accessed: "2026-10-13"
+  tags: [snowflake, semantic-layer]
+
+- id: snowflake-dcm-projects
+  title: "Snowflake — DCM Projects (declarative database change management)"
+  url: "https://docs.snowflake.com/en/user-guide/dcm-projects/dcm-projects-overview"
+  accessed: "2026-10-13"
+  tags: [snowflake, cicd]
+  note: "Public preview as of Oct 2026; verify status before depending on it."
+
+- id: snowflake-git-integration
+  title: "Snowflake — Using a Git repository in Snowflake"
+  url: "https://docs.snowflake.com/en/developer-guide/git/git-overview"
+  accessed: "2026-10-13"
+  tags: [snowflake, git]
+
+- id: snowflake-dmf
+  title: "Snowflake — Introduction to data quality checks (Data Metric Functions)"
+  url: "https://docs.snowflake.com/en/user-guide/data-quality-intro"
+  accessed: "2026-10-13"
+  tags: [snowflake, data-quality]
+
+- id: snowflake-iceberg-v3
+  title: "Snowflake — Apache Iceberg tables: support for the Iceberg v3 specification"
+  url: "https://docs.snowflake.com/en/user-guide/tables-iceberg-v3-specification-support"
+  accessed: "2026-10-13"
+  tags: [snowflake, iceberg, lineage]
+
+- id: snowflake-clean-rooms
+  title: "Snowflake — Overview of provider and consumer clean rooms"
+  url: "https://docs.snowflake.com/en/user-guide/cleanrooms/getting-started"
+  accessed: "2026-10-13"
+  tags: [snowflake, governance, ma]
+
+- id: snowflake-cortex-search
+  title: "Snowflake — Cortex Search overview"
+  url: "https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-search/cortex-search-overview"
+  accessed: "2026-10-13"
+  tags: [snowflake, retrieval]
+
+- id: snowflake-vector-type
+  title: "Snowflake — Vector data types and vector similarity functions"
+  url: "https://docs.snowflake.com/en/sql-reference/data-types-vector"
+  accessed: "2026-10-13"
+  tags: [snowflake, vectors]

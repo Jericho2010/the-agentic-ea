@@ -86,6 +86,7 @@ Orbus Infinity is the baseline enterprise architecture practice: a governed repo
 ### Part VIII — Licence-clean replacement options
 - [8.1 Licence-clean ranked options per scenario (S01–S20)](docs/09-licence-clean-stacks/01-licence-clean-ranked-options.md)
 - [8.2 Databricks-hosted reference solution (C1–C15, S01–S20)](docs/09-licence-clean-stacks/02-databricks-reference-solution.md)
+- [8.3 Snowflake-hosted reference solution (C1–C15, S01–S20)](docs/09-licence-clean-stacks/03-snowflake-reference-solution.md)
 
 ### Appendices
 - [A Glossary](docs/08-appendices/glossary.md)
