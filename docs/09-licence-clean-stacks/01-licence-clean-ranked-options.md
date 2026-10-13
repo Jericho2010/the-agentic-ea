@@ -79,6 +79,35 @@ Ranking rule: **1** = best fit for that scenario under the licence constraint, t
 
 **Host tags** name where a platform option actually runs: `Notebook` (Snowflake Notebooks or Databricks notebooks) · `Job` (Databricks Workflows or Spark Declarative Pipelines) · `SPCS job` / `SPCS service` (Snowpark Container Services) · `SiS` (Streamlit in Snowflake) · `App` (Databricks Apps) · `Task` / `Stream` / `Dynamic Table` / `Alert` (Snowflake) · `Cortex` (Snowflake). Every scenario below has at least one option hosted on Snowflake or Databricks.
 
+### 3.1 Orbus anchor by scenario
+
+Capability IDs are the canonical C1–C15 from the [Part I capability map](../01-baseline-orbus/03-capability-map.md) and match [baseline Table C](../01-baseline-orbus/06-baseline-tables.md). The module column names the Orbus Infinity function each scenario replaces.
+
+| Scenario | Orbus capability (C#) | Orbus module / function |
+|---|---|---|
+| S01 APM / TIME | C4, C12 | Application portfolio management (APM views); Reporting & executive dashboards (Reports / portals) |
+| S02 EOL / EOS | C5, C11 | Technology portfolio & standards (Technology catalog); ARB / governance workflows |
+| S03 Migration | C15, C9 | Roadmapping & transformation planning (Roadmaps); Diagramming & viewpoint publishing |
+| S04 Capabilities | C3, C12 | Business capability & strategy mapping (Capability modeling); Reporting / portals |
+| S05 ARB | C11, C2 | ARB / governance workflows; Metamodel & standards management (CoreEA + standards modules) |
+| S06 CMDB sync | C10, C1 | Integrations & synchronization (Connectors / Flow); Governed architecture repository |
+| S07 M&A | C1, C9 | Governed architecture repository; Diagramming & viewpoint publishing |
+| S08 Privacy | C6, C14 | Data architecture & lineage views (Data modeling views); Security / risk architecture views (Security viewpoints) |
+| S09 Interfaces | C8, C9 | Integration / interface catalog (Interface objects); Diagramming & viewpoint publishing |
+| S10 Process | C7, C3 | Process & value-stream modeling (Process models); Business capability & strategy mapping |
+| S11 AI governance | C6, C11 | Data architecture & lineage views; ARB / governance workflows |
+| S12 DR | C14, C15 | Security / risk architecture views (Security viewpoints); Roadmapping & transformation planning |
+| S13 Technical debt | C4, C12 | Application portfolio management (APM views); Reporting & executive dashboards |
+| S14 Zero-trust | C14, C9 | Security / risk architecture views (Security viewpoints); Diagramming & viewpoint publishing |
+| S15 SBOM | C5, C11 | Technology portfolio & standards (Technology catalog); ARB / governance workflows |
+| S16 FinOps | C4, C12 | Application portfolio management (APM views); Reporting / portals |
+| S17 MDM | C6 | Data architecture & lineage views (Data modeling views) |
+| S18 ESG carbon | C5, C12 | Technology portfolio & standards (Technology catalog); Reporting / portals |
+| S19 Team topologies | C13, C4 | Collaboration & stakeholder access (Portal / sharing); Application portfolio management |
+| S20 Vendor exit | C5, C15 | Technology portfolio & standards (Technology catalog); Roadmapping & transformation planning |
+
+Coverage: all fifteen canonical capabilities (C1–C15) are exercised by at least one scenario. Six carry most of the load — C4 Application portfolio (4 scenarios), C5 Technology portfolio (4), C11 ARB / governance (4), C12 Reporting (5), C6 Data architecture (3), C14 Security / risk views (3).
+
 ### S01 — Application portfolio rationalization (APM / TIME)
 
 1. **Snowflake** — `host: Notebook + Dynamic Table + SiS + Cortex Agent` — governed metrics and executive dashboards on a platform already licensed.
@@ -332,6 +361,7 @@ Primary sources checked 2026-10-13. Proposed bibliography keys in brackets for `
 | Baseline fidelity (Orbus behaviour stated, not invented) | PASS |
 | Modern option completeness (≥ 3 ranked options per scenario) | PASS |
 | Host coverage (every scenario has ≥ 1 Snowflake- or Databricks-hosted option) | PASS |
+| Orbus mapping matches baseline Table C (C1–C15) | PASS |
 | API hygiene (vendor capabilities taken from primary docs; no invented APIs) | PASS |
 | Archify accuracy (types limited to the five supported) | PASS |
 | Internal consistency (scenario IDs stable S01–S20) | PASS |
