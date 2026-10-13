@@ -88,9 +88,10 @@
 
 - id: databricks-apps
   title: "Databricks Apps"
-  url: "https://docs.databricks.com/en/dev-tools/databricks-apps/index.html"
-  accessed: "2026-10-07"
+  url: "https://docs.databricks.com/aws/en/dev-tools/databricks-apps/"
+  accessed: "2026-10-13"
   tags: [databricks, apps]
+  note: "Serverless; Python (Streamlit, Dash, Gradio, Plotly) and Node.js (React, Angular, Svelte, Express) only."
 
 - id: snowflake-snowpipe
   title: "Snowpipe"
@@ -328,3 +329,29 @@
   url: "https://openbao.org/"
   accessed: "2026-10-13"
   tags: [secrets, oss, licence]
+
+- id: snowflake-spcs-limitations
+  title: "Snowflake — Snowpark Container Services: Guidelines and limitations"
+  url: "https://docs.snowflake.com/en/developer-guide/snowpark-container-services/spcs-guidelines-and-limitations"
+  accessed: "2026-10-13"
+  tags: [snowflake, spcs, limits]
+  note: "Service containers are not privileged; linux/amd64 only; SPCS objects cannot be replicated."
+
+- id: databricks-lakebase-extensions
+  title: "Databricks — Postgres extensions (Lakebase)"
+  url: "https://docs.databricks.com/aws/en/oltp/projects/extensions"
+  accessed: "2026-10-13"
+  tags: [databricks, lakebase, postgres]
+  note: "pgvector and PostGIS are supported; Apache AGE is not on the supported list."
+
+- id: snowflake-notebook-container-runtime
+  title: "Snowflake — Notebooks on Container Runtime"
+  url: "https://docs.snowflake.com/en/developer-guide/snowflake-ml/notebooks-on-spcs"
+  accessed: "2026-10-13"
+  tags: [snowflake, notebooks, spcs]
+
+- id: snowflake-snowpark-connect-spark
+  title: "Snowflake — Snowpark Connect for Apache Spark"
+  url: "https://docs.snowflake.com/en/developer-guide/snowpark-connect/snowpark-connect-apache-spark"
+  accessed: "2026-10-13"
+  tags: [snowflake, spark]

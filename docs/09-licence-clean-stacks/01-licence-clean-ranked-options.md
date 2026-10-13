@@ -41,33 +41,35 @@ Several well-known tools are no longer open source. This chapter uses the open a
 
 ## 2. Allowed toolbox by job
 
-| Job | Free / allowed tooling |
-|---|---|
-| Enforcement & CI | GitHub Actions, **OPA / Conftest**, Renovate, Dependabot, CodeQL, Checkov |
-| Diagrams | **Archify** (typed JSON → interactive HTML/SVG; architecture, workflow, sequence, dataflow, lifecycle), LikeC4, Structurizr DSL, Mermaid, D2, Graphviz |
-| EA modelling (classical) | **Archi + coArchi** (ArchiMate), Essential Project, Draw.io |
-| Catalogs / portals | **Backstage**, **DataHub**, **OpenMetadata**, Apache Atlas |
-| Supply chain / SBOM | **Syft** (generate), **Grype** / **Trivy** (scan), **Cosign**, **Dependency-Track**, ORT, ScanCode, CycloneDX |
-| PII / code scanning | **Semgrep** (OSS), **Presidio**, Gitleaks, SonarQube Community Edition |
-| Runtime & network truth | **Cilium**, **Tetragon**, Falco, Tracee, eBPF |
-| Policy at runtime | **Kyverno**, Gatekeeper, OPA, Cloud Custodian |
-| Observability | **OpenTelemetry Collector**, Prometheus, Grafana, Loki, Tempo, OpenSearch, Fluent Bit, Vector |
-| Infra as code | **OpenTofu**, Pulumi OSS, Ansible |
-| Orchestration | Apache Airflow, Dagster, Kestra, Temporal, Argo Workflows |
-| Transformation / quality | **dbt Core**, SQLMesh, Great Expectations, Soda Core |
-| Lineage | **OpenLineage + Marquez**, DataHub |
-| Entity resolution / MDM | **Splink**, dedupe, Zingg, Ditto |
-| Process mining | **PM4Py**, **ProM**, Apromore Community Edition |
-| Graph / ontology | Apache AGE (Postgres), Neo4j Community, JanusGraph, Apache Jena, SHACL |
-| Data engines (self-host) | Apache Spark, Iceberg, Polaris, Trino, DuckDB, PostgreSQL, Kafka, Flink |
-| Cloud asset graph | **Steampipe**, **CloudQuery**, **Cartography**, Prowler |
-| AI governance | **MLflow** (OSS), **Evidently AI**, OpenLineage, promptfoo, Ragas |
-| FinOps / carbon | **OpenCost**, Kubecost free, **Cloud Carbon Footprint**, OpenLCA, Infracost CLI |
-| Resilience testing | Velero, CloudNativePG, **Litmus Chaos**, Chaos Mesh |
-| Documents / contracts | Apache Tika, docling, spaCy, Haystack |
-| Dashboards / apps | Apache Superset, Metabase OSS, Grafana, Streamlit, Evidence.dev, Quarto |
-| Secrets / identity | **OpenBao**, Keycloak |
-| Diagram conventions | Scenario IDs `S01`–`S20` are stable; Archify types are limited to `architecture`, `workflow`, `sequence`, `dataflow`, `lifecycle`. |
+Legend — **NB** runs natively in a notebook (Python/Spark, no container) · **CTR** runs in a container (Snowflake SPCS job/service, or a Databricks container or shell step) · **APP** hostable as an app or dashboard (Snowflake Streamlit-in-Snowflake/SPCS, Databricks Apps) · **CI** GitHub Actions · **NO** not appropriate or not possible. Full detail in [section 5](#5-hosting-what-runs-inside-snowflake-and-databricks).
+
+| Job | Free / allowed tooling | Hosting |
+|---|---|---|
+| Enforcement & CI | GitHub Actions, **OPA / Conftest**, Renovate, Dependabot, CodeQL, Checkov | CI · CTR (OPA) · NB (Checkov) |
+| Diagrams | **Archify** (typed JSON → interactive HTML/SVG; architecture, workflow, sequence, dataflow, lifecycle), LikeC4, Structurizr DSL, Mermaid, D2, Graphviz | CTR / CI |
+| EA modelling (classical) | **Archi + coArchi** (ArchiMate), Essential Project, Draw.io | NO — desktop GUI |
+| Catalogs / portals | **Backstage**, **DataHub**, **OpenMetadata**, Apache Atlas | APP (Backstage) · NO (server apps) |
+| Supply chain / SBOM | **Syft** (generate), **Grype** / **Trivy** (scan), **Cosign**, **Dependency-Track**, ORT, ScanCode, CycloneDX | CTR · NB (ScanCode) |
+| PII / code scanning | **Semgrep** (OSS), **Presidio**, Gitleaks, SonarQube Community Edition | NB (Semgrep, Presidio) · CTR (Gitleaks, SonarQube) |
+| Runtime & network truth | **Cilium**, **Tetragon**, Falco, Tracee, eBPF | NO — kernel/eBPF |
+| Policy at runtime | **Kyverno**, Gatekeeper, OPA, Cloud Custodian | NO (Kyverno, Gatekeeper) · CTR (OPA) · NB (Custodian) |
+| Observability | **OpenTelemetry Collector**, Prometheus, Grafana, Loki, Tempo, OpenSearch, Fluent Bit, Vector | CTR (gateway only) · NO (host agents) |
+| Infra as code | **OpenTofu**, Pulumi OSS, Ansible | NB (Pulumi, Ansible) · CTR (OpenTofu) |
+| Orchestration | Apache Airflow, Dagster, Kestra, Temporal, Argo Workflows | NO — use native schedulers |
+| Transformation / quality | **dbt Core**, SQLMesh, Great Expectations, Soda Core | NB |
+| Lineage | **OpenLineage + Marquez**, DataHub | NB (OpenLineage) · NO (Marquez, DataHub) |
+| Entity resolution / MDM | **Splink**, dedupe, Zingg, Ditto | NB |
+| Process mining | **PM4Py**, **ProM**, Apromore Community Edition | NB (PM4Py) · NO (ProM, Apromore GUI) |
+| Graph / ontology | Apache AGE (Postgres), Neo4j Community, JanusGraph, Apache Jena, SHACL | NO (AGE, Neo4j, JanusGraph, Jena) · NB (pyshacl) |
+| Data engines (self-host) | Apache Spark, Iceberg, Polaris, Trino, DuckDB, PostgreSQL, Kafka, Flink | NB (DuckDB; Spark via SDP or Snowpark Connect) · host (Trino, Kafka, Flink) |
+| Cloud asset graph | **Steampipe**, **CloudQuery**, **Cartography**, Prowler | CTR (Steampipe, CloudQuery) · NB (Prowler) |
+| AI governance | **MLflow** (OSS), **Evidently AI**, OpenLineage, promptfoo, Ragas | NB (MLflow, Evidently, Ragas) · CTR (promptfoo) |
+| FinOps / carbon | **OpenCost**, Kubecost free, **Cloud Carbon Footprint**, OpenLCA, Infracost CLI | NO (OpenCost, Kubecost) · APP (CCF) · CTR (Infracost) |
+| Resilience testing | Velero, CloudNativePG, **Litmus Chaos**, Chaos Mesh | NO — Kubernetes only |
+| Documents / contracts | Apache Tika, docling, spaCy, Haystack | NB (docling, spaCy, Haystack) · CTR (Tika) |
+| Dashboards / apps | Apache Superset, Metabase OSS, Grafana, Streamlit, Evidence.dev, Quarto | APP (Streamlit, Superset, CCF, Evidence) · CTR (Grafana, Metabase) |
+| Secrets / identity | **OpenBao**, Keycloak | NO — use platform-native secrets |
+| Diagram conventions | Scenario IDs `S01`–`S20` are stable; Archify types are limited to `architecture`, `workflow`, `sequence`, `dataflow`, `lifecycle`. | — |
 
 ---
 
@@ -215,7 +217,77 @@ Ranking rule: **1** = best fit for that scenario under the licence constraint, t
 
 ---
 
-## 5. References
+## 5. Hosting: what runs inside Snowflake and Databricks
+
+Both platforms now host far more than SQL. Most of the toolbox in §2 therefore needs no infrastructure of its own.
+
+### 5.1 Runtime surfaces available
+
+| Surface | Snowflake | Databricks |
+|---|---|---|
+| **Notebook** | Snowflake Notebooks (Workspaces) — Python 3.10–3.12, pip, container runtime with custom images and GPU [@snowflake-notebook-container-runtime] | Notebooks — Python/SQL/Scala/R, pip, `%sh` on cluster-backed compute |
+| **Container** | **SPCS** job service (`EXECUTE JOB SERVICE`) or long-running service; any linux/amd64 image [@snowflake-spcs-limitations] | Cluster or job with a custom image; shell step |
+| **App / UI** | Streamlit in Snowflake, or any web app as an SPCS service | **Databricks Apps** — serverless; Python (Streamlit, Dash, Gradio, Plotly) or Node.js (React, Angular, Svelte, Express) [@databricks-apps] |
+| **Egress** | External Access Integration for outbound API calls | Standard networking from jobs and apps |
+
+### 5.2 Hosting matrix by component
+
+| Component | Snowflake | Databricks | Note |
+|---|---|---|---|
+| PM4Py (process mining) | NB | NB | Pure Python; runs against warehouse tables |
+| dbt Core, SQLMesh | NB | NB | Native adapters for both |
+| Great Expectations, Soda Core | NB | NB | Python data quality |
+| Splink (entity resolution) | NB | NB | DuckDB backend on Snowflake; Spark backend on Databricks |
+| dedupe, Ditto | NB | NB | Pure Python |
+| Zingg | NB via Snowpark Connect for Spark [@snowflake-snowpark-connect-spark] | NB | Spark application |
+| DuckDB | NB | NB | Embedded |
+| Semgrep, Presidio, ScanCode, Checkov | NB | NB | Python |
+| Cloud Custodian, Prowler | NB | NB | Need cloud egress |
+| pyshacl (SHACL) | NB | NB | Python |
+| docling, spaCy, Haystack | NB | NB | Python |
+| Evidently, Ragas | NB | NB | Python |
+| promptfoo | CTR | CTR | Node in a container |
+| OpenLineage integrations | NB | NB | Library-level |
+| Archify | CTR (SPCS job service) | CTR (shell/container) | Node CLI; output HTML hosted in SiS or Apps |
+| Syft, Grype, Trivy, Cosign, Gitleaks | CTR | CTR | Go binaries |
+| OPA, Conftest, OpenTofu | CTR | CTR | Go binaries |
+| LikeC4, Mermaid, D2, Graphviz, Structurizr | CTR | CTR | Render in CI or a job |
+| Apache Tika, ORT, Dependency-Track, SonarQube CE | CTR (SPCS service) | CTR | JVM services |
+| Streamlit | APP (native SiS) | APP (native) | Primary UI surface on both |
+| Apache Superset | APP (SPCS service) | APP (Python) | Python web app |
+| Cloud Carbon Footprint, Evidence.dev | APP (SPCS, Node) | APP (Node) | Node apps |
+| Backstage | APP (SPCS, Node) | APP (Node) | Node portal |
+| Grafana, Metabase | CTR (SPCS service) | CTR | Not Python/Node app runtimes |
+| OpenSearch, Loki, Tempo, Prometheus | CTR (stateful) | CTR (stateful) | Possible, but stateful services are better hosted outside |
+| Neo4j, JanusGraph, Kafka, Flink, Trino, Marquez | CTR technically, not advised | CTR technically, not advised | Stateful clusters; no replication of SPCS objects [@snowflake-spcs-limitations] |
+| GitHub Actions, Renovate, Dependabot, CodeQL | CI | CI | GitHub-native |
+
+### 5.3 Components that cannot run on either platform
+
+| Group | Components | Why |
+|---|---|---|
+| Kernel / eBPF | **Cilium, Tetragon, Falco, Tracee** | SPCS containers are explicitly **not privileged** and can only apply configurations an unprivileged user could [@snowflake-spcs-limitations]; neither platform exposes a host kernel. Must run on the nodes. |
+| Kubernetes operators | **Kyverno, Gatekeeper, OpenCost, Kubecost, Velero, Litmus Chaos, Chaos Mesh, CloudNativePG** | Admission controllers and controllers require a real cluster |
+| Host agents | **Fluent Bit, Vector, OTel Collector (daemonset)** | They collect from hosts, not from inside a warehouse |
+| Stateful servers | **DataHub, OpenMetadata, Apache Atlas, Keycloak, OpenBao, Airflow, Temporal, Argo** | Long-running services owning their own storage and identity |
+| Desktop GUI | **Archi + coArchi, Essential Project, Draw.io, ProM, OpenLCA** | Desktop applications |
+| Schedulers | Airflow, Dagster, Kestra | Redundant — use Databricks Workflows or Snowflake Tasks |
+
+### 5.4 Gotchas
+
+1. **Apache AGE will not run on Lakebase.** The supported extension list includes **pgvector** and **PostGIS**, but not AGE [@databricks-lakebase-extensions]. A property graph in Postgres therefore needs its own host.
+2. **SPCS cannot do privileged work** — no eBPF, no host configuration, linux/amd64 images only, and SPCS objects (services, compute pools) cannot be replicated [@snowflake-spcs-limitations].
+3. **Databricks Apps is Python or Node.js only** [@databricks-apps]. Streamlit, Superset, Backstage, Evidence and Carbon Footprint fit; Grafana, Metabase and OpenSearch do not.
+4. **Streamlit in Snowflake has package limits.** For heavy native dependencies, move to Streamlit on SPCS or the Snowflake Notebooks container runtime.
+5. **Snowpark Connect for Apache Spark** lets existing Spark code run on Snowflake compute, so Spark-only code no longer forces Databricks [@snowflake-snowpark-connect-spark].
+6. **Running inside the platform is not free.** SPCS compute pools and Databricks Apps/jobs bill — but no new licence is introduced.
+7. **Infracost needs its hosted pricing API** (free tier plus paid), which sits awkwardly with the licence constraint in §1. Drop it or accept the gap.
+
+**Net effect:** roughly thirty of the named components need no host of their own; the irreducible infrastructure is a Kubernetes cluster (for eBPF and the operators) plus a stateful host if you want Neo4j or Kafka.
+
+---
+
+## 6. References
 
 Primary sources checked 2026-10-13. Proposed bibliography keys in brackets for `references/bib.yaml`.
 
@@ -240,10 +312,15 @@ Primary sources checked 2026-10-13. Proposed bibliography keys in brackets for `
 | PM4Py | https://pm4py.fit.fraunhofer.de/ | `pm4py` |
 | OpenTofu | https://opentofu.org/ | `opentofu` |
 | OpenBao | https://openbao.org/ | `openbao` |
+| Snowflake SPCS guidelines and limitations | https://docs.snowflake.com/en/developer-guide/snowpark-container-services/spcs-guidelines-and-limitations | `snowflake-spcs-limitations` |
+| Databricks Apps | https://docs.databricks.com/aws/en/dev-tools/databricks-apps/ | `databricks-apps` |
+| Databricks Lakebase Postgres extensions | https://docs.databricks.com/aws/en/oltp/projects/extensions | `databricks-lakebase-extensions` |
+| Snowflake Notebooks container runtime | https://docs.snowflake.com/en/developer-guide/snowflake-ml/notebooks-on-spcs | `snowflake-notebook-container-runtime` |
+| Snowpark Connect for Apache Spark | https://docs.snowflake.com/en/developer-guide/snowpark-connect/snowpark-connect-apache-spark | `snowflake-snowpark-connect-spark` |
 
 ---
 
-## 6. Chapter validation checklist
+## 7. Chapter validation checklist
 
 | Check | Status |
 |---|---|
@@ -255,6 +332,8 @@ Primary sources checked 2026-10-13. Proposed bibliography keys in brackets for `
 | Internal consistency (scenario IDs stable S01–S20) | PASS |
 | Citations present (keys added to `references/bib.yaml`) | PASS |
 | TOC linkage (linked from `SUMMARY.md` and `README.md` as Part VIII) | PASS |
+| Hosting feasibility assessed for every named component | PASS |
+| Components that cannot run on either platform identified | PASS |
 | Editorial (Orbus/Orbus Infinity spelling) | PASS |
 
 **Validation status:** PASS.  
