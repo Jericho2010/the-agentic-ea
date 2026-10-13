@@ -218,3 +218,113 @@
   url: "https://notebooklm.google.com/notebook/cf714601-0f3e-4952-b3b1-11cac07644c5"
   accessed: "2026-10-07"
   tags: [internal, research]
+
+# --- Part VIII: licence-clean replacement options (added 2026-10-13) ---
+
+- id: databricks-lakeflow-servicenow
+  title: "Databricks — Ingest data from ServiceNow (Lakeflow Connect managed connector)"
+  url: "https://docs.databricks.com/aws/en/ingestion/lakeflow-connect/servicenow-pipeline"
+  accessed: "2026-10-13"
+  tags: [databricks, ingestion, servicenow]
+
+- id: databricks-lakeflow-connect
+  title: "Databricks — Lakeflow Connect connector concepts"
+  url: "https://docs.databricks.com/aws/en/ingestion/lakeflow-connect/"
+  accessed: "2026-10-13"
+  tags: [databricks, ingestion]
+
+- id: databricks-lakeflow-sdp
+  title: "Databricks — Spark Declarative Pipelines (formerly Delta Live Tables)"
+  url: "https://docs.databricks.com/aws/en/ldp/"
+  accessed: "2026-10-13"
+  tags: [databricks, orchestration]
+
+- id: databricks-genie-code-v2
+  title: "Databricks — Genie Code"
+  url: "https://docs.databricks.com/aws/en/genie-code/"
+  accessed: "2026-10-13"
+  tags: [databricks, agents]
+
+- id: databricks-agent-bricks
+  title: "Databricks — Develop agents (Agent Bricks)"
+  url: "https://docs.databricks.com/aws/en/agents/"
+  accessed: "2026-10-13"
+  tags: [databricks, agents]
+
+- id: databricks-lakebase
+  title: "Databricks — Lakebase is now Generally Available"
+  url: "https://www.databricks.com/blog/databricks-lakebase-generally-available"
+  accessed: "2026-10-13"
+  tags: [databricks, olap, postgres]
+
+- id: snowflake-servicenow-connector
+  title: "Snowflake — Set up data ingestion for your ServiceNow data"
+  url: "https://docs.snowflake.com/en/connectors/servicenow/ingestion"
+  accessed: "2026-10-13"
+  tags: [snowflake, ingestion, servicenow]
+
+- id: snowflake-horizon-catalog
+  title: "Snowflake — Horizon Catalog"
+  url: "https://docs.snowflake.com/en/user-guide/snowflake-horizon"
+  accessed: "2026-10-13"
+  tags: [snowflake, governance]
+
+- id: snowflake-cortex-agents
+  title: "Snowflake — Cortex Agents"
+  url: "https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents"
+  accessed: "2026-10-13"
+  tags: [snowflake, agents]
+
+- id: snowflake-cowork
+  title: "Snowflake CoWork (formerly Snowflake Intelligence)"
+  url: "https://www.snowflake.com/en/product/snowflake-cowork/"
+  accessed: "2026-10-13"
+  tags: [snowflake, agents]
+
+- id: snowflake-spcs-job
+  title: "Snowflake — Create a Snowpark Container Services Job Service (tutorial)"
+  url: "https://docs.snowflake.com/en/developer-guide/snowpark-container-services/tutorials/tutorial-2"
+  accessed: "2026-10-13"
+  tags: [snowflake, spcs]
+
+- id: cilium-tetragon
+  title: "Tetragon — eBPF-based security observability and runtime enforcement"
+  url: "https://tetragon.io/"
+  accessed: "2026-10-13"
+  tags: [ebpf, security, oss]
+
+- id: syft
+  title: "Anchore Syft — SBOM generation"
+  url: "https://github.com/anchore/syft"
+  accessed: "2026-10-13"
+  tags: [sbom, supply-chain, oss]
+
+- id: opencost
+  title: "OpenCost — open source cost monitoring for Kubernetes"
+  url: "https://www.opencost.io/"
+  accessed: "2026-10-13"
+  tags: [finops, kubernetes, oss]
+
+- id: cloud-carbon-footprint
+  title: "Cloud Carbon Footprint"
+  url: "https://www.cloudcarbonfootprint.org/"
+  accessed: "2026-10-13"
+  tags: [esg, carbon, oss]
+
+- id: pm4py
+  title: "PM4Py — Process Mining for Python"
+  url: "https://pm4py.fit.fraunhofer.de/"
+  accessed: "2026-10-13"
+  tags: [process-mining, oss]
+
+- id: opentofu
+  title: "OpenTofu — open source infrastructure as code (Terraform fork)"
+  url: "https://opentofu.org/"
+  accessed: "2026-10-13"
+  tags: [iac, oss, licence]
+
+- id: openbao
+  title: "OpenBao — open source secrets management (Vault fork)"
+  url: "https://openbao.org/"
+  accessed: "2026-10-13"
+  tags: [secrets, oss, licence]

@@ -89,6 +89,9 @@ Primary navigation for *The Agentic EA*. Prefer this file when jumping between c
 - [C Validation log](docs/08-appendices/validation-log.md)
 - [D Source map](docs/08-appendices/source-map.md)
 
+## Part VIII — Licence-clean replacement options
+- [8.1 Ranked options per scenario (S01–S20)](docs/09-licence-clean-stacks/01-licence-clean-ranked-options.md) — **Table: licence-clean ranked options**
+
 ## Schemas & assets
 - [Archify bridge notes](schemas/archify-bridge.md)
 - [PAM schema sketch](schemas/pam/metamodel.schema.json)

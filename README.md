@@ -83,6 +83,9 @@ Orbus Infinity is the baseline enterprise architecture practice: a governed repo
 - [7.4 Risks & anti-patterns](docs/07-roadmap/04-risks-antipatterns.md)
 - [7.5 Research backlog](docs/07-roadmap/05-research-backlog.md)
 
+### Part VIII — Licence-clean replacement options
+- [8.1 Licence-clean ranked options per scenario (S01–S20)](docs/09-licence-clean-stacks/01-licence-clean-ranked-options.md)
+
 ### Appendices
 - [A Glossary](docs/08-appendices/glossary.md)
 - [B Bibliography](docs/08-appendices/bibliography.md)
