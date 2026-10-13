@@ -91,6 +91,7 @@ Primary navigation for *The Agentic EA*. Prefer this file when jumping between c
 
 ## Part VIII — Licence-clean replacement options
 - [8.1 Ranked options per scenario (S01–S20)](docs/09-licence-clean-stacks/01-licence-clean-ranked-options.md) — **Table: licence-clean ranked options**
+- [8.2 Databricks-hosted reference solution (C1–C15, S01–S20)](docs/09-licence-clean-stacks/02-databricks-reference-solution.md) — **Tables: capability delivery, scenario delivery**
 
 ## Schemas & assets
 - [Archify bridge notes](schemas/archify-bridge.md)

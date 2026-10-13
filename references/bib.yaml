@@ -355,3 +355,27 @@
   url: "https://docs.snowflake.com/en/developer-guide/snowpark-connect/snowpark-connect-apache-spark"
   accessed: "2026-10-13"
   tags: [snowflake, spark]
+
+- id: databricks-bundles
+  title: "Databricks — What are Declarative Automation Bundles?"
+  url: "https://docs.databricks.com/aws/en/dev-tools/bundles/"
+  accessed: "2026-10-13"
+  tags: [databricks, cicd]
+
+- id: databricks-clean-rooms
+  title: "Databricks — What is Databricks Clean Rooms?"
+  url: "https://docs.databricks.com/aws/en/clean-rooms/"
+  accessed: "2026-10-13"
+  tags: [databricks, governance, ma]
+
+- id: databricks-dashboards
+  title: "Databricks — Dashboards (AI/BI)"
+  url: "https://docs.databricks.com/aws/en/dashboards/"
+  accessed: "2026-10-13"
+  tags: [databricks, bi]
+
+- id: databricks-git-folders
+  title: "Databricks — Git folders"
+  url: "https://docs.databricks.com/aws/en/repos/"
+  accessed: "2026-10-13"
+  tags: [databricks, git]
