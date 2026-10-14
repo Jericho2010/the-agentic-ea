@@ -27,44 +27,70 @@ To solve these problems without building a massive proprietary platform, Evo 2 i
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ LAYER 2: USER WORKSPACES                                                    │
-│   • GitHub PR Review Gate (Developers)                                      │
-│   • Backstage Unified Cockpit (Enterprise Architects)                       │
-│   • Databricks AI/BI Dashboards (CIO & Leadership)                          │
-└──────────────────────────────────────┬──────────────────────────────────────┘
-                                       │ Session API / WebSockets
-┌──────────────────────────────────────▼──────────────────────────────────────┐
-│ LAYER 3: THE AGENT RUNTIME FABRIC (Evo 2)                                   │
-│                                                                             │
-│  ┌───────────────────────────────────────────────────────────────────────┐  │
-│  │ OMNIGENT: Management & Governance Control Plane                       │  │
-│  │  • Enforces spending limits and token quotas per team                 │  │
-│  │  • Filters out sensitive personal data and secrets before API calls   │  │
-│  │  • Generates secure URLs for live browser-based collaboration         │  │
-│  │  • Manages operating system sandboxes (Bubblewrap / Seccomp)          │  │
-│  └───────────────────────────────────┬───────────────────────────────────┘  │
-│                                      │ Dispatches & Observes                 │
-│  ┌───────────────────────────────────▼───────────────────────────────────┐  │
-│  │ HERDR: Terminal Multiplexer & Process Manager (HERDR_ENV=1)           │  │
-│  │  • Manages real terminal sessions (workspaces, tabs, and panes)       │  │
-│  │  • Automatically detects agent status (Working, Blocked, Done, Idle)  │  │
-│  │  • Handles safe text pasting and keyboard input                       │  │
-│  │  • Creates disposable Git worktree folders for clean parallel tasks   │  │
-│  └───────────────────────────────────┬───────────────────────────────────┘  │
-│                                      │ Supervised Execution                  │
-│  ┌───────────────────────────────────▼───────────────────────────────────┐  │
-│  │ AUTONOMOUS AGENT WORKERS (Running Inside Sandboxes)                   │  │
-│  │  • ARB Reviewer Agent (Checks pull requests against PAM rules)        │  │
-│  │  • Cartographer Agent (Discovers code, cloud assets, and pipelines)   │  │
-│  │  • Strategic Copilot Agent (Runs What-If simulations & drafts ADRs)   │  │
-│  └───────────────────────────────────────────────────────────────────────┘  │
-└──────────────────────────────────────┬──────────────────────────────────────┘
-                                       │ Read / Write Knowledge Graph
-┌──────────────────────────────────────▼──────────────────────────────────────┐
-│ LAYER 4: DATABRICKS ENTERPRISE DATA BACKBONE                                │
-│   • Unity Catalog (PAM Delta Tables: nodes, edges, evidence)                │
-│   • Lakebase Managed PostgreSQL (Backstage software catalog)                │
-│   • Gold Scenario Marts (Pre-computed TIME, EOL, and FinOps analytics)      │
-└─────────────────────────────────────────────────────────────────────────────┘
+> **Interactive Architecture Diagram (Archify Showcase):** The full interactive diagram is compiled at [`assets/diagrams/agent-runtime-fabric.html`](../../assets/diagrams/agent-runtime-fabric.html). You can inspect the standalone vector render at [`assets/diagrams/agent-runtime-fabric.svg`](../../assets/diagrams/agent-runtime-fabric.svg) and the machine-readable model at [`assets/diagrams/agent-runtime-fabric.json`](../../assets/diagrams/agent-runtime-fabric.json).
+
+```mermaid
+flowchart TD
+  subgraph humans [Layer 1: Human Stakeholders (Part 9)]
+    Dev[Software Engineer<br/><i>Code & IaC Author</i>]
+    EA[Enterprise Architect<br/><b>Primary User: Editor-in-Chief</b>]
+    CIO[CIO & Tech Leadership<br/><i>Portfolio & Risk Decisions</i>]
+  end
+
+  subgraph workspaces [Layer 2: The 3 User Workspaces (Part 9)]
+    PR[GitHub PR Review Gate<br/><i>Developer In-Flow & ARB Bot</i>]
+    BS[Backstage Unified Cockpit<br/><i>Databricks Apps • Maps & Copilot</i>]
+    Dash[Databricks AI/BI<br/><i>TIME Matrix & FinOps Metrics</i>]
+  end
+
+  subgraph fabric [Layer 3: Evo 2 Agent Runtime Fabric]
+    Omni[Omnigent Control Plane<br/><i>Spend Caps • PII Filters • Sandboxes</i>]
+    Herdr[Herdr Terminal Multiplexer<br/><i>PTY Panes • Worktrees • State Tracking</i>]
+  end
+
+  subgraph agents [Layer 4: Autonomous Agent Workforce & AI Engines]
+    Arch[Archify Visualizer<br/><i>SVG Compiler & Living Maps</i>]
+    ARB[ARB Reviewer Agent<br/><i>Pre-Merge Compliance Checks</i>]
+    LLM[Tri-Modal LLM Engine<br/><i>A: Mosaic | B: API | C: CLI</i>]
+    Copilot[Strategic Copilot Agent<br/><i>What-If Blast Radius & ADRs</i>]
+    Carto[Cartographer Agent<br/><i>AST & Cloud Auto-Discovery</i>]
+  end
+
+  subgraph backbone [Layer 5: Databricks Enterprise Data Backbone (Part 9)]
+    LB[(Lakebase PostgreSQL<br/><i>Operational Catalog DB</i>)]
+    PAM[(Unity Catalog PAM<br/><i>Nodes, Edges, Evidence</i>)]
+    Gold[(Gold Scenario Marts<br/><i>TIME, EOL & Drift Marts</i>)]
+  end
+
+  %% Human to Workspaces
+  Dev -->|submits PRs & code| PR
+  EA ==>|steers architecture & waivers| BS
+  CIO -->|monitors portfolio health| Dash
+
+  %% Workspaces to Runtime Fabric
+  PR -->|PR review webhook| Omni
+  BS ==>|live session stream URL| Omni
+  Omni -->|dispatches sandboxed PTYs| Herdr
+
+  %% Herdr to Agents
+  Herdr -->|spawns PR review pane| ARB
+  Herdr -->|spawns Copilot PTY pane| Copilot
+  Herdr -->|parallel worktree fleet| Carto
+
+  %% Agent Collaborations
+  ARB -->|delta JSON| Arch
+  Arch ==>|attaches visual diff SVG| PR
+  Arch -->|embeds living maps| BS
+  ARB -.->|reasoning critique| LLM
+  Copilot -->|synthesis query| LLM
+
+  %% Data Backbone Operations
+  Carto -.->|atomic Delta merge| PAM
+  PAM -->|graph blast-radius query| Copilot
+  PAM -->|syncs active nodes| LB
+  LB -->|powers software catalog| BS
+  PAM -->|builds scenario marts| Gold
+  Gold -->|powers executive metrics| Dash
 ```
 
 ---
