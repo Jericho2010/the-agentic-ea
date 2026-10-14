@@ -114,51 +114,73 @@ Replace legacy, passive EA repositories (e.g., Orbus Infinity) with an active, c
 
 ### 4.0 Subsystem Architecture Blueprint (Archify Showcase)
 
-The architectural relationships, security boundaries, and data contracts across all five subsystems are formally compiled into a validated, interactive Archify architecture specification:
+To address real-world usability, the platform architecture explicitly defines where and how human stakeholders interact with the autonomous system across four distinct **User Interaction Surfaces (The 4 Cockpits)**, powered by the **Agent Workforce** and anchored in the **Databricks Enterprise Data Backbone**:
 
-> **Interactive Visualization:** The complete interactive architecture diagram is compiled at [`assets/diagrams/subsystems-architecture.html`](../../assets/diagrams/subsystems-architecture.html). It provides click-to-trace relationship routing, boundary security groups, and subsystem summary cards with zero manual diagramming.
+1. **Human Personas & Roles:**
+   - **Enterprise Architect (Primary User / Editor-in-Chief):** Steers enterprise strategy, reviews living architecture topologies in Backstage, triages waiver requests, and uses natural-language Copilot for what-if scenarios and automated ADR drafting.
+   - **Software Engineer (Code & IaC Author):** Works entirely where code lives (GitHub PRs), receiving instant visual architecture diffs and automated ARB compliance feedback within seconds of opening a PR.
+   - **CIO & Tech Leadership (Executive Decision-Maker):** Tracks real-time portfolio health, technical debt, and cloud FinOps via Databricks AI/BI dashboards, and queries strategic risk via conversational Copilot.
+
+2. **The 4 User Interaction Cockpits:**
+   - **GitHub PR Interface (Governance Cockpit):** Zero-meeting ARB review gate that inspects incoming IaC/code changes and comments with interactive visual diff SVGs.
+   - **Backstage Portal (Daily EA Cockpit):** Hosted directly inside **Databricks Apps**, providing living capability maps, searchable software catalogs, and an action inbox for pending waivers.
+   - **Agent Copilot Chat (Conversational Terminal):** Natural-language interface for EA and leadership to run blast-radius simulations, query system dependencies, and synthesize decision records.
+   - **Databricks AI/BI (Executive Intelligence):** Executive reporting suite visualizing TIME disposition, EOL components, and cloud cost trajectories directly from Gold data marts.
+
+> **Interactive Visualization & Visual Diff:** The full interactive diagram is compiled at [`assets/diagrams/subsystems-architecture.html`](../../assets/diagrams/subsystems-architecture.html). You can also inspect the standalone vector render at [`assets/diagrams/subsystems-architecture.svg`](../../assets/diagrams/subsystems-architecture.svg) and the raw candidate model at [`assets/diagrams/subsystems-architecture.json`](../../assets/diagrams/subsystems-architecture.json).
 
 ```mermaid
 flowchart TD
-  subgraph gh [GitHub Platform: Intent & CI Governance]
-    PR[Developer PR]
-    Schemas[PAM Schemas JSON Schema]
-    Gate[ARB Review Gate Action]
-    Eval[Tri-Modal Evaluator]
-    Carto[Cartographer Sweep]
+  subgraph humans [Layer 1: Human Users & Stakeholders]
+    Dev[Software Engineer<br/><i>Code & IaC Author</i>]
+    EA[Enterprise Architect<br/><b>Primary User: Editor-in-Chief</b>]
+    CIO[CIO & Tech Leadership<br/><i>Portfolio & Risk Decisions</i>]
   end
 
-  subgraph prov [Tri-Modal Provider Options]
-    Mosaic[Option A: Databricks Mosaic AI Model Serving]
-    ExtAPI[Option B: External Managed LLM API]
-    SubCLI[Option C: Headless Subscription CLI agy/cursor]
+  subgraph cockpits [Layer 2: User Interaction Surfaces — The 4 Cockpits]
+    PR[GitHub PR Interface<br/><i>Zero-Meeting ARB Reviews</i>]
+    BS[Backstage Cockpit<br/><i>Living Maps & Action Inbox</i>]
+    Chat[Agent Copilot Chat<br/><i>Natural Language Terminal</i>]
+    Dash[Databricks AI/BI<br/><i>TIME Matrix & FinOps</i>]
   end
 
-  subgraph arch [Archify Visual Engine]
-    Bridge[PAM Archify Bridge]
-    ArchCLI[Archify Engine CLI]
+  subgraph agents [Layer 3: Autonomous Agent Workforce & Visualizer]
+    ARB[ARB Reviewer Agent<br/><i>Pre-Merge Compliance Checks</i>]
+    Arch[Archify Visualizer<br/><i>SVG Compiler & Living Maps</i>]
+    Copilot[Strategic Copilot Agent<br/><i>What-If & ADR Synthesis</i>]
+    LLM[Tri-Modal LLM Engine<br/><i>A: Mosaic | B: API | C: CLI</i>]
   end
 
-  subgraph dbx [Databricks Workspace: Data Backbone & Apps]
-    UC[(Unity Catalog: ea.metamodel & ea.gold)]
-    LB[(Lakebase Managed PostgreSQL: ea_operational)]
-    BS[Backstage Portal: Databricks Apps Node.js 20]
+  subgraph backbone [Layer 4: Databricks Enterprise Data & Storage Backbone]
+    Carto[Cartographer Agent<br/><i>AST & Cloud Discovery</i>]
+    LB[(Lakebase PostgreSQL<br/><i>Operational Catalog DB</i>)]
+    PAM[(Unity Catalog PAM<br/><i>Nodes, Edges, Evidence</i>)]
+    Gold[(Gold Scenario Marts<br/><i>TIME, EOL & Drift</i>)]
   end
 
-  PR -->|triggers review| Gate
-  Gate -->|validates| Schemas
-  Gate -->|invokes| Eval
-  Eval -.->|Option A (Prod)| Mosaic
-  Eval -.->|Option B (API)| ExtAPI
-  Eval -.->|Option C ($0 Demo)| SubCLI
-  Eval -->|emits delta JSON| ArchCLI
-  ArchCLI -->|visual diff SVG| Gate
-  Carto -.->|lands raw metadata| UC
-  UC -->|SCD2 sync| LB
-  LB -->|SQL query active_nodes| BS
-  UC -->|subgraph query| Bridge
-  Bridge -->|typed JSON| ArchCLI
-  ArchCLI -->|embeds interactive SVG| BS
+  %% Human to Cockpit interactions
+  Dev -->|submits PR| PR
+  EA ==>|browses living maps & alerts| BS
+  EA -->|asks What-If & drafts ADRs| Chat
+  CIO -->|monitors portfolio health| Dash
+  CIO -->|queries risk in plain text| Chat
+
+  %% Cockpit to Agent interactions
+  PR -->|invokes review gate| ARB
+  ARB -->|delta JSON| Arch
+  Arch ==>|attaches visual diff SVG| PR
+  Chat -->|natural language request| Copilot
+  ARB -.->|reasoning critique| LLM
+  Copilot -->|synthesis query| LLM
+
+  %% Data Backbone & Services
+  Carto -.->|continuous discovery| PAM
+  PAM -->|syncs active nodes| LB
+  LB -->|powers software catalog| BS
+  PAM -->|graph blast-radius query| Copilot
+  PAM -->|subgraph export| Arch
+  Arch -->|embeds interactive maps| BS
+  Gold -->|powers executive metrics| Dash
 ```
 
 ---

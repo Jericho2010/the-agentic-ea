@@ -1,7 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 1334 572" role="img" lang="en" aria-labelledby="archify-diagram-title archify-diagram-description" data-preset="classic" data-quality-profile="showcase" data-reader-fit="intrinsic-height" data-reader-min-text="7.5" data-reader-primary-text="14">
-        <title id="archify-diagram-title">Agentic EA Platform Subsystems &amp; Data Contracts</title>
-        <desc id="archify-diagram-description">Closed-loop architecture connecting GitHub, Databricks, Backstage, Archify, and CI Agents</desc>
+<svg viewBox="0 0 1120 742" role="img" lang="en" aria-labelledby="archify-diagram-title archify-diagram-description" data-preset="classic" data-quality-profile="showcase" data-reader-fit="intrinsic-height" data-reader-min-text="7.5" data-reader-primary-text="14">
+        <title id="archify-diagram-title">Agentic EA Platform — User Interaction &amp; Subsystem Blueprint</title>
+        <desc id="archify-diagram-description">How Enterprise Architects, Engineers, and Leaders interact with the Agentic Solution</desc>
         <!-- Definitions -->
         <defs>
           <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
@@ -25,347 +24,397 @@
         <rect width="100%" height="100%" fill="url(#grid)" />
 
         <!-- Boundaries (behind everything) -->
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="0" data-composition-frame-label="GitHub: Intent, Schemas &amp; CI Governance" x="10" y="120" width="450" height="380" rx="12" class="c-region" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="0" data-composition-frame-label="Human Users &amp; Stakeholders" x="20" y="20" width="1060" height="110" rx="12" class="c-region" stroke-width="1"/>
 
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="security-group" data-composition-frame-id="1" data-composition-frame-label="Tri-Modal Provider Options" x="520" y="120" width="210" height="370" rx="8" class="c-security-group" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="1" data-composition-frame-label="User Interaction Surfaces (The 4 Cockpits)" x="20" y="200" width="1060" height="110" rx="12" class="c-region" stroke-width="1"/>
 
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="2" data-composition-frame-label="Archify Visual Engine" x="790" y="120" width="200" height="240" rx="12" class="c-region" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="security-group" data-composition-frame-id="2" data-composition-frame-label="Autonomous Agentic Workforce &amp; Visualizer" x="20" y="380" width="1060" height="110" rx="8" class="c-security-group" stroke-width="1"/>
 
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="3" data-composition-frame-label="Databricks Workspace: Enterprise Data Backbone &amp; Apps" x="520" y="108" width="740" height="392" rx="12" class="c-region" stroke-width="1"/>
-
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="security-group" data-composition-frame-id="4" data-composition-frame-label="Databricks Apps Isolation (Node.js 20)" x="1047.8864402129032" y="390" width="214.22711957419352" height="110" rx="8" class="c-security-group" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="3" data-composition-frame-label="Databricks Enterprise Data &amp; Storage Backbone" x="290" y="560" width="790" height="110" rx="12" class="c-region" stroke-width="1"/>
 
         <!-- Connection paths (before components for correct z-order) -->
         <g data-graph-role="automatic-crossover" style="--step:0">
-          <path data-graph-role="automatic-crossover-underlay" d="M 170 171.95 L 290 171.95" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="dev_pr" data-edge-to="ci_arb_gate" data-edge-label="triggers review" data-edge-key="0" data-edge-id="c-pr-to-gate" data-composition-points="170,171.95;290,171.95" data-composition-crossover="halo" data-composition-independent="true" d="M 170 171.95 L 290 171.95" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 130 110 L 130 230" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="user_dev" data-edge-to="ui_github_pr" data-edge-label="submits PR" data-edge-key="0" data-edge-id="c-dev-to-pr" data-composition-points="130,110;130,230" data-composition-crossover="halo" data-composition-independent="true" d="M 130 110 L 130 230" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:1">
-          <path data-graph-role="automatic-crossover-underlay" d="M 290 187 L 238 187 Q 230 187 230 195 L 230 302 Q 230 310 222 310 L 170 310" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="ci_arb_gate" data-edge-to="pam_schemas" data-edge-label="validates" data-edge-key="1" data-edge-id="c-gate-to-schemas" data-composition-points="290,187;230,187;230,310;170,310" data-composition-crossover="halo" data-composition-independent="true" d="M 290 187 L 238 187 Q 230 187 230 195 L 230 302 Q 230 310 222 310 L 170 310" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 405 110 L 405 230" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="user_ea" data-edge-to="ui_backstage" data-edge-label="browses living maps &amp; alerts" data-edge-key="1" data-edge-id="c-ea-to-backstage" data-composition-points="405,110;405,230" data-composition-crossover="halo" data-composition-independent="true" d="M 405 110 L 405 230" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:2">
-          <path data-graph-role="automatic-crossover-underlay" d="M 346 210 L 346 280" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="ci_arb_gate" data-edge-to="arb_evaluator" data-edge-label="invokes" data-edge-key="2" data-edge-id="c-gate-to-evaluator" data-composition-points="346,210;346,280" data-composition-crossover="halo" data-composition-independent="true" d="M 346 210 L 346 280" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 490 80 L 670 80 Q 678 80 678 88 L 678 230" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="user_ea" data-edge-to="ui_copilot" data-edge-label="asks What-If &amp; drafts ADRs" data-edge-key="2" data-edge-id="c-ea-to-copilot" data-composition-points="490,80;678,80;678,230" data-composition-crossover="halo" data-composition-independent="true" d="M 490 80 L 670 80 Q 678 80 678 88 L 678 230" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:3">
-          <path data-graph-role="automatic-crossover-underlay" d="M 360 280 L 360 253 Q 360 245 368 245 L 617 245 Q 625 245 625 237 L 625 210" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="arb_evaluator" data-edge-to="mosaic_serving" data-edge-label="Option A (Prod)" data-edge-key="3" data-edge-id="c-eval-to-mosaic" data-composition-points="360,280;360,245;625,245;625,210" data-composition-crossover="halo" data-composition-independent="true" d="M 360 280 L 360 253 Q 360 245 368 245 L 617 245 Q 625 245 625 237 L 625 210" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 965 110 L 965 230" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="user_cio" data-edge-to="ui_dashboards" data-edge-label="monitors portfolio health" data-edge-key="3" data-edge-id="c-cio-to-dashboards" data-composition-points="965,110;965,230" data-composition-crossover="halo" data-composition-independent="true" d="M 965 110 L 965 230" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:4">
-          <path data-graph-role="automatic-crossover-underlay" d="M 430 303 L 550 303" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="arb_evaluator" data-edge-to="ext_llm_api" data-edge-label="Option B (API)" data-edge-key="4" data-edge-id="c-eval-to-ext" data-composition-points="430,303;550,303" data-composition-crossover="halo" data-composition-independent="true" d="M 430 303 L 550 303" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 880 80 L 700 80 Q 692 80 692 88 L 692 230" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="user_cio" data-edge-to="ui_copilot" data-edge-label="queries risk in plain language" data-edge-key="4" data-edge-id="c-cio-to-copilot" data-composition-points="880,80;692,80;692,230" data-composition-crossover="halo" data-composition-independent="true" d="M 880 80 L 700 80 Q 692 80 692 88 L 692 230" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:5">
-          <path data-graph-role="automatic-crossover-underlay" d="M 430 317 L 482 317 Q 490 317 490 325 L 490 432 Q 490 440 498 440 L 550 440" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="arb_evaluator" data-edge-to="sub_agent_cli" data-edge-label="Option C ($0 Demo)" data-edge-key="5" data-edge-id="c-eval-to-sub" data-composition-points="430,317;490,317;490,440;550,440" data-composition-crossover="halo" data-composition-independent="true" d="M 430 317 L 482 317 Q 490 317 490 325 L 490 432 Q 490 440 498 440 L 550 440" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 121.95 290 L 121.95 410" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="ui_github_pr" data-edge-to="agent_arb" data-edge-label="invokes review gate" data-edge-key="5" data-edge-id="c-pr-to-arb" data-composition-points="121.95,290;121.95,410" data-composition-crossover="halo" data-composition-independent="true" d="M 121.95 290 L 121.95 410" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:6">
-          <path data-graph-role="automatic-crossover-underlay" d="M 374 280 L 374 264 Q 374 256 382 256 L 875 256 Q 883 256 883 248 L 883 210" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="arb_evaluator" data-edge-to="archify_cli" data-edge-label="delta JSON" data-edge-key="6" data-edge-id="c-eval-to-archify" data-composition-points="374,280;374,256;883,256;883,210" data-composition-crossover="halo" data-composition-independent="true" d="M 374 280 L 374 264 Q 374 256 382 256 L 875 256 Q 883 256 883 248 L 883 210" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 210 433 L 226 433 Q 234 433 234 441 L 234 456.05 Q 234 464.05 242 464.05 L 288 464.05 Q 296 464.05 296 456.05 L 296 456.05 Q 296 448.05 304 448.05 L 320 448.05" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="agent_arb" data-edge-to="archify_engine" data-edge-label="delta JSON" data-edge-key="6" data-edge-id="c-arb-to-archify" data-composition-points="210,433;234,433;234,464.05;296,464.05;296,448.05;320,448.05" data-composition-crossover="halo" data-composition-independent="true" d="M 210 433 L 226 433 Q 234 433 234 441 L 234 456.05 Q 234 464.05 242 464.05 L 288 464.05 Q 296 464.05 296 456.05 L 296 456.05 Q 296 448.05 304 448.05 L 320 448.05" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:7">
-          <path data-graph-role="automatic-crossover-underlay" d="M 820 180 L 711 180 Q 703 180 703 172 L 703 154.95 Q 703 146.95 695 146.95 L 462 146.95 Q 454 146.95 454 154.95 L 454 172 Q 454 180 446 180 L 430 180" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="archify_cli" data-edge-to="ci_arb_gate" data-edge-label="visual diff SVG" data-edge-key="7" data-edge-id="c-archify-to-gate" data-composition-points="820,180;703,180;703,146.95;454,146.95;454,180;430,180" data-composition-crossover="halo" data-composition-independent="true" d="M 820 180 L 711 180 Q 703 180 703 172 L 703 154.95 Q 703 146.95 695 146.95 L 462 146.95 Q 454 146.95 454 154.95 L 454 172 Q 454 180 446 180 L 430 180" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 320 433 L 274.6 433 Q 266.6 433 266.6 425 L 266.6 322 Q 266.6 314 258.6 314 L 145 314 Q 137 314 137 306 L 137 290" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="archify_engine" data-edge-to="ui_github_pr" data-edge-label="attaches visual diff SVG" data-edge-key="7" data-edge-id="c-archify-to-pr" data-composition-points="320,433;266.6,433;266.6,314;137,314;137,290" data-composition-crossover="halo" data-composition-independent="true" d="M 320 433 L 274.6 433 Q 266.6 433 266.6 425 L 266.6 322 Q 266.6 314 258.6 314 L 145 314 Q 137 314 137 306 L 137 290" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:8">
-          <path data-graph-role="automatic-crossover-underlay" d="M 105 480 L 105 496 Q 105 504 113 504 L 790 504 Q 798 504 798 496 L 798 372 Q 798 364 806 364 L 1147 364 Q 1155 364 1155 356 L 1155 340" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="ci_cartographer" data-edge-to="uc_metamodel" data-edge-label="lands raw metadata" data-edge-key="8" data-edge-id="c-carto-to-uc" data-composition-points="105,480;105,504;798,504;798,364;1155,364;1155,340" data-composition-crossover="halo" data-composition-independent="true" d="M 105 480 L 105 496 Q 105 504 113 504 L 790 504 Q 798 504 798 496 L 798 372 Q 798 364 806 364 L 1147 364 Q 1155 364 1155 356 L 1155 340" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 685 290 L 685 410" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="ui_copilot" data-edge-to="agent_copilot_core" data-edge-label="natural language request" data-edge-key="8" data-edge-id="c-copilot-to-core" data-composition-points="685,290;685,410" data-composition-crossover="halo" data-composition-independent="true" d="M 685 290 L 685 410" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:9">
-          <path data-graph-role="automatic-crossover-underlay" d="M 1080 317 L 1028 317 Q 1020 317 1020 325 L 1020 435 Q 1020 443 1012 443 L 960 443" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="uc_metamodel" data-edge-to="lakebase_pg" data-edge-label="SCD2 sync" data-edge-key="9" data-edge-id="c-uc-to-lakebase" data-composition-points="1080,317;1020,317;1020,443;960,443" data-composition-crossover="halo" data-composition-independent="true" d="M 1080 317 L 1028 317 Q 1020 317 1020 325 L 1020 435 Q 1020 443 1012 443 L 960 443" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 210 447 L 274 447 Q 282 447 282 439 L 282 415 Q 282 407 290 407 L 848 407 Q 856 407 856 415 L 856 425 Q 856 433 864 433 L 880 433" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="agent_arb" data-edge-to="tri_modal_llm" data-edge-label="reasoning critique" data-edge-key="9" data-edge-id="c-arb-to-llm" data-composition-points="210,447;282,447;282,407;856,407;856,433;880,433" data-composition-crossover="halo" data-composition-independent="true" d="M 210 447 L 274 447 Q 282 447 282 439 L 282 415 Q 282 407 290 407 L 848 407 Q 856 407 856 415 L 856 425 Q 856 433 864 433 L 880 433" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:10">
-          <path data-graph-role="automatic-crossover-underlay" d="M 960 457 L 1080 457" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="lakebase_pg" data-edge-to="backstage_app" data-edge-label="pg query (active_nodes)" data-edge-key="10" data-edge-id="c-lakebase-to-backstage" data-composition-points="960,457;1080,457" data-composition-crossover="halo" data-composition-independent="true" d="M 960 457 L 1080 457" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 770 447 L 880 447" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="agent_copilot_core" data-edge-to="tri_modal_llm" data-edge-label="synthesis query" data-edge-key="10" data-edge-id="c-copilot-to-llm" data-composition-points="770,447;880,447" data-composition-crossover="halo" data-composition-independent="true" d="M 770 447 L 880 447" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:11">
-          <path data-graph-role="automatic-crossover-underlay" d="M 1080 303 L 960 303" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="uc_metamodel" data-edge-to="pam_bridge" data-edge-label="subgraph query" data-edge-key="11" data-edge-id="c-uc-to-bridge" data-composition-points="1080,303;960,303" data-composition-crossover="halo" data-composition-independent="true" d="M 1080 303 L 960 303" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 130 650 L 130 666 Q 130 674 138 674 L 677 674 Q 685 674 685 666 L 685 650" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="agent_cartographer" data-edge-to="uc_pam_graph" data-edge-label="continuous auto-discovery" data-edge-key="11" data-edge-id="c-carto-to-pam" data-composition-points="130,650;130,674;685,674;685,650" data-composition-crossover="halo" data-composition-independent="true" d="M 130 650 L 130 666 Q 130 674 138 674 L 677 674 Q 685 674 685 666 L 685 650" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:12">
-          <path data-graph-role="automatic-crossover-underlay" d="M 897 280 L 897 210" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="pam_bridge" data-edge-to="archify_cli" data-edge-label="typed JSON" data-edge-key="12" data-edge-id="c-bridge-to-archify" data-composition-points="897,280;897,210" data-composition-crossover="halo" data-composition-independent="true" d="M 897 280 L 897 210" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 600 627 L 490 627" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="uc_pam_graph" data-edge-to="lakebase_pg" data-edge-label="syncs active nodes" data-edge-key="12" data-edge-id="c-pam-to-lakebase" data-composition-points="600,627;490,627" data-composition-crossover="halo" data-composition-independent="true" d="M 600 627 L 490 627" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:13">
-          <path data-graph-role="automatic-crossover-underlay" d="M 960 180 L 1225 180 Q 1233 180 1233 188 L 1233 388 Q 1233 396 1225 396 L 1163 396 Q 1155 396 1155 404 L 1155 420" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="archify_cli" data-edge-to="backstage_app" data-edge-label="embeds interactive view" data-edge-key="13" data-edge-id="c-archify-to-backstage" data-composition-points="960,180;1233,180;1233,396;1155,396;1155,420" data-composition-crossover="halo" data-composition-independent="true" d="M 960 180 L 1225 180 Q 1233 180 1233 188 L 1233 388 Q 1233 396 1225 396 L 1163 396 Q 1155 396 1155 404 L 1155 420" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 405 590 L 405 481 Q 405 473 397 473 L 325 473 Q 317 473 317 465 L 317 370 Q 317 362 325 362 L 404 362 Q 412 362 412 354 L 412 290" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="lakebase_pg" data-edge-to="ui_backstage" data-edge-label="powers software catalog" data-edge-key="13" data-edge-id="c-lakebase-to-backstage" data-composition-points="405,590;405,473;317,473;317,362;412,362;412,290" data-composition-crossover="halo" data-composition-independent="true" d="M 405 590 L 405 481 Q 405 473 397 473 L 325 473 Q 317 473 317 465 L 317 370 Q 317 362 325 362 L 404 362 Q 412 362 412 354 L 412 290" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        </g>
+        <g data-graph-role="automatic-crossover" style="--step:14">
+          <path data-graph-role="automatic-crossover-underlay" d="M 685 590 L 685 470" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="uc_pam_graph" data-edge-to="agent_copilot_core" data-edge-label="graph blast-radius query" data-edge-key="14" data-edge-id="c-pam-to-copilot" data-composition-points="685,590;685,470" data-composition-crossover="halo" data-composition-independent="true" d="M 685 590 L 685 470" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        </g>
+        <g data-graph-role="automatic-crossover" style="--step:15">
+          <path data-graph-role="automatic-crossover-underlay" d="M 671 590 L 671 574 Q 671 566 663 566 L 522 566 Q 514 566 514 558 L 514 448 Q 514 440 506 440 L 490 440" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="uc_pam_graph" data-edge-to="archify_engine" data-edge-label="subgraph export" data-edge-key="15" data-edge-id="c-pam-to-archify" data-composition-points="671,590;671,566;514,566;514,440;490,440" data-composition-crossover="halo" data-composition-independent="true" d="M 671 590 L 671 574 Q 671 566 663 566 L 522 566 Q 514 566 514 558 L 514 448 Q 514 440 506 440 L 490 440" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        </g>
+        <g data-graph-role="automatic-crossover" style="--step:16">
+          <path data-graph-role="automatic-crossover-underlay" d="M 398 410 L 398 290" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="archify_engine" data-edge-to="ui_backstage" data-edge-label="embeds interactive maps" data-edge-key="16" data-edge-id="c-archify-to-backstage" data-composition-points="398,410;398,290" data-composition-crossover="halo" data-composition-independent="true" d="M 398 410 L 398 290" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        </g>
+        <g data-graph-role="automatic-crossover" style="--step:17">
+          <path data-graph-role="automatic-crossover-underlay" d="M 965 590 L 965 481 Q 965 473 973 473 L 1045 473 Q 1053 473 1053 465 L 1053 322 Q 1053 314 1045 314 L 973 314 Q 965 314 965 306 L 965 290" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="uc_gold_marts" data-edge-to="ui_dashboards" data-edge-label="powers executive metrics" data-edge-key="17" data-edge-id="c-gold-to-dashboards" data-composition-points="965,590;965,473;1053,473;1053,314;965,314;965,290" data-composition-crossover="halo" data-composition-independent="true" d="M 965 590 L 965 481 Q 965 473 973 473 L 1045 473 Q 1053 473 1053 465 L 1053 322 Q 1053 314 1045 314 L 973 314 Q 965 314 965 306 L 965 290" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
 
         <!-- Components -->
-        <g id="node-dev_pr" data-node-id="dev_pr" data-node-label="Developer PR" tabindex="0" role="button" aria-label="Focus Developer PR, Branch / ADR / IaC, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="Branch / ADR / IaC" data-node-context="Architecture component">
-          <title>Developer PR · Branch / ADR / IaC · Architecture component</title>
-          <rect x="40" y="150" width="130" height="60" rx="6" class="c-mask"/>
-          <rect x="40" y="150" width="130" height="60" rx="6" class="c-external" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(46 156) scale(0.6875)">
-            <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
-            <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
+        <g id="node-user_dev" data-node-id="user_dev" data-node-label="Software Engineer" tabindex="0" role="button" aria-label="Focus Software Engineer, Code &amp; IaC Author, Human Users &amp; Stakeholders" aria-pressed="false" data-node-kind="external" data-node-sublabel="Code &amp; IaC Author" data-node-context="Human Users &amp; Stakeholders">
+          <title>Software Engineer · Code &amp; IaC Author · Human Users &amp; Stakeholders</title>
+          <rect x="50" y="50" width="160" height="60" rx="6" class="c-mask"/>
+          <rect x="50" y="50" width="160" height="60" rx="6" class="c-external" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="person" class="semantic-sigil s-external" transform="translate(56 56) scale(0.6875)">
+            <circle cx="8" cy="4.5" r="2.5"/><path d="M3 14v-2a5 5 0 0 1 10 0v2"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="105" y="178" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Developer PR</text>
-        <text data-detail="context" x="105" y="194" class="t-muted" font-size="9" text-anchor="middle">Branch / ADR / IaC</text>
+          <text data-node-label="" data-detail-anchor="" x="130" y="78" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Software Engineer</text>
+        <text data-detail="context" x="130" y="94" class="t-muted" font-size="9" text-anchor="middle">Code &amp; IaC Author</text>
         </g>
 
-        <g id="node-pam_schemas" data-node-id="pam_schemas" data-node-label="PAM Schemas" tabindex="0" role="button" aria-label="Focus PAM Schemas, JSON Schema (Draft-07), GitHub: Intent, Schemas &amp; CI Governance" aria-pressed="false" data-node-kind="security" data-node-sublabel="JSON Schema (Draft-07)" data-node-tag="Contracts" data-node-context="GitHub: Intent, Schemas &amp; CI Governance">
-          <title>PAM Schemas · JSON Schema (Draft-07) · GitHub: Intent, Schemas &amp; CI Governance · Contracts</title>
-          <rect x="40" y="280" width="130" height="60" rx="6" class="c-mask"/>
-          <rect x="40" y="280" width="130" height="60" rx="6" class="c-security" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(46 286) scale(0.6875)">
-            <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
-            <path d="m5.8 8 1.5 1.5 3-3"/>
+        <g id="node-user_ea" data-node-id="user_ea" data-node-label="Enterprise Architect" tabindex="0" role="button" aria-label="Focus Enterprise Architect, Editor-in-Chief &amp; Strategy, Human Users &amp; Stakeholders" aria-pressed="false" data-node-kind="external" data-node-sublabel="Editor-in-Chief &amp; Strategy" data-node-tag="Primary User" data-node-context="Human Users &amp; Stakeholders">
+          <title>Enterprise Architect · Editor-in-Chief &amp; Strategy · Human Users &amp; Stakeholders · Primary User</title>
+          <rect x="320" y="50" width="170" height="60" rx="6" class="c-mask"/>
+          <rect x="320" y="50" width="170" height="60" rx="6" class="c-external" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="person" class="semantic-sigil s-external" transform="translate(326 56) scale(0.6875)">
+            <circle cx="8" cy="4.5" r="2.5"/><path d="M3 14v-2a5 5 0 0 1 10 0v2"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="105" y="308" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">PAM Schemas</text>
-        <text data-detail="context" x="105" y="324" class="t-muted" font-size="9" text-anchor="middle">JSON Schema (Draft-07)</text>
-        <text data-detail="fine" x="105" y="332" class="t-security" font-size="7" text-anchor="middle">Contracts</text>
+          <text data-node-label="" data-detail-anchor="" x="405" y="78" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Enterprise Architect</text>
+        <text data-detail="context" x="405" y="94" class="t-muted" font-size="9" text-anchor="middle">Editor-in-Chief &amp; Strategy</text>
+        <text data-detail="fine" x="405" y="102" class="t-external" font-size="7" text-anchor="middle">Primary User</text>
         </g>
 
-        <g id="node-ci_cartographer" data-node-id="ci_cartographer" data-node-label="Cartographer Sweep" tabindex="0" role="button" aria-label="Focus Cartographer Sweep, AST &amp; IaC Discovery, GitHub: Intent, Schemas &amp; CI Governance" aria-pressed="false" data-node-kind="backend" data-node-sublabel="AST &amp; IaC Discovery" data-node-context="GitHub: Intent, Schemas &amp; CI Governance">
-          <title>Cartographer Sweep · AST &amp; IaC Discovery · GitHub: Intent, Schemas &amp; CI Governance</title>
-          <rect x="40" y="420" width="130" height="60" rx="6" class="c-mask"/>
-          <rect x="40" y="420" width="130" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(46 426) scale(0.6875)">
-            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+        <g id="node-user_cio" data-node-id="user_cio" data-node-label="CIO &amp; Tech Leadership" tabindex="0" role="button" aria-label="Focus CIO &amp; Tech Leadership, Portfolio &amp; Risk Decisions, Human Users &amp; Stakeholders" aria-pressed="false" data-node-kind="external" data-node-sublabel="Portfolio &amp; Risk Decisions" data-node-tag="Executive" data-node-context="Human Users &amp; Stakeholders">
+          <title>CIO &amp; Tech Leadership · Portfolio &amp; Risk Decisions · Human Users &amp; Stakeholders · Executive</title>
+          <rect x="880" y="50" width="170" height="60" rx="6" class="c-mask"/>
+          <rect x="880" y="50" width="170" height="60" rx="6" class="c-external" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="person" class="semantic-sigil s-external" transform="translate(886 56) scale(0.6875)">
+            <circle cx="8" cy="4.5" r="2.5"/><path d="M3 14v-2a5 5 0 0 1 10 0v2"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="105" y="448" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Cartographer Sweep</text>
-        <text data-detail="context" x="105" y="464" class="t-muted" font-size="9" text-anchor="middle">AST &amp; IaC Discovery</text>
+          <text data-node-label="" data-detail-anchor="" x="965" y="78" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">CIO &amp; Tech Leadership</text>
+        <text data-detail="context" x="965" y="94" class="t-muted" font-size="9" text-anchor="middle">Portfolio &amp; Risk Decisions</text>
+        <text data-detail="fine" x="965" y="102" class="t-external" font-size="7" text-anchor="middle">Executive</text>
         </g>
 
-        <g id="node-ci_arb_gate" data-node-id="ci_arb_gate" data-node-label="ARB Review Gate" tabindex="0" role="button" aria-label="Focus ARB Review Gate, arb-gate.yml, GitHub: Intent, Schemas &amp; CI Governance" aria-pressed="false" data-node-kind="security" data-node-sublabel="arb-gate.yml" data-node-tag="CI Action" data-node-context="GitHub: Intent, Schemas &amp; CI Governance">
-          <title>ARB Review Gate · arb-gate.yml · GitHub: Intent, Schemas &amp; CI Governance · CI Action</title>
-          <rect x="290" y="150" width="140" height="60" rx="6" class="c-mask"/>
-          <rect x="290" y="150" width="140" height="60" rx="6" class="c-security" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(296 156) scale(0.6875)">
-            <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
-            <path d="m5.8 8 1.5 1.5 3-3"/>
-          </g>
-          <text data-node-label="" data-detail-anchor="" x="360" y="178" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">ARB Review Gate</text>
-        <text data-detail="context" x="360" y="194" class="t-muted" font-size="9" text-anchor="middle">arb-gate.yml</text>
-        <text data-detail="fine" x="360" y="202" class="t-security" font-size="7" text-anchor="middle">CI Action</text>
-        </g>
-
-        <g id="node-arb_evaluator" data-node-id="arb_evaluator" data-node-label="Tri-Modal Evaluator" tabindex="0" role="button" aria-label="Focus Tri-Modal Evaluator, agent_arb_evaluator.py, GitHub: Intent, Schemas &amp; CI Governance" aria-pressed="false" data-node-kind="backend" data-node-sublabel="agent_arb_evaluator.py" data-node-tag="Tri-Modal" data-node-context="GitHub: Intent, Schemas &amp; CI Governance">
-          <title>Tri-Modal Evaluator · agent_arb_evaluator.py · GitHub: Intent, Schemas &amp; CI Governance · Tri-Modal</title>
-          <rect x="290" y="280" width="140" height="60" rx="6" class="c-mask"/>
-          <rect x="290" y="280" width="140" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(296 286) scale(0.6875)">
-            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
-          </g>
-          <text data-node-label="" data-detail-anchor="" x="360" y="308" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Tri-Modal Evaluator</text>
-        <text data-detail="context" x="360" y="324" class="t-muted" font-size="9" text-anchor="middle">agent_arb_evaluator.py</text>
-        <text data-detail="fine" x="360" y="332" class="t-backend" font-size="7" text-anchor="middle">Tri-Modal</text>
-        </g>
-
-        <g id="node-mosaic_serving" data-node-id="mosaic_serving" data-node-label="Databricks Mosaic AI" tabindex="0" role="button" aria-label="Focus Databricks Mosaic AI, Llama-3.1 / DeepSeek, Databricks Workspace: Enterprise Data Backbone &amp; Apps › Tri-Modal Provider Options" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="Llama-3.1 / DeepSeek" data-node-tag="Option A (Prod)" data-node-context="Databricks Workspace: Enterprise Data Backbone &amp; Apps › Tri-Modal Provider Options">
-          <title>Databricks Mosaic AI · Llama-3.1 / DeepSeek · Databricks Workspace: Enterprise Data Backbone &amp; Apps › Tri-Modal Provider Options · Option A (Prod)</title>
-          <rect x="550" y="150" width="150" height="60" rx="6" class="c-mask"/>
-          <rect x="550" y="150" width="150" height="60" rx="6" class="c-cloud" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(556 156) scale(0.6875)">
-            <path d="M4.3 12.5h7.3a2.4 2.4 0 0 0 .2-4.8 4 4 0 0 0-7.5-1.3A3.1 3.1 0 0 0 4.3 12.5Z"/>
-          </g>
-          <text data-node-label="" data-detail-anchor="" x="625" y="178" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Databricks Mosaic AI</text>
-        <text data-detail="context" x="625" y="194" class="t-muted" font-size="9" text-anchor="middle">Llama-3.1 / DeepSeek</text>
-        <text data-detail="fine" x="625" y="202" class="t-cloud" font-size="7" text-anchor="middle">Option A (Prod)</text>
-        </g>
-
-        <g id="node-ext_llm_api" data-node-id="ext_llm_api" data-node-label="External LLM API" tabindex="0" role="button" aria-label="Focus External LLM API, OpenAI / Claude / Gemini, Tri-Modal Provider Options" aria-pressed="false" data-node-kind="external" data-node-sublabel="OpenAI / Claude / Gemini" data-node-tag="Option B (API)" data-node-context="Tri-Modal Provider Options">
-          <title>External LLM API · OpenAI / Claude / Gemini · Tri-Modal Provider Options · Option B (API)</title>
-          <rect x="550" y="280" width="150" height="60" rx="6" class="c-mask"/>
-          <rect x="550" y="280" width="150" height="60" rx="6" class="c-external" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(556 286) scale(0.6875)">
-            <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
-            <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
-          </g>
-          <text data-node-label="" data-detail-anchor="" x="625" y="308" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">External LLM API</text>
-        <text data-detail="context" x="625" y="324" class="t-muted" font-size="9" text-anchor="middle">OpenAI / Claude / Gemini</text>
-        <text data-detail="fine" x="625" y="332" class="t-external" font-size="7" text-anchor="middle">Option B (API)</text>
-        </g>
-
-        <g id="node-sub_agent_cli" data-node-id="sub_agent_cli" data-node-label="Subscription CLI" tabindex="0" role="button" aria-label="Focus Subscription CLI, agy / cursor / copilot, Tri-Modal Provider Options" aria-pressed="false" data-node-kind="backend" data-node-sublabel="agy / cursor / copilot" data-node-tag="Option C ($0 Demo)" data-node-context="Tri-Modal Provider Options">
-          <title>Subscription CLI · agy / cursor / copilot · Tri-Modal Provider Options · Option C ($0 Demo)</title>
-          <rect x="550" y="410" width="150" height="60" rx="6" class="c-mask"/>
-          <rect x="550" y="410" width="150" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(556 416) scale(0.6875)">
-            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
-          </g>
-          <text data-node-label="" data-detail-anchor="" x="625" y="438" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Subscription CLI</text>
-        <text data-detail="context" x="625" y="454" class="t-muted" font-size="9" text-anchor="middle">agy / cursor / copilot</text>
-        <text data-detail="fine" x="625" y="462" class="t-backend" font-size="7" text-anchor="middle">Option C ($0 Demo)</text>
-        </g>
-
-        <g id="node-archify_cli" data-node-id="archify_cli" data-node-label="Archify Engine" tabindex="0" role="button" aria-label="Focus Archify Engine, archify finalize CLI, Archify Visual Engine" aria-pressed="false" data-node-kind="backend" data-node-sublabel="archify finalize CLI" data-node-tag="Visualizer" data-node-context="Archify Visual Engine">
-          <title>Archify Engine · archify finalize CLI · Archify Visual Engine · Visualizer</title>
-          <rect x="820" y="150" width="140" height="60" rx="6" class="c-mask"/>
-          <rect x="820" y="150" width="140" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(826 156) scale(0.6875)">
-            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
-          </g>
-          <text data-node-label="" data-detail-anchor="" x="890" y="178" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Archify Engine</text>
-        <text data-detail="context" x="890" y="194" class="t-muted" font-size="9" text-anchor="middle">archify finalize CLI</text>
-        <text data-detail="fine" x="890" y="202" class="t-backend" font-size="7" text-anchor="middle">Visualizer</text>
-        </g>
-
-        <g id="node-pam_bridge" data-node-id="pam_bridge" data-node-label="PAM Archify Bridge" tabindex="0" role="button" aria-label="Focus PAM Archify Bridge, pam-to-archify.py, Archify Visual Engine" aria-pressed="false" data-node-kind="backend" data-node-sublabel="pam-to-archify.py" data-node-context="Archify Visual Engine">
-          <title>PAM Archify Bridge · pam-to-archify.py · Archify Visual Engine</title>
-          <rect x="820" y="280" width="140" height="60" rx="6" class="c-mask"/>
-          <rect x="820" y="280" width="140" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(826 286) scale(0.6875)">
-            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
-          </g>
-          <text data-node-label="" data-detail-anchor="" x="890" y="308" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">PAM Archify Bridge</text>
-        <text data-detail="context" x="890" y="324" class="t-muted" font-size="9" text-anchor="middle">pam-to-archify.py</text>
-        </g>
-
-        <g id="node-lakebase_pg" data-node-id="lakebase_pg" data-node-label="Lakebase PostgreSQL" tabindex="0" role="button" aria-label="Focus Lakebase PostgreSQL, ea_operational DB, Databricks Workspace: Enterprise Data Backbone &amp; Apps" aria-pressed="false" data-node-kind="database" data-node-sublabel="ea_operational DB" data-node-tag="Managed DB" data-node-context="Databricks Workspace: Enterprise Data Backbone &amp; Apps">
-          <title>Lakebase PostgreSQL · ea_operational DB · Databricks Workspace: Enterprise Data Backbone &amp; Apps · Managed DB</title>
-          <rect x="820" y="420" width="140" height="60" rx="6" class="c-mask"/>
-          <rect x="820" y="420" width="140" height="60" rx="6" class="c-database" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(826 426) scale(0.6875)">
-            <ellipse cx="8" cy="4" rx="5" ry="2"/>
-            <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
-          </g>
-          <text data-node-label="" data-detail-anchor="" x="890" y="448" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Lakebase PostgreSQL</text>
-        <text data-detail="context" x="890" y="464" class="t-muted" font-size="9" text-anchor="middle">ea_operational DB</text>
-        <text data-detail="fine" x="890" y="472" class="t-database" font-size="7" text-anchor="middle">Managed DB</text>
-        </g>
-
-        <g id="node-uc_metamodel" data-node-id="uc_metamodel" data-node-label="Unity Catalog" tabindex="0" role="button" aria-label="Focus Unity Catalog, ea.metamodel &amp; ea.gold, Databricks Workspace: Enterprise Data Backbone &amp; Apps" aria-pressed="false" data-node-kind="database" data-node-sublabel="ea.metamodel &amp; ea.gold" data-node-tag="Delta Tables" data-node-context="Databricks Workspace: Enterprise Data Backbone &amp; Apps">
-          <title>Unity Catalog · ea.metamodel &amp; ea.gold · Databricks Workspace: Enterprise Data Backbone &amp; Apps · Delta Tables</title>
-          <rect x="1080" y="280" width="150" height="60" rx="6" class="c-mask"/>
-          <rect x="1080" y="280" width="150" height="60" rx="6" class="c-database" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(1086 286) scale(0.6875)">
-            <ellipse cx="8" cy="4" rx="5" ry="2"/>
-            <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
-          </g>
-          <text data-node-label="" data-detail-anchor="" x="1155" y="308" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Unity Catalog</text>
-        <text data-detail="context" x="1155" y="324" class="t-muted" font-size="9" text-anchor="middle">ea.metamodel &amp; ea.gold</text>
-        <text data-detail="fine" x="1155" y="332" class="t-database" font-size="7" text-anchor="middle">Delta Tables</text>
-        </g>
-
-        <g id="node-backstage_app" data-node-id="backstage_app" data-node-label="Backstage Portal" tabindex="0" role="button" aria-label="Focus Backstage Portal, Databricks Apps (Node 20), Databricks Workspace: Enterprise Data Backbone &amp; Apps › Databricks Apps Isolation (Node.js 20)" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="Databricks Apps (Node 20)" data-node-tag="Apps Runtime" data-node-context="Databricks Workspace: Enterprise Data Backbone &amp; Apps › Databricks Apps Isolation (Node.js 20)">
-          <title>Backstage Portal · Databricks Apps (Node 20) · Databricks Workspace: Enterprise Data Backbone &amp; Apps › Databricks Apps Isolation (Node.js 20) · Apps Runtime</title>
-          <rect x="1080" y="420" width="150" height="60" rx="6" class="c-mask"/>
-          <rect x="1080" y="420" width="150" height="60" rx="6" class="c-frontend" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(1086 426) scale(0.6875)">
+        <g id="node-ui_github_pr" data-node-id="ui_github_pr" data-node-label="GitHub PR Interface" tabindex="0" role="button" aria-label="Focus GitHub PR Interface, Zero-Meeting ARB Reviews, User Interaction Surfaces (The 4 Cockpits)" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="Zero-Meeting ARB Reviews" data-node-tag="Governance" data-node-context="User Interaction Surfaces (The 4 Cockpits)">
+          <title>GitHub PR Interface · Zero-Meeting ARB Reviews · User Interaction Surfaces (The 4 Cockpits) · Governance</title>
+          <rect x="50" y="230" width="160" height="60" rx="6" class="c-mask"/>
+          <rect x="50" y="230" width="160" height="60" rx="6" class="c-frontend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(56 236) scale(0.6875)">
             <rect x="2" y="3" width="12" height="10" rx="2"/>
             <path d="M2 6.5h12"/>
             <circle cx="4.1" cy="4.8" r=".7" class="sigil-fill"/>
             <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="1155" y="448" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Backstage Portal</text>
-        <text data-detail="context" x="1155" y="464" class="t-muted" font-size="9" text-anchor="middle">Databricks Apps (Node 20)</text>
-        <text data-detail="fine" x="1155" y="472" class="t-frontend" font-size="7" text-anchor="middle">Apps Runtime</text>
+          <text data-node-label="" data-detail-anchor="" x="130" y="258" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">GitHub PR Interface</text>
+        <text data-detail="context" x="130" y="274" class="t-muted" font-size="9" text-anchor="middle">Zero-Meeting ARB Reviews</text>
+        <text data-detail="fine" x="130" y="282" class="t-frontend" font-size="7" text-anchor="middle">Governance</text>
+        </g>
+
+        <g id="node-ui_backstage" data-node-id="ui_backstage" data-node-label="Backstage Cockpit" tabindex="0" role="button" aria-label="Focus Backstage Cockpit, Living Maps &amp; Action Inbox, User Interaction Surfaces (The 4 Cockpits)" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="Living Maps &amp; Action Inbox" data-node-tag="Daily UI" data-node-context="User Interaction Surfaces (The 4 Cockpits)">
+          <title>Backstage Cockpit · Living Maps &amp; Action Inbox · User Interaction Surfaces (The 4 Cockpits) · Daily UI</title>
+          <rect x="320" y="230" width="170" height="60" rx="6" class="c-mask"/>
+          <rect x="320" y="230" width="170" height="60" rx="6" class="c-frontend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(326 236) scale(0.6875)">
+            <rect x="2" y="3" width="12" height="10" rx="2"/>
+            <path d="M2 6.5h12"/>
+            <circle cx="4.1" cy="4.8" r=".7" class="sigil-fill"/>
+            <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="405" y="258" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Backstage Cockpit</text>
+        <text data-detail="context" x="405" y="274" class="t-muted" font-size="9" text-anchor="middle">Living Maps &amp; Action Inbox</text>
+        <text data-detail="fine" x="405" y="282" class="t-frontend" font-size="7" text-anchor="middle">Daily UI</text>
+        </g>
+
+        <g id="node-ui_copilot" data-node-id="ui_copilot" data-node-label="Agent Copilot Chat" tabindex="0" role="button" aria-label="Focus Agent Copilot Chat, Natural Language Terminal, User Interaction Surfaces (The 4 Cockpits)" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="Natural Language Terminal" data-node-tag="Chat / NL" data-node-context="User Interaction Surfaces (The 4 Cockpits)">
+          <title>Agent Copilot Chat · Natural Language Terminal · User Interaction Surfaces (The 4 Cockpits) · Chat / NL</title>
+          <rect x="600" y="230" width="170" height="60" rx="6" class="c-mask"/>
+          <rect x="600" y="230" width="170" height="60" rx="6" class="c-frontend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(606 236) scale(0.6875)">
+            <rect x="2" y="3" width="12" height="10" rx="2"/>
+            <path d="M2 6.5h12"/>
+            <circle cx="4.1" cy="4.8" r=".7" class="sigil-fill"/>
+            <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="685" y="258" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Agent Copilot Chat</text>
+        <text data-detail="context" x="685" y="274" class="t-muted" font-size="9" text-anchor="middle">Natural Language Terminal</text>
+        <text data-detail="fine" x="685" y="282" class="t-frontend" font-size="7" text-anchor="middle">Chat / NL</text>
+        </g>
+
+        <g id="node-ui_dashboards" data-node-id="ui_dashboards" data-node-label="Databricks AI/BI" tabindex="0" role="button" aria-label="Focus Databricks AI/BI, TIME Matrix &amp; FinOps, User Interaction Surfaces (The 4 Cockpits)" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="TIME Matrix &amp; FinOps" data-node-tag="Executive UI" data-node-context="User Interaction Surfaces (The 4 Cockpits)">
+          <title>Databricks AI/BI · TIME Matrix &amp; FinOps · User Interaction Surfaces (The 4 Cockpits) · Executive UI</title>
+          <rect x="880" y="230" width="170" height="60" rx="6" class="c-mask"/>
+          <rect x="880" y="230" width="170" height="60" rx="6" class="c-frontend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(886 236) scale(0.6875)">
+            <rect x="2" y="3" width="12" height="10" rx="2"/>
+            <path d="M2 6.5h12"/>
+            <circle cx="4.1" cy="4.8" r=".7" class="sigil-fill"/>
+            <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="965" y="258" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Databricks AI/BI</text>
+        <text data-detail="context" x="965" y="274" class="t-muted" font-size="9" text-anchor="middle">TIME Matrix &amp; FinOps</text>
+        <text data-detail="fine" x="965" y="282" class="t-frontend" font-size="7" text-anchor="middle">Executive UI</text>
+        </g>
+
+        <g id="node-agent_arb" data-node-id="agent_arb" data-node-label="ARB Reviewer Agent" tabindex="0" role="button" aria-label="Focus ARB Reviewer Agent, Pre-Merge Compliance Checks, Autonomous Agentic Workforce &amp; Visualizer" aria-pressed="false" data-node-kind="backend" data-node-sublabel="Pre-Merge Compliance Checks" data-node-context="Autonomous Agentic Workforce &amp; Visualizer">
+          <title>ARB Reviewer Agent · Pre-Merge Compliance Checks · Autonomous Agentic Workforce &amp; Visualizer</title>
+          <rect x="50" y="410" width="160" height="60" rx="6" class="c-mask"/>
+          <rect x="50" y="410" width="160" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(56 416) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="130" y="438" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">ARB Reviewer Agent</text>
+        <text data-detail="context" x="130" y="454" class="t-muted" font-size="9" text-anchor="middle">Pre-Merge Compliance Checks</text>
+        </g>
+
+        <g id="node-archify_engine" data-node-id="archify_engine" data-node-label="Archify Visualizer" tabindex="0" role="button" aria-label="Focus Archify Visualizer, SVG Compiler &amp; PR Diffs, Autonomous Agentic Workforce &amp; Visualizer" aria-pressed="false" data-node-kind="backend" data-node-sublabel="SVG Compiler &amp; PR Diffs" data-node-tag="Visual Engine" data-node-context="Autonomous Agentic Workforce &amp; Visualizer">
+          <title>Archify Visualizer · SVG Compiler &amp; PR Diffs · Autonomous Agentic Workforce &amp; Visualizer · Visual Engine</title>
+          <rect x="320" y="410" width="170" height="60" rx="6" class="c-mask"/>
+          <rect x="320" y="410" width="170" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(326 416) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="405" y="438" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Archify Visualizer</text>
+        <text data-detail="context" x="405" y="454" class="t-muted" font-size="9" text-anchor="middle">SVG Compiler &amp; PR Diffs</text>
+        <text data-detail="fine" x="405" y="462" class="t-backend" font-size="7" text-anchor="middle">Visual Engine</text>
+        </g>
+
+        <g id="node-agent_copilot_core" data-node-id="agent_copilot_core" data-node-label="Strategic Copilot Agent" tabindex="0" role="button" aria-label="Focus Strategic Copilot Agent, What-If &amp; ADR Synthesis, Autonomous Agentic Workforce &amp; Visualizer" aria-pressed="false" data-node-kind="backend" data-node-sublabel="What-If &amp; ADR Synthesis" data-node-context="Autonomous Agentic Workforce &amp; Visualizer">
+          <title>Strategic Copilot Agent · What-If &amp; ADR Synthesis · Autonomous Agentic Workforce &amp; Visualizer</title>
+          <rect x="600" y="410" width="170" height="60" rx="6" class="c-mask"/>
+          <rect x="600" y="410" width="170" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(606 416) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="685" y="438" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Strategic Copilot Agent</text>
+        <text data-detail="context" x="685" y="454" class="t-muted" font-size="9" text-anchor="middle">What-If &amp; ADR Synthesis</text>
+        </g>
+
+        <g id="node-tri_modal_llm" data-node-id="tri_modal_llm" data-node-label="Tri-Modal LLM Engine" tabindex="0" role="button" aria-label="Focus Tri-Modal LLM Engine, A: Mosaic | B: API | C: CLI, Autonomous Agentic Workforce &amp; Visualizer" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="A: Mosaic | B: API | C: CLI" data-node-tag="Pluggable AI" data-node-context="Autonomous Agentic Workforce &amp; Visualizer">
+          <title>Tri-Modal LLM Engine · A: Mosaic | B: API | C: CLI · Autonomous Agentic Workforce &amp; Visualizer · Pluggable AI</title>
+          <rect x="880" y="410" width="170" height="60" rx="6" class="c-mask"/>
+          <rect x="880" y="410" width="170" height="60" rx="6" class="c-cloud" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(886 416) scale(0.6875)">
+            <path d="M4.3 12.5h7.3a2.4 2.4 0 0 0 .2-4.8 4 4 0 0 0-7.5-1.3A3.1 3.1 0 0 0 4.3 12.5Z"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="965" y="438" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Tri-Modal LLM Engine</text>
+        <text data-detail="context" x="965" y="454" class="t-muted" font-size="9" text-anchor="middle">A: Mosaic | B: API | C: CLI</text>
+        <text data-detail="fine" x="965" y="462" class="t-cloud" font-size="7" text-anchor="middle">Pluggable AI</text>
+        </g>
+
+        <g id="node-agent_cartographer" data-node-id="agent_cartographer" data-node-label="Cartographer Agent" tabindex="0" role="button" aria-label="Focus Cartographer Agent, AST &amp; Cloud Auto-Discovery, Architecture component" aria-pressed="false" data-node-kind="backend" data-node-sublabel="AST &amp; Cloud Auto-Discovery" data-node-context="Architecture component">
+          <title>Cartographer Agent · AST &amp; Cloud Auto-Discovery · Architecture component</title>
+          <rect x="50" y="590" width="160" height="60" rx="6" class="c-mask"/>
+          <rect x="50" y="590" width="160" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(56 596) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="130" y="618" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Cartographer Agent</text>
+        <text data-detail="context" x="130" y="634" class="t-muted" font-size="9" text-anchor="middle">AST &amp; Cloud Auto-Discovery</text>
+        </g>
+
+        <g id="node-lakebase_pg" data-node-id="lakebase_pg" data-node-label="Lakebase PostgreSQL" tabindex="0" role="button" aria-label="Focus Lakebase PostgreSQL, Operational Catalog DB, Databricks Enterprise Data &amp; Storage Backbone" aria-pressed="false" data-node-kind="database" data-node-sublabel="Operational Catalog DB" data-node-tag="Managed DB" data-node-context="Databricks Enterprise Data &amp; Storage Backbone">
+          <title>Lakebase PostgreSQL · Operational Catalog DB · Databricks Enterprise Data &amp; Storage Backbone · Managed DB</title>
+          <rect x="320" y="590" width="170" height="60" rx="6" class="c-mask"/>
+          <rect x="320" y="590" width="170" height="60" rx="6" class="c-database" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(326 596) scale(0.6875)">
+            <ellipse cx="8" cy="4" rx="5" ry="2"/>
+            <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="405" y="618" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Lakebase PostgreSQL</text>
+        <text data-detail="context" x="405" y="634" class="t-muted" font-size="9" text-anchor="middle">Operational Catalog DB</text>
+        <text data-detail="fine" x="405" y="642" class="t-database" font-size="7" text-anchor="middle">Managed DB</text>
+        </g>
+
+        <g id="node-uc_pam_graph" data-node-id="uc_pam_graph" data-node-label="Unity Catalog PAM" tabindex="0" role="button" aria-label="Focus Unity Catalog PAM, Nodes, Edges, Evidence, Databricks Enterprise Data &amp; Storage Backbone" aria-pressed="false" data-node-kind="database" data-node-sublabel="Nodes, Edges, Evidence" data-node-tag="Delta Tables" data-node-context="Databricks Enterprise Data &amp; Storage Backbone">
+          <title>Unity Catalog PAM · Nodes, Edges, Evidence · Databricks Enterprise Data &amp; Storage Backbone · Delta Tables</title>
+          <rect x="600" y="590" width="170" height="60" rx="6" class="c-mask"/>
+          <rect x="600" y="590" width="170" height="60" rx="6" class="c-database" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(606 596) scale(0.6875)">
+            <ellipse cx="8" cy="4" rx="5" ry="2"/>
+            <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="685" y="618" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Unity Catalog PAM</text>
+        <text data-detail="context" x="685" y="634" class="t-muted" font-size="9" text-anchor="middle">Nodes, Edges, Evidence</text>
+        <text data-detail="fine" x="685" y="642" class="t-database" font-size="7" text-anchor="middle">Delta Tables</text>
+        </g>
+
+        <g id="node-uc_gold_marts" data-node-id="uc_gold_marts" data-node-label="Gold Scenario Marts" tabindex="0" role="button" aria-label="Focus Gold Scenario Marts, TIME, EOL &amp; Drift Marts, Databricks Enterprise Data &amp; Storage Backbone" aria-pressed="false" data-node-kind="database" data-node-sublabel="TIME, EOL &amp; Drift Marts" data-node-tag="Analytics" data-node-context="Databricks Enterprise Data &amp; Storage Backbone">
+          <title>Gold Scenario Marts · TIME, EOL &amp; Drift Marts · Databricks Enterprise Data &amp; Storage Backbone · Analytics</title>
+          <rect x="880" y="590" width="170" height="60" rx="6" class="c-mask"/>
+          <rect x="880" y="590" width="170" height="60" rx="6" class="c-database" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(886 596) scale(0.6875)">
+            <ellipse cx="8" cy="4" rx="5" ry="2"/>
+            <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="965" y="618" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Gold Scenario Marts</text>
+        <text data-detail="context" x="965" y="634" class="t-muted" font-size="9" text-anchor="middle">TIME, EOL &amp; Drift Marts</text>
+        <text data-detail="fine" x="965" y="642" class="t-database" font-size="7" text-anchor="middle">Analytics</text>
         </g>
 
         <!-- Connection labels -->
-        <g data-detail="context" data-edge-from="dev_pr" data-edge-to="ci_arb_gate" data-edge-label="triggers review" data-edge-key="0" data-edge-id="c-pr-to-gate">
-          <rect x="189" y="151.95" width="82" height="14" rx="3" class="c-mask"/>
-          <text x="230" y="161.95" class="t-edge-emphasis" font-size="8" text-anchor="middle">triggers review</text>
+        <g data-detail="context" data-edge-from="user_dev" data-edge-to="ui_github_pr" data-edge-label="submits PR" data-edge-key="0" data-edge-id="c-dev-to-pr">
+          <rect x="66" y="163" width="58" height="14" rx="3" class="c-mask"/>
+          <text x="95" y="173" class="t-edge-default" font-size="8" text-anchor="middle">submits PR</text>
         </g>
-        <g data-detail="context" data-edge-from="ci_arb_gate" data-edge-to="pam_schemas" data-edge-label="validates" data-edge-key="1" data-edge-id="c-gate-to-schemas">
-          <rect x="203.4" y="228.5" width="53.199999999999996" height="14" rx="3" class="c-mask"/>
-          <text x="230" y="238.5" class="t-edge-default" font-size="8" text-anchor="middle">validates</text>
+        <g data-detail="context" data-edge-from="user_ea" data-edge-to="ui_backstage" data-edge-label="browses living maps &amp; alerts" data-edge-key="1" data-edge-id="c-ea-to-backstage">
+          <rect x="254.60000000000002" y="163" width="144.4" height="14" rx="3" class="c-mask"/>
+          <text x="326.8" y="173" class="t-edge-emphasis" font-size="8" text-anchor="middle">browses living maps &amp; alerts</text>
         </g>
-        <g data-detail="context" data-edge-from="ci_arb_gate" data-edge-to="arb_evaluator" data-edge-label="invokes" data-edge-key="2" data-edge-id="c-gate-to-evaluator">
-          <rect x="296.4" y="238" width="43.6" height="14" rx="3" class="c-mask"/>
-          <text x="318.2" y="248" class="t-edge-default" font-size="8" text-anchor="middle">invokes</text>
+        <g data-detail="context" data-edge-from="user_ea" data-edge-to="ui_copilot" data-edge-label="asks What-If &amp; drafts ADRs" data-edge-key="2" data-edge-id="c-ea-to-copilot">
+          <rect x="516.6" y="60" width="134.8" height="14" rx="3" class="c-mask"/>
+          <text x="584" y="70" class="t-edge-default" font-size="8" text-anchor="middle">asks What-If &amp; drafts ADRs</text>
         </g>
-        <g data-detail="context" data-edge-from="arb_evaluator" data-edge-to="mosaic_serving" data-edge-label="Option A (Prod)" data-edge-key="3" data-edge-id="c-eval-to-mosaic">
-          <rect x="451.5" y="225" width="82" height="14" rx="3" class="c-mask"/>
-          <text x="492.5" y="235" class="t-edge-dashed" font-size="8" text-anchor="middle">Option A (Prod)</text>
+        <g data-detail="context" data-edge-from="user_cio" data-edge-to="ui_dashboards" data-edge-label="monitors portfolio health" data-edge-key="3" data-edge-id="c-cio-to-dashboards">
+          <rect x="829" y="163" width="130" height="14" rx="3" class="c-mask"/>
+          <text x="894" y="173" class="t-edge-default" font-size="8" text-anchor="middle">monitors portfolio health</text>
         </g>
-        <g data-detail="context" data-edge-from="arb_evaluator" data-edge-to="ext_llm_api" data-edge-label="Option B (API)" data-edge-key="4" data-edge-id="c-eval-to-ext">
-          <rect x="451.4" y="283" width="77.2" height="14" rx="3" class="c-mask"/>
-          <text x="490" y="293" class="t-edge-dashed" font-size="8" text-anchor="middle">Option B (API)</text>
+        <g data-detail="context" data-edge-from="user_cio" data-edge-to="ui_copilot" data-edge-label="queries risk in plain language" data-edge-key="4" data-edge-id="c-cio-to-copilot">
+          <rect x="709" y="60" width="154" height="14" rx="3" class="c-mask"/>
+          <text x="786" y="70" class="t-edge-default" font-size="8" text-anchor="middle">queries risk in plain language</text>
         </g>
-        <g data-detail="context" data-edge-from="arb_evaluator" data-edge-to="sub_agent_cli" data-edge-label="Option C ($0 Demo)" data-edge-key="5" data-edge-id="c-eval-to-sub">
-          <rect x="441.8" y="358.5" width="96.39999999999999" height="14" rx="3" class="c-mask"/>
-          <text x="490" y="368.5" class="t-edge-dashed" font-size="8" text-anchor="middle">Option C ($0 Demo)</text>
+        <g data-detail="context" data-edge-from="ui_github_pr" data-edge-to="agent_arb" data-edge-label="invokes review gate" data-edge-key="5" data-edge-id="c-pr-to-arb">
+          <rect x="14.749999999999993" y="343" width="101.2" height="14" rx="3" class="c-mask"/>
+          <text x="65.35" y="353" class="t-edge-default" font-size="8" text-anchor="middle">invokes review gate</text>
         </g>
-        <g data-detail="context" data-edge-from="arb_evaluator" data-edge-to="archify_cli" data-edge-label="delta JSON" data-edge-key="6" data-edge-id="c-eval-to-archify">
-          <rect x="472.25" y="266" width="58" height="14" rx="3" class="c-mask"/>
-          <text x="501.25" y="276" class="t-edge-dashed" font-size="8" text-anchor="middle">delta JSON</text>
+        <g data-detail="context" data-edge-from="agent_arb" data-edge-to="archify_engine" data-edge-label="delta JSON" data-edge-key="6" data-edge-id="c-arb-to-archify">
+          <rect x="283" y="490.525" width="58" height="14" rx="3" class="c-mask"/>
+          <text x="312" y="500.525" class="t-edge-default" font-size="8" text-anchor="middle">delta JSON</text>
         </g>
-        <g data-detail="context" data-edge-from="archify_cli" data-edge-to="ci_arb_gate" data-edge-label="visual diff SVG" data-edge-key="7" data-edge-id="c-archify-to-gate">
-          <rect x="720.5" y="160" width="82" height="14" rx="3" class="c-mask"/>
-          <text x="761.5" y="170" class="t-edge-emphasis" font-size="8" text-anchor="middle">visual diff SVG</text>
+        <g data-detail="context" data-edge-from="archify_engine" data-edge-to="ui_github_pr" data-edge-label="attaches visual diff SVG" data-edge-key="7" data-edge-id="c-archify-to-pr">
+          <rect x="135.40000000000003" y="366.5" width="125.19999999999999" height="14" rx="3" class="c-mask"/>
+          <text x="198.00000000000003" y="376.5" class="t-edge-emphasis" font-size="8" text-anchor="middle">attaches visual diff SVG</text>
         </g>
-        <g data-detail="context" data-edge-from="ci_cartographer" data-edge-to="uc_metamodel" data-edge-label="lands raw metadata" data-edge-key="8" data-edge-id="c-carto-to-uc">
-          <rect x="403.3" y="484" width="96.39999999999999" height="14" rx="3" class="c-mask"/>
-          <text x="451.5" y="494" class="t-edge-dashed" font-size="8" text-anchor="middle">lands raw metadata</text>
+        <g data-detail="context" data-edge-from="ui_copilot" data-edge-to="agent_copilot_core" data-edge-label="natural language request" data-edge-key="8" data-edge-id="c-copilot-to-core">
+          <rect x="553.8" y="343" width="125.19999999999999" height="14" rx="3" class="c-mask"/>
+          <text x="616.4" y="353" class="t-edge-default" font-size="8" text-anchor="middle">natural language request</text>
         </g>
-        <g data-detail="context" data-edge-from="uc_metamodel" data-edge-to="lakebase_pg" data-edge-label="SCD2 sync" data-edge-key="9" data-edge-id="c-uc-to-lakebase">
-          <rect x="960.8" y="373" width="53.199999999999996" height="14" rx="3" class="c-mask"/>
-          <text x="987.4" y="383" class="t-edge-default" font-size="8" text-anchor="middle">SCD2 sync</text>
+        <g data-detail="context" data-edge-from="agent_arb" data-edge-to="tri_modal_llm" data-edge-label="reasoning critique" data-edge-key="9" data-edge-id="c-arb-to-llm">
+          <rect x="520.8" y="387" width="96.39999999999999" height="14" rx="3" class="c-mask"/>
+          <text x="569" y="397" class="t-edge-dashed" font-size="8" text-anchor="middle">reasoning critique</text>
         </g>
-        <g data-detail="context" data-edge-from="lakebase_pg" data-edge-to="backstage_app" data-edge-label="pg query (active_nodes)" data-edge-key="10" data-edge-id="c-lakebase-to-backstage">
-          <rect x="959.8" y="485" width="120.39999999999999" height="14" rx="3" class="c-mask"/>
-          <text x="1020" y="495" class="t-edge-default" font-size="8" text-anchor="middle">pg query (active_nodes)</text>
+        <g data-detail="context" data-edge-from="agent_copilot_core" data-edge-to="tri_modal_llm" data-edge-label="synthesis query" data-edge-key="10" data-edge-id="c-copilot-to-llm">
+          <rect x="784" y="457" width="82" height="14" rx="3" class="c-mask"/>
+          <text x="825" y="467" class="t-edge-default" font-size="8" text-anchor="middle">synthesis query</text>
         </g>
-        <g data-detail="context" data-edge-from="uc_metamodel" data-edge-to="pam_bridge" data-edge-label="subgraph query" data-edge-key="11" data-edge-id="c-uc-to-bridge">
-          <rect x="981.4" y="283" width="77.2" height="14" rx="3" class="c-mask"/>
-          <text x="1020" y="293" class="t-edge-default" font-size="8" text-anchor="middle">subgraph query</text>
+        <g data-detail="context" data-edge-from="agent_cartographer" data-edge-to="uc_pam_graph" data-edge-label="continuous auto-discovery" data-edge-key="11" data-edge-id="c-carto-to-pam">
+          <rect x="342.5" y="654" width="130" height="14" rx="3" class="c-mask"/>
+          <text x="407.5" y="664" class="t-edge-dashed" font-size="8" text-anchor="middle">continuous auto-discovery</text>
         </g>
-        <g data-detail="context" data-edge-from="pam_bridge" data-edge-to="archify_cli" data-edge-label="typed JSON" data-edge-key="12" data-edge-id="c-bridge-to-archify">
-          <rect x="868" y="260" width="58" height="14" rx="3" class="c-mask"/>
-          <text x="897" y="270" class="t-edge-default" font-size="8" text-anchor="middle">typed JSON</text>
+        <g data-detail="context" data-edge-from="uc_pam_graph" data-edge-to="lakebase_pg" data-edge-label="syncs active nodes" data-edge-key="12" data-edge-id="c-pam-to-lakebase">
+          <rect x="496.8" y="607" width="96.39999999999999" height="14" rx="3" class="c-mask"/>
+          <text x="545" y="617" class="t-edge-default" font-size="8" text-anchor="middle">syncs active nodes</text>
         </g>
-        <g data-detail="context" data-edge-from="archify_cli" data-edge-to="backstage_app" data-edge-label="embeds interactive view" data-edge-key="13" data-edge-id="c-archify-to-backstage">
-          <rect x="1172.8" y="268" width="120.39999999999999" height="14" rx="3" class="c-mask"/>
-          <text x="1233" y="278" class="t-edge-default" font-size="8" text-anchor="middle">embeds interactive view</text>
+        <g data-detail="context" data-edge-from="lakebase_pg" data-edge-to="ui_backstage" data-edge-label="powers software catalog" data-edge-key="13" data-edge-id="c-lakebase-to-backstage">
+          <rect x="278.6" y="524.5" width="120.39999999999999" height="14" rx="3" class="c-mask"/>
+          <text x="338.8" y="534.5" class="t-edge-default" font-size="8" text-anchor="middle">powers software catalog</text>
+        </g>
+        <g data-detail="context" data-edge-from="uc_pam_graph" data-edge-to="agent_copilot_core" data-edge-label="graph blast-radius query" data-edge-key="14" data-edge-id="c-pam-to-copilot">
+          <rect x="553.8" y="523" width="125.19999999999999" height="14" rx="3" class="c-mask"/>
+          <text x="616.4" y="533" class="t-edge-default" font-size="8" text-anchor="middle">graph blast-radius query</text>
+        </g>
+        <g data-detail="context" data-edge-from="uc_pam_graph" data-edge-to="archify_engine" data-edge-label="subgraph export" data-edge-key="15" data-edge-id="c-pam-to-archify">
+          <rect x="551.5" y="546" width="82" height="14" rx="3" class="c-mask"/>
+          <text x="592.5" y="556" class="t-edge-default" font-size="8" text-anchor="middle">subgraph export</text>
+        </g>
+        <g data-detail="context" data-edge-from="archify_engine" data-edge-to="ui_backstage" data-edge-label="embeds interactive maps" data-edge-key="16" data-edge-id="c-archify-to-backstage">
+          <rect x="271.6" y="343" width="120.39999999999999" height="14" rx="3" class="c-mask"/>
+          <text x="331.8" y="353" class="t-edge-default" font-size="8" text-anchor="middle">embeds interactive maps</text>
+        </g>
+        <g data-detail="context" data-edge-from="uc_gold_marts" data-edge-to="ui_dashboards" data-edge-label="powers executive metrics" data-edge-key="17" data-edge-id="c-gold-to-dashboards">
+          <rect x="833.8" y="524.5" width="125.19999999999999" height="14" rx="3" class="c-mask"/>
+          <text x="896.4" y="534.5" class="t-edge-default" font-size="8" text-anchor="middle">powers executive metrics</text>
         </g>
 
         <!-- Boundary labels (foreground masks keep routes out of titles) -->
-        <g data-graph-role="structural-frame-label" data-composition-frame-id="0" data-composition-frame-kind="region" data-composition-frame-label="GitHub: Intent, Schemas &amp; CI Governance">
-          <rect data-graph-role="structural-frame-label-mask" x="14" y="130" width="220.6" height="16" rx="3" class="c-mask"/>
-          <text data-boundary-label="" x="18" y="143" class="t-cloud" font-size="9" font-weight="600">GitHub: Intent, Schemas &amp; CI Governance</text>
+        <g data-graph-role="structural-frame-label" data-composition-frame-id="0" data-composition-frame-kind="region" data-composition-frame-label="Human Users &amp; Stakeholders">
+          <rect data-graph-role="structural-frame-label-mask" x="24" y="30" width="150.4" height="16" rx="3" class="c-mask"/>
+          <text data-boundary-label="" x="28" y="43" class="t-cloud" font-size="9" font-weight="600">Human Users &amp; Stakeholders</text>
         </g>
 
-        <g data-graph-role="structural-frame-label" data-composition-frame-id="1" data-composition-frame-kind="security-group" data-composition-frame-label="Tri-Modal Provider Options">
-          <rect data-graph-role="structural-frame-label-mask" x="524" y="130" width="150.4" height="16" rx="3" class="c-mask"/>
-          <text data-boundary-label="" x="528" y="143" class="t-security" font-size="9" font-weight="600">Tri-Modal Provider Options</text>
+        <g data-graph-role="structural-frame-label" data-composition-frame-id="1" data-composition-frame-kind="region" data-composition-frame-label="User Interaction Surfaces (The 4 Cockpits)">
+          <rect data-graph-role="structural-frame-label-mask" x="24" y="210" width="236.79999999999998" height="16" rx="3" class="c-mask"/>
+          <text data-boundary-label="" x="28" y="223" class="t-cloud" font-size="9" font-weight="600">User Interaction Surfaces (The 4 Cockpits)</text>
         </g>
 
-        <g data-graph-role="structural-frame-label" data-composition-frame-id="2" data-composition-frame-kind="region" data-composition-frame-label="Archify Visual Engine">
-          <rect data-graph-role="structural-frame-label-mask" x="794" y="130" width="123.39999999999999" height="16" rx="3" class="c-mask"/>
-          <text data-boundary-label="" x="798" y="143" class="t-cloud" font-size="9" font-weight="600">Archify Visual Engine</text>
+        <g data-graph-role="structural-frame-label" data-composition-frame-id="2" data-composition-frame-kind="security-group" data-composition-frame-label="Autonomous Agentic Workforce &amp; Visualizer">
+          <rect data-graph-role="structural-frame-label-mask" x="24" y="390" width="231.4" height="16" rx="3" class="c-mask"/>
+          <text data-boundary-label="" x="28" y="403" class="t-security" font-size="9" font-weight="600">Autonomous Agentic Workforce &amp; Visualizer</text>
         </g>
 
-        <g data-graph-role="structural-frame-label" data-composition-frame-id="3" data-composition-frame-kind="region" data-composition-frame-label="Databricks Workspace: Enterprise Data Backbone &amp; Apps">
-          <rect data-graph-role="structural-frame-label-mask" x="524" y="112" width="296.2" height="16" rx="3" class="c-mask"/>
-          <text data-boundary-label="" x="528" y="125" class="t-cloud" font-size="9" font-weight="600">Databricks Workspace: Enterprise Data Backbone &amp; Apps</text>
-        </g>
-
-        <g data-graph-role="structural-frame-label" data-composition-frame-id="4" data-composition-frame-kind="security-group" data-composition-frame-label="Databricks Apps Isolation (Node.js 20)">
-          <rect data-graph-role="structural-frame-label-mask" x="1051.8864402129032" y="400" width="206.22711957419352" height="16" rx="3" class="c-mask"/>
-          <text data-boundary-label="" x="1055.8864402129032" y="412.60645261290324" class="t-security" font-size="8.606452612903226" font-weight="600">Databricks Apps Isolation (Node.js 20)</text>
+        <g data-graph-role="structural-frame-label" data-composition-frame-id="3" data-composition-frame-kind="region" data-composition-frame-label="Databricks Enterprise Data &amp; Storage Backbone">
+          <rect data-graph-role="structural-frame-label-mask" x="294" y="570" width="253" height="16" rx="3" class="c-mask"/>
+          <text data-boundary-label="" x="298" y="583" class="t-cloud" font-size="9" font-weight="600">Databricks Enterprise Data &amp; Storage Backbone</text>
         </g>
 
         <!-- Legend -->
         <g data-legend="" data-legend-bridge="">
-          <text x="40" y="536" class="t-primary" font-size="12" font-weight="650">Legend</text>
-          <g data-legend-semantic-kind="frontend" data-legend-kind="frontend" data-legend-label="Frontend" data-legend-x="40" data-legend-baseline="556" data-legend-width="83">
-            <rect x="40" y="547" width="16" height="10" rx="2.5" class="c-frontend" stroke-width="1"/>
-            <text x="62" y="556" class="t-muted" font-size="10" font-weight="500">Frontend</text>
+          <text x="40" y="706" class="t-primary" font-size="12" font-weight="650">Legend</text>
+          <g data-legend-semantic-kind="frontend" data-legend-kind="frontend" data-legend-label="Frontend" data-legend-x="40" data-legend-baseline="726" data-legend-width="83">
+            <rect x="40" y="717" width="16" height="10" rx="2.5" class="c-frontend" stroke-width="1"/>
+            <text x="62" y="726" class="t-muted" font-size="10" font-weight="500">Frontend</text>
           </g>
-          <g data-legend-semantic-kind="backend" data-legend-kind="backend" data-legend-label="Backend" data-legend-x="145" data-legend-baseline="556" data-legend-width="78">
-            <rect x="145" y="547" width="16" height="10" rx="2.5" class="c-backend" stroke-width="1"/>
-            <text x="167" y="556" class="t-muted" font-size="10" font-weight="500">Backend</text>
+          <g data-legend-semantic-kind="backend" data-legend-kind="backend" data-legend-label="Backend" data-legend-x="145" data-legend-baseline="726" data-legend-width="78">
+            <rect x="145" y="717" width="16" height="10" rx="2.5" class="c-backend" stroke-width="1"/>
+            <text x="167" y="726" class="t-muted" font-size="10" font-weight="500">Backend</text>
           </g>
-          <g data-legend-semantic-kind="database" data-legend-kind="database" data-legend-label="Database" data-legend-x="245" data-legend-baseline="556" data-legend-width="83">
-            <rect x="245" y="547" width="16" height="10" rx="2.5" class="c-database" stroke-width="1"/>
-            <text x="267" y="556" class="t-muted" font-size="10" font-weight="500">Database</text>
+          <g data-legend-semantic-kind="database" data-legend-kind="database" data-legend-label="Database" data-legend-x="245" data-legend-baseline="726" data-legend-width="83">
+            <rect x="245" y="717" width="16" height="10" rx="2.5" class="c-database" stroke-width="1"/>
+            <text x="267" y="726" class="t-muted" font-size="10" font-weight="500">Database</text>
           </g>
-          <g data-legend-semantic-kind="cloud" data-legend-kind="cloud" data-legend-label="Cloud" data-legend-x="350" data-legend-baseline="556" data-legend-width="68">
-            <rect x="350" y="547" width="16" height="10" rx="2.5" class="c-cloud" stroke-width="1"/>
-            <text x="372" y="556" class="t-muted" font-size="10" font-weight="500">Cloud</text>
+          <g data-legend-semantic-kind="cloud" data-legend-kind="cloud" data-legend-label="Cloud" data-legend-x="350" data-legend-baseline="726" data-legend-width="68">
+            <rect x="350" y="717" width="16" height="10" rx="2.5" class="c-cloud" stroke-width="1"/>
+            <text x="372" y="726" class="t-muted" font-size="10" font-weight="500">Cloud</text>
           </g>
-          <g data-legend-semantic-kind="security" data-legend-kind="security" data-legend-label="Security" data-legend-x="440" data-legend-baseline="556" data-legend-width="83">
-            <rect x="440" y="547" width="16" height="10" rx="2.5" class="c-security" stroke-width="1"/>
-            <text x="462" y="556" class="t-muted" font-size="10" font-weight="500">Security</text>
-          </g>
-          <g data-legend-semantic-kind="external" data-legend-kind="external" data-legend-label="External" data-legend-x="545" data-legend-baseline="556" data-legend-width="83">
-            <rect x="545" y="547" width="16" height="10" rx="2.5" class="c-external" stroke-width="1"/>
-            <text x="567" y="556" class="t-muted" font-size="10" font-weight="500">External</text>
+          <g data-legend-semantic-kind="external" data-legend-kind="external" data-legend-label="External" data-legend-x="440" data-legend-baseline="726" data-legend-width="83">
+            <rect x="440" y="717" width="16" height="10" rx="2.5" class="c-external" stroke-width="1"/>
+            <text x="462" y="726" class="t-muted" font-size="10" font-weight="500">External</text>
           </g>
         </g>
       </svg>

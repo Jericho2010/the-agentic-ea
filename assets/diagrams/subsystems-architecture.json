@@ -2,285 +2,343 @@
   "schema_version": 1,
   "diagram_type": "architecture",
   "meta": {
-    "title": "Agentic EA Platform Subsystems & Data Contracts",
-    "subtitle": "Closed-loop architecture connecting GitHub, Databricks, Backstage, Archify, and CI Agents",
+    "title": "Agentic EA Platform — User Interaction & Subsystem Blueprint",
+    "subtitle": "How Enterprise Architects, Engineers, and Leaders interact with the Agentic Solution",
     "output": ".archify/architecture-agentic-ea-subsystems-20261014-185000/subsystems-architecture.html",
     "quality_profile": "showcase"
   },
   "components": [
     {
-      "id": "dev_pr",
+      "id": "user_dev",
       "type": "external",
-      "label": "Developer PR",
-      "sublabel": "Branch / ADR / IaC",
-      "pos": [40, 150],
-      "size": [130, 60]
+      "icon": "person",
+      "label": "Software Engineer",
+      "sublabel": "Code & IaC Author",
+      "pos": [50, 50],
+      "size": [160, 60]
     },
     {
-      "id": "pam_schemas",
-      "type": "security",
-      "label": "PAM Schemas",
-      "sublabel": "JSON Schema (Draft-07)",
-      "pos": [40, 280],
-      "size": [130, 60],
-      "tag": "Contracts"
+      "id": "user_ea",
+      "type": "external",
+      "icon": "person",
+      "label": "Enterprise Architect",
+      "sublabel": "Editor-in-Chief & Strategy",
+      "pos": [320, 50],
+      "size": [170, 60],
+      "tag": "Primary User"
     },
     {
-      "id": "ci_cartographer",
+      "id": "user_cio",
+      "type": "external",
+      "icon": "person",
+      "label": "CIO & Tech Leadership",
+      "sublabel": "Portfolio & Risk Decisions",
+      "pos": [880, 50],
+      "size": [170, 60],
+      "tag": "Executive"
+    },
+    {
+      "id": "ui_github_pr",
+      "type": "frontend",
+      "label": "GitHub PR Interface",
+      "sublabel": "Zero-Meeting ARB Reviews",
+      "pos": [50, 230],
+      "size": [160, 60],
+      "tag": "Governance"
+    },
+    {
+      "id": "ui_backstage",
+      "type": "frontend",
+      "label": "Backstage Cockpit",
+      "sublabel": "Living Maps & Action Inbox",
+      "pos": [320, 230],
+      "size": [170, 60],
+      "tag": "Daily UI"
+    },
+    {
+      "id": "ui_copilot",
+      "type": "frontend",
+      "label": "Agent Copilot Chat",
+      "sublabel": "Natural Language Terminal",
+      "pos": [600, 230],
+      "size": [170, 60],
+      "tag": "Chat / NL"
+    },
+    {
+      "id": "ui_dashboards",
+      "type": "frontend",
+      "label": "Databricks AI/BI",
+      "sublabel": "TIME Matrix & FinOps",
+      "pos": [880, 230],
+      "size": [170, 60],
+      "tag": "Executive UI"
+    },
+    {
+      "id": "agent_arb",
       "type": "backend",
-      "label": "Cartographer Sweep",
-      "sublabel": "AST & IaC Discovery",
-      "pos": [40, 420],
-      "size": [130, 60]
+      "label": "ARB Reviewer Agent",
+      "sublabel": "Pre-Merge Compliance Checks",
+      "pos": [50, 410],
+      "size": [160, 60]
     },
     {
-      "id": "ci_arb_gate",
-      "type": "security",
-      "label": "ARB Review Gate",
-      "sublabel": "arb-gate.yml",
-      "pos": [290, 150],
-      "size": [140, 60],
-      "tag": "CI Action"
-    },
-    {
-      "id": "arb_evaluator",
+      "id": "archify_engine",
       "type": "backend",
-      "label": "Tri-Modal Evaluator",
-      "sublabel": "agent_arb_evaluator.py",
-      "pos": [290, 280],
-      "size": [140, 60],
-      "tag": "Tri-Modal"
+      "label": "Archify Visualizer",
+      "sublabel": "SVG Compiler & PR Diffs",
+      "pos": [320, 410],
+      "size": [170, 60],
+      "tag": "Visual Engine"
     },
     {
-      "id": "mosaic_serving",
+      "id": "agent_copilot_core",
+      "type": "backend",
+      "label": "Strategic Copilot Agent",
+      "sublabel": "What-If & ADR Synthesis",
+      "pos": [600, 410],
+      "size": [170, 60]
+    },
+    {
+      "id": "tri_modal_llm",
       "type": "cloud",
-      "label": "Databricks Mosaic AI",
-      "sublabel": "Llama-3.1 / DeepSeek",
-      "pos": [550, 150],
-      "size": [150, 60],
-      "tag": "Option A (Prod)"
+      "label": "Tri-Modal LLM Engine",
+      "sublabel": "A: Mosaic | B: API | C: CLI",
+      "pos": [880, 410],
+      "size": [170, 60],
+      "tag": "Pluggable AI"
     },
     {
-      "id": "ext_llm_api",
-      "type": "external",
-      "label": "External LLM API",
-      "sublabel": "OpenAI / Claude / Gemini",
-      "pos": [550, 280],
-      "size": [150, 60],
-      "tag": "Option B (API)"
-    },
-    {
-      "id": "sub_agent_cli",
+      "id": "agent_cartographer",
       "type": "backend",
-      "label": "Subscription CLI",
-      "sublabel": "agy / cursor / copilot",
-      "pos": [550, 410],
-      "size": [150, 60],
-      "tag": "Option C ($0 Demo)"
-    },
-    {
-      "id": "archify_cli",
-      "type": "backend",
-      "label": "Archify Engine",
-      "sublabel": "archify finalize CLI",
-      "pos": [820, 150],
-      "size": [140, 60],
-      "tag": "Visualizer"
-    },
-    {
-      "id": "pam_bridge",
-      "type": "backend",
-      "label": "PAM Archify Bridge",
-      "sublabel": "pam-to-archify.py",
-      "pos": [820, 280],
-      "size": [140, 60]
+      "label": "Cartographer Agent",
+      "sublabel": "AST & Cloud Auto-Discovery",
+      "pos": [50, 590],
+      "size": [160, 60]
     },
     {
       "id": "lakebase_pg",
       "type": "database",
       "label": "Lakebase PostgreSQL",
-      "sublabel": "ea_operational DB",
-      "pos": [820, 420],
-      "size": [140, 60],
+      "sublabel": "Operational Catalog DB",
+      "pos": [320, 590],
+      "size": [170, 60],
       "tag": "Managed DB"
     },
     {
-      "id": "uc_metamodel",
+      "id": "uc_pam_graph",
       "type": "database",
-      "label": "Unity Catalog",
-      "sublabel": "ea.metamodel & ea.gold",
-      "pos": [1080, 280],
-      "size": [150, 60],
+      "label": "Unity Catalog PAM",
+      "sublabel": "Nodes, Edges, Evidence",
+      "pos": [600, 590],
+      "size": [170, 60],
       "tag": "Delta Tables"
     },
     {
-      "id": "backstage_app",
-      "type": "frontend",
-      "label": "Backstage Portal",
-      "sublabel": "Databricks Apps (Node 20)",
-      "pos": [1080, 420],
-      "size": [150, 60],
-      "tag": "Apps Runtime"
+      "id": "uc_gold_marts",
+      "type": "database",
+      "label": "Gold Scenario Marts",
+      "sublabel": "TIME, EOL & Drift Marts",
+      "pos": [880, 590],
+      "size": [170, 60],
+      "tag": "Analytics"
     }
   ],
   "boundaries": [
     {
       "kind": "region",
-      "label": "GitHub: Intent, Schemas & CI Governance",
-      "wraps": ["pam_schemas", "ci_cartographer", "ci_arb_gate", "arb_evaluator"]
-    },
-    {
-      "kind": "security-group",
-      "label": "Tri-Modal Provider Options",
-      "wraps": ["mosaic_serving", "ext_llm_api", "sub_agent_cli"]
+      "label": "Human Users & Stakeholders",
+      "wraps": ["user_dev", "user_ea", "user_cio"]
     },
     {
       "kind": "region",
-      "label": "Archify Visual Engine",
-      "wraps": ["archify_cli", "pam_bridge"]
-    },
-    {
-      "kind": "region",
-      "label": "Databricks Workspace: Enterprise Data Backbone & Apps",
-      "wraps": ["mosaic_serving", "lakebase_pg", "uc_metamodel", "backstage_app"]
+      "label": "User Interaction Surfaces (The 4 Cockpits)",
+      "wraps": ["ui_github_pr", "ui_backstage", "ui_copilot", "ui_dashboards"]
     },
     {
       "kind": "security-group",
-      "label": "Databricks Apps Isolation (Node.js 20)",
-      "wraps": ["backstage_app"]
+      "label": "Autonomous Agentic Workforce & Visualizer",
+      "wraps": ["agent_arb", "archify_engine", "agent_copilot_core", "tri_modal_llm"]
+    },
+    {
+      "kind": "region",
+      "label": "Databricks Enterprise Data & Storage Backbone",
+      "wraps": ["lakebase_pg", "uc_pam_graph", "uc_gold_marts"]
     }
   ],
   "connections": [
     {
-      "id": "c-pr-to-gate",
-      "from": "dev_pr",
-      "to": "ci_arb_gate",
-      "label": "triggers review",
-      "variant": "emphasis"
-    },
-    {
-      "id": "c-gate-to-schemas",
-      "from": "ci_arb_gate",
-      "to": "pam_schemas",
-      "label": "validates"
-    },
-    {
-      "id": "c-gate-to-evaluator",
-      "from": "ci_arb_gate",
-      "to": "arb_evaluator",
-      "label": "invokes"
-    },
-    {
-      "id": "c-eval-to-mosaic",
-      "from": "arb_evaluator",
-      "to": "mosaic_serving",
-      "label": "Option A (Prod)",
-      "variant": "dashed"
-    },
-    {
-      "id": "c-eval-to-ext",
-      "from": "arb_evaluator",
-      "to": "ext_llm_api",
-      "label": "Option B (API)",
-      "variant": "dashed"
-    },
-    {
-      "id": "c-eval-to-sub",
-      "from": "arb_evaluator",
-      "to": "sub_agent_cli",
-      "label": "Option C ($0 Demo)",
-      "variant": "dashed"
-    },
-    {
-      "id": "c-eval-to-archify",
-      "from": "arb_evaluator",
-      "to": "archify_cli",
-      "label": "delta JSON",
-      "variant": "dashed"
-    },
-    {
-      "id": "c-archify-to-gate",
-      "from": "archify_cli",
-      "to": "ci_arb_gate",
-      "label": "visual diff SVG",
-      "variant": "emphasis"
-    },
-    {
-      "id": "c-carto-to-uc",
-      "from": "ci_cartographer",
-      "to": "uc_metamodel",
-      "label": "lands raw metadata",
-      "variant": "dashed",
+      "id": "c-dev-to-pr",
+      "from": "user_dev",
+      "to": "ui_github_pr",
+      "label": "submits PR",
       "fromSide": "bottom",
-      "toSide": "bottom"
+      "toSide": "top"
     },
     {
-      "id": "c-uc-to-lakebase",
-      "from": "uc_metamodel",
+      "id": "c-ea-to-backstage",
+      "from": "user_ea",
+      "to": "ui_backstage",
+      "label": "browses living maps & alerts",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "variant": "emphasis"
+    },
+    {
+      "id": "c-ea-to-copilot",
+      "from": "user_ea",
+      "to": "ui_copilot",
+      "label": "asks What-If & drafts ADRs",
+      "fromSide": "right",
+      "toSide": "top"
+    },
+    {
+      "id": "c-cio-to-dashboards",
+      "from": "user_cio",
+      "to": "ui_dashboards",
+      "label": "monitors portfolio health",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "c-cio-to-copilot",
+      "from": "user_cio",
+      "to": "ui_copilot",
+      "label": "queries risk in plain language",
+      "fromSide": "left",
+      "toSide": "top"
+    },
+    {
+      "id": "c-pr-to-arb",
+      "from": "ui_github_pr",
+      "to": "agent_arb",
+      "label": "invokes review gate",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "c-arb-to-archify",
+      "from": "agent_arb",
+      "to": "archify_engine",
+      "label": "delta JSON",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "c-archify-to-pr",
+      "from": "archify_engine",
+      "to": "ui_github_pr",
+      "label": "attaches visual diff SVG",
+      "fromSide": "left",
+      "toSide": "bottom",
+      "variant": "emphasis"
+    },
+    {
+      "id": "c-copilot-to-core",
+      "from": "ui_copilot",
+      "to": "agent_copilot_core",
+      "label": "natural language request",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "c-arb-to-llm",
+      "from": "agent_arb",
+      "to": "tri_modal_llm",
+      "label": "reasoning critique",
+      "fromSide": "right",
+      "toSide": "left",
+      "variant": "dashed"
+    },
+    {
+      "id": "c-copilot-to-llm",
+      "from": "agent_copilot_core",
+      "to": "tri_modal_llm",
+      "label": "synthesis query",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "c-carto-to-pam",
+      "from": "agent_cartographer",
+      "to": "uc_pam_graph",
+      "label": "continuous auto-discovery",
+      "fromSide": "bottom",
+      "toSide": "bottom",
+      "variant": "dashed"
+    },
+    {
+      "id": "c-pam-to-lakebase",
+      "from": "uc_pam_graph",
       "to": "lakebase_pg",
-      "label": "SCD2 sync",
+      "label": "syncs active nodes",
       "fromSide": "left",
       "toSide": "right"
     },
     {
       "id": "c-lakebase-to-backstage",
       "from": "lakebase_pg",
-      "to": "backstage_app",
-      "label": "pg query (active_nodes)",
-      "fromSide": "right",
-      "toSide": "left"
-    },
-    {
-      "id": "c-uc-to-bridge",
-      "from": "uc_metamodel",
-      "to": "pam_bridge",
-      "label": "subgraph query",
-      "fromSide": "left",
-      "toSide": "right"
-    },
-    {
-      "id": "c-bridge-to-archify",
-      "from": "pam_bridge",
-      "to": "archify_cli",
-      "label": "typed JSON",
+      "to": "ui_backstage",
+      "label": "powers software catalog",
       "fromSide": "top",
       "toSide": "bottom"
     },
     {
+      "id": "c-pam-to-copilot",
+      "from": "uc_pam_graph",
+      "to": "agent_copilot_core",
+      "label": "graph blast-radius query",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "c-pam-to-archify",
+      "from": "uc_pam_graph",
+      "to": "archify_engine",
+      "label": "subgraph export"
+    },
+    {
       "id": "c-archify-to-backstage",
-      "from": "archify_cli",
-      "to": "backstage_app",
-      "label": "embeds interactive view",
-      "fromSide": "right",
-      "toSide": "top"
+      "from": "archify_engine",
+      "to": "ui_backstage",
+      "label": "embeds interactive maps",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "c-gold-to-dashboards",
+      "from": "uc_gold_marts",
+      "to": "ui_dashboards",
+      "label": "powers executive metrics",
+      "fromSide": "top",
+      "toSide": "bottom"
     }
   ],
   "cards": [
     {
       "dot": "cyan",
-      "title": "Subsystem 1 & 5: Intent & CI",
+      "title": "Layer 1: Human Personas & Surfaces",
       "items": [
-        "PAM JSON Schemas versioned in Git",
-        "Autonomous ARB PR Gate evaluates architecture before merge",
-        "Tri-modal execution: Databricks Mosaic AI, External API, or Demo Subscription CLI"
+        "Enterprise Architect: Uses Backstage daily cockpit, approves PR waivers, directs Copilot",
+        "Software Engineer: Works where code lives (GitHub PRs) and views Backstage catalog",
+        "CIO & Leadership: Monitors Databricks AI/BI dashboards and asks plain-language questions"
       ]
     },
     {
       "dot": "emerald",
-      "title": "Subsystem 2 & 3: Databricks & Backstage",
+      "title": "Layer 2: Autonomous Agent Workforce",
       "items": [
-        "Unity Catalog hosts delta graph tables (nodes, edges, aliases, evidence)",
-        "Lakebase managed PostgreSQL holds active operational nodes",
-        "Backstage runs natively inside Databricks Apps as the developer portal"
+        "ARB Reviewer Agent: Evaluates PR diffs against standards and triggers Archify diffs",
+        "Strategic Copilot Agent: Simulates blast radius and cuts target-state ADR drafts",
+        "Tri-Modal LLM Engine: Pluggable execution (Mosaic AI, External API, or Demo Subscription CLI)"
       ]
     },
     {
       "dot": "amber",
-      "title": "Subsystem 4: Archify Visual Engine",
+      "title": "Layer 3: Enterprise Data Backbone",
       "items": [
-        "Bridge queries PAM subgraphs from Databricks",
-        "Compiles standalone SVG/HTML on demand with deterministic layout",
-        "Embeds interactive diagrams in Backstage and visual diffs in PR comments"
+        "Unity Catalog: Stores the live PAM knowledge graph (nodes, edges, evidence)",
+        "Lakebase Managed Postgres: Houses Backstage operational catalog and ARB action queues",
+        "Gold Scenario Marts: Pre-aggregates TIME disposition, EOL risk, and cloud FinOps telemetry"
       ]
     }
   ]

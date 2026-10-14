@@ -109,6 +109,11 @@ Orbus Infinity is the baseline enterprise architecture practice: a governed repo
 - [PAM taxonomy](docs/05-metamodel/03-pam-spec.md)
 - [PAM × 20 scenarios](docs/05-metamodel/06-pam-scenario-matrix.md)
 
+## Build Log
+
+- 2026-10-14 - Part IX Specification & Archify Architecture - Authored User Perspective (9.1), Agent Build Strategy (9.2), Build Specification (9.3), and compiled interactive Archify showcase diagram with the Human Interaction Layer and The 4 Cockpits.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
