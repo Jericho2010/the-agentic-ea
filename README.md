@@ -91,6 +91,7 @@ Orbus Infinity is the baseline enterprise architecture practice: a governed repo
 ### Part IX — The Agentic EA — Solution Ideation. Evo 1
 - [9.1 The Agentic EA — Solution Ideation (Evo 1): User Perspective](docs/10-solution-ideation/01-user-perspective.md)
 - [9.2 How an Agent Builds the Solution](docs/10-solution-ideation/02-how-an-agent-builds-the-solution.md)
+- [9.3 Build Specification: The Agentic EA Platform](docs/10-solution-ideation/03-build-specification.md)
 
 ### Appendices
 - [A Glossary](docs/08-appendices/glossary.md)

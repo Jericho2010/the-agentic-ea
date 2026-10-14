@@ -97,6 +97,7 @@ Primary navigation for *The Agentic EA*. Prefer this file when jumping between c
 ## Part IX — The Agentic EA — Solution Ideation. Evo 1
 - [9.1 The Agentic EA — Solution Ideation (Evo 1): User Perspective](docs/10-solution-ideation/01-user-perspective.md) — **Tables: daily touchpoints, before vs after**
 - [9.2 How an Agent Builds the Solution](docs/10-solution-ideation/02-how-an-agent-builds-the-solution.md) — **Diagram: build topology, verification loop**
+- [9.3 Build Specification: The Agentic EA Platform](docs/10-solution-ideation/03-build-specification.md) — **Spec: schemas, DABs, Backstage, Archify, CI**
 
 ## Schemas & assets
 - [Archify bridge notes](schemas/archify-bridge.md)
