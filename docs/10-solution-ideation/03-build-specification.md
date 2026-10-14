@@ -1,15 +1,15 @@
 ---
 title: "Build Specification: The Agentic EA Platform"
-version: "1.1"
+version: "1.2"
 date_created: "2026-10-14"
 last_updated: "2026-10-14"
 owner: "Enterprise Architecture Core Team"
-tags: ["architecture", "spec", "build-specification", "agentic-ea", "databricks", "backstage", "archify", "github"]
+tags: ["architecture", "spec", "build-specification", "agentic-ea", "databricks", "backstage", "archify", "github", "tri-modal-llm"]
 ---
 
 # 9.3 — Build Specification: The Agentic EA Platform
 
-**Status:** approved spec v1.1 · **Date:** 2026-10-14 · **Scope:** Full machine-executable build specification translating Section 9.2 into unambiguous engineering contracts, data schemas, infrastructure configurations, and verification criteria.
+**Status:** approved spec v1.2 · **Date:** 2026-10-14 · **Scope:** Full machine-executable build specification translating Section 9.2 into unambiguous engineering contracts, data schemas, infrastructure configurations, and verification criteria.
 
 ---
 
@@ -23,7 +23,7 @@ Replace legacy, passive EA repositories (e.g., Orbus Infinity) with an active, c
 2. **Databricks:** Unity Catalog analytical backbone, scenario data marts, Lakebase (managed PostgreSQL) operational database, and **Databricks Apps hosting runtime**.
 3. **Backstage (hosted in Databricks Apps):** Unified developer and architect software catalog, TechDocs, and ownership portal deployed natively as a Databricks App.
 4. **Archify:** Automatic, on-demand compilation of typed architecture graph data into interactive SVG/HTML diagrams.
-5. **Agentic Workflows:** Autonomous GitHub Actions and Databricks jobs for continuous discovery (Cartographer), pre-merge PR governance (ARB Gate with dual LLM provider options), and reality reconciliation (Drift Detector).
+5. **Agentic Workflows:** Autonomous GitHub Actions and Databricks jobs for continuous discovery (Cartographer), pre-merge PR governance (ARB Gate with tri-modal LLM provider options), and reality reconciliation (Drift Detector).
 
 ### 1.2 Non-Goals
 - Building proprietary desktop diagramming plugins (e.g., Microsoft Visio stencils).
@@ -35,6 +35,7 @@ Replace legacy, passive EA repositories (e.g., Orbus Infinity) with an active, c
 ## 2. Definitions & Acronyms
 
 - **ADR:** Architecture Decision Record (Markdown format, version-controlled in Git).
+- **AGY:** Antigravity CLI agent harness.
 - **ARB:** Architecture Review Board.
 - **DAB:** Databricks Asset Bundle (declarative YAML format for Databricks infrastructure).
 - **Databricks Apps:** Serverless application hosting environment within Databricks workspaces.
@@ -58,18 +59,19 @@ Replace legacy, passive EA repositories (e.g., Orbus Infinity) with an active, c
 - **REQ-005**: Archify shall compile typed JSON models into standalone SVG/HTML supporting five canonical types: `architecture`, `workflow`, `sequence`, `dataflow`, and `lifecycle`.
 - **REQ-006**: Every Pull Request modifying application architecture or infrastructure files shall trigger an autonomous ARB review action that posts a markdown summary and Archify visual diff.
 - **REQ-007**: A daily scheduled Drift Detector shall compare declared Git entities against live CMDB/cloud records in `ea.gold.cmdb_reconciled` and open a GitHub issue if drift $> 0$.
-- **REQ-008 (Dual LLM Provider Support)**: The ARB Reviewer Agent evaluator shall support **both** of the following LLM provider options via pluggable configuration:
-  - **Option A (In-Platform Databricks Mosaic AI Model Serving):** Invokes an enterprise-hosted open-weights model (e.g., `databricks-meta-llama-3-1-70b-instruct`, `dbrx-instruct`, or `deepseek-v3`) via Databricks Model Serving endpoints with zero data egress outside the Databricks security perimeter.
-  - **Option B (External LLM API):** Invokes external managed frontier endpoints (e.g., OpenAI `gpt-4o`, Google Gemini 1.5 Pro, or Anthropic Claude 3.5 Sonnet) via standard REST APIs.
-  - The evaluator script and GitHub Action shall dynamically toggle between Option A and Option B using the `LLM_PROVIDER` environment variable without requiring code modifications.
+- **REQ-008 (Tri-Modal LLM & Agent Provider Architecture)**: The ARB Reviewer Agent evaluator shall support **three** provider options via pluggable configuration, distinguishing between production workloads and demonstration/non-production environments:
+  - **Option A (In-Platform Databricks Mosaic AI Model Serving — Production Default):** Invokes an enterprise-hosted open-weights model (e.g., `databricks-meta-llama-3-1-70b-instruct`, `dbrx-instruct`, or `deepseek-v3`) via Databricks Model Serving endpoints. Billed through enterprise Databricks DBUs with zero data egress outside the workspace security perimeter and full compliance.
+  - **Option B (External Managed LLM API — Production Fallback):** Invokes external managed frontier endpoints (e.g., OpenAI `gpt-4o`, Google Gemini 1.5 Pro, or Anthropic Claude 3.5 Sonnet) via standard REST APIs and API keys with per-token metering.
+  - **Option C (Headless Developer Subscription CLI — Non-Prod / Demo Mode):** Invokes an existing flat-rate developer subscription CLI (e.g., Antigravity `agy`, Cursor `cursor-agent`, or GitHub Copilot `gh copilot`) executing on a self-hosted runner (e.g., local developer workstation or staging VM). Delivers full agentic evaluation at **$0 marginal per-token cost**, bypassing corporate API procurement friction for demonstrations, hackathons, and initial proof-of-concept testing.
+  - The evaluator script and GitHub Action shall dynamically toggle among Options A, B, and C using `LLM_PROVIDER` (`databricks_mosaic` | `external` | `subscription_cli`) and `SUBSCRIPTION_AGENT` (`agy` | `cursor` | `copilot`) without code modifications.
 
 ### 3.2 Constraints (CON)
-- **CON-001 (Licence Filter)**: Only **GitHub**, **Databricks**, and permissive open-source software (OSS) may be used. No commercial third-party EA licenses permitted.
+- **CON-001 (Licence Filter)**: Only **GitHub**, **Databricks**, and permissive open-source software (OSS) may be used for production. Option C subscription tools are permitted strictly for Non-Prod / Demo environments.
 - **CON-002 (Database Storage)**: Backstage MUST NOT use local SQLite in any environment; it must connect directly to Lakebase PostgreSQL.
 - **CON-003 (Deterministic Diagrams)**: Archify rendering must be deterministic: identical JSON inputs must yield identical SVG layout coordinates.
 
 ### 3.3 Security & Operational Boundaries (SEC)
-- **SEC-001**: GitHub Actions runners must access Databricks using OAuth service principals / short-lived M2M tokens, never static personal access tokens.
+- **SEC-001**: GitHub Actions runners accessing Databricks must use OAuth service principals / short-lived M2M tokens, never static personal access tokens.
 - **SEC-002**: All PII and credential fields ingested from external APIs into Databricks Bronze must be tagged with Unity Catalog governance tags (`tag: PII = true`) and masked for non-EA queries.
 - **SEC-003 (Agent Boundaries)**:
   - **Always do:** Run schema validation before committing; post visual diffs on architectural PRs; tag service owners on drift.
@@ -434,20 +436,23 @@ archify finalize \
 
 ---
 
-### Subsystem 5: Agentic Automation Workflows & Dual LLM Support
+### Subsystem 5: Agentic Automation Workflows & Tri-Modal Provider Support
 
-#### Contract 5.1: Evaluator Provider Interface (`scripts/agent_arb_evaluator.py`)
+#### Contract 5.1: Tri-Modal Evaluator Provider Interface (`scripts/agent_arb_evaluator.py`)
 ```python
-# Evaluator accepts dual provider selection via CLI or ENV:
-# --provider databricks_mosaic  -> Queries Databricks Model Serving endpoint
-# --provider external           -> Queries External OpenAI / Gemini / Anthropic API
+# Evaluator supports Tri-Modal provider selection via CLI or ENV:
+# 1. --provider databricks_mosaic  -> Production: Queries Databricks Model Serving
+# 2. --provider external           -> Production Fallback: Queries OpenAI / Gemini / Claude REST API
+# 3. --provider subscription_cli   -> Non-Prod / Demo: Invokes headless CLI (agy / cursor / copilot)
 
 import os
+import sys
 import argparse
+import subprocess
 import requests
 import json
 
-def get_llm_client(provider: str):
+def get_llm_client(provider: str, subscription_agent: str = "agy"):
     if provider == "databricks_mosaic":
         host = os.environ["DATABRICKS_HOST"].rstrip("/")
         token = os.environ["DATABRICKS_TOKEN"]
@@ -475,6 +480,23 @@ def get_llm_client(provider: str):
             r.raise_for_status()
             return r.json()["choices"][0]["message"]["content"]
         return complete
+
+    elif provider == "subscription_cli":
+        # Non-Prod / Demo Mode: invokes developer seat subscription CLI with zero per-token cost
+        def complete(prompt: str) -> str:
+            if subscription_agent == "agy":
+                cmd = ["agy", "run", "--prompt", prompt]
+            elif subscription_agent == "cursor":
+                cmd = ["cursor-agent", "run", "--prompt", prompt]
+            elif subscription_agent == "copilot":
+                cmd = ["gh", "copilot", "explain", prompt]
+            else:
+                raise ValueError(f"Unknown subscription agent: {subscription_agent}")
+            
+            res = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            return res.stdout.strip()
+        return complete
+
     else:
         raise ValueError(f"Unsupported LLM provider: {provider}")
 ```
@@ -491,7 +513,8 @@ on:
 
 jobs:
   arb-evaluation:
-    runs-on: ubuntu-latest
+    # Use self-hosted runner for Option C (Subscription CLI); ubuntu-latest for Options A & B
+    runs-on: ${{ vars.RUNNER_TYPE || 'ubuntu-latest' }}
     permissions:
       contents: read
       pull-requests: write
@@ -508,19 +531,23 @@ jobs:
 
       - name: Run ARB Agent Evaluator
         env:
-          # Select provider: 'databricks_mosaic' or 'external'
+          # Tri-Modal Selection: 'databricks_mosaic' | 'external' | 'subscription_cli'
           LLM_PROVIDER: ${{ vars.LLM_PROVIDER || 'databricks_mosaic' }}
-          # Option A credentials (Databricks Mosaic AI Model Serving)
+          SUBSCRIPTION_AGENT: ${{ vars.SUBSCRIPTION_AGENT || 'agy' }}
+
+          # Option A credentials (Databricks Mosaic AI Model Serving - Prod)
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
           DATABRICKS_SERVING_ENDPOINT: ${{ vars.DATABRICKS_SERVING_ENDPOINT || 'databricks-meta-llama-3-1-70b-instruct' }}
-          # Option B credentials (External API)
+
+          # Option B credentials (External API - Cloud Fallback)
           EXTERNAL_LLM_API_KEY: ${{ secrets.EXTERNAL_LLM_API_KEY }}
           EXTERNAL_LLM_BASE_URL: ${{ vars.EXTERNAL_LLM_BASE_URL || 'https://api.openai.com/v1' }}
           EXTERNAL_LLM_MODEL: ${{ vars.EXTERNAL_LLM_MODEL || 'gpt-4o' }}
         run: |
           python scripts/agent_arb_evaluator.py \
             --provider "$LLM_PROVIDER" \
+            --subscription-agent "$SUBSCRIPTION_AGENT" \
             --pr-number ${{ github.event.pull_request.number }} \
             --diff-output ./diff.patch \
             --out-comment ./arb_comment.md \
@@ -559,7 +586,8 @@ jobs:
 | **AC-004** | Archify Render | A valid PAM subgraph JSON | `archify finalize` runs | Valid SVG file created with 0 overlapping nodes |
 | **AC-005** | ARB PR Gate | A PR introducing an unapproved database | GitHub PR action triggers | Action leaves comment identifying violation and posts visual diff |
 | **AC-006** | Drift Alert | Cloud CUR lists AWS Aurora missing from Git | Daily Drift Detector runs | GitHub Issue created with title `[Drift] Unregistered DB in us-east-1` |
-| **AC-007** | Dual LLM Switching | Configured with `LLM_PROVIDER=databricks_mosaic` vs `external` | ARB evaluator runs | Evaluator successfully queries the selected endpoint and generates identical markdown evaluation format |
+| **AC-007** | Tri-Modal LLM Switching | Configured with `LLM_PROVIDER=databricks_mosaic`, `external`, or `subscription_cli` | ARB evaluator runs | Evaluator successfully queries the selected endpoint (or invokes the subscription CLI) and generates identical markdown evaluation format |
+| **AC-008** | Demo Mode Zero-Dollar Run | Configured with `LLM_PROVIDER=subscription_cli` on a self-hosted runner | PR submitted in demo environment | ARB review comment and Archify visual diff posted with 0 external API calls and $0 per-token billing |
 
 ---
 
@@ -568,7 +596,7 @@ jobs:
 The implementation must proceed sequentially according to this vertical slice:
 
 ```
-[Task 1: Schemas] ──> [Task 2: Databricks DAB & Lakebase] ──> [Task 3: Backstage Databricks App] ──> [Task 4: Archify] ──> [Task 5: CI Agents with Dual LLM]
+[Task 1: Schemas] ──> [Task 2: Databricks DAB & Lakebase] ──> [Task 3: Backstage Databricks App] ──> [Task 4: Archify] ──> [Task 5: CI Agents with Tri-Modal LLM]
 ```
 
 - [ ] **Task 1: Metamodel Schema Foundation**
@@ -587,8 +615,8 @@ The implementation must proceed sequentially according to this vertical slice:
   - Write `bridge/pam-to-archify.py` to extract subgraphs to typed Archify JSON.
   - Package Docker container with Archify CLI.
   - *Verify:* Export a 5-node cluster and generate a valid SVG.
-- [ ] **Task 5: ARB Gate & Drift Workflows (Dual LLM Support)**
-  - Implement `scripts/agent_arb_evaluator.py` supporting both `databricks_mosaic` and `external` backends.
-  - Author `.github/workflows/arb-gate.yml` with provider selection variables.
+- [ ] **Task 5: ARB Gate & Drift Workflows (Tri-Modal LLM Support)**
+  - Implement `scripts/agent_arb_evaluator.py` supporting `databricks_mosaic`, `external`, and `subscription_cli` backends.
+  - Author `.github/workflows/arb-gate.yml` with provider selection variables and self-hosted runner support.
   - Author `.github/workflows/drift-detector.yml`.
-  - *Verify:* Test evaluation against Databricks Mosaic AI serving endpoint and external fallback API.
+  - *Verify:* Test evaluation against local subscription CLI (`agy` / `cursor`), Databricks Mosaic AI serving endpoint, and external fallback API.
