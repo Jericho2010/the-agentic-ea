@@ -88,6 +88,9 @@ Orbus Infinity is the baseline enterprise architecture practice: a governed repo
 - [8.2 Databricks-hosted reference solution (C1–C15, S01–S20)](docs/09-licence-clean-stacks/02-databricks-reference-solution.md)
 - [8.3 Snowflake-hosted reference solution (C1–C15, S01–S20)](docs/09-licence-clean-stacks/03-snowflake-reference-solution.md)
 
+### Part IX — The Agentic EA — Solution Ideation. Evo 1
+- [9.1 The Agentic EA — Solution Ideation (Evo 1): User Perspective](docs/10-solution-ideation/01-user-perspective.md)
+
 ### Appendices
 - [A Glossary](docs/08-appendices/glossary.md)
 - [B Bibliography](docs/08-appendices/bibliography.md)
