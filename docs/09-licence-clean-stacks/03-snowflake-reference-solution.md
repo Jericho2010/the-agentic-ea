@@ -152,6 +152,20 @@ Capability IDs match [§3.1](01-licence-clean-ranked-options.md#31-orbus-anchor-
 | CoWork | Personal work agent | Ad-hoc executive questions across the same governed objects [@snowflake-cowork] |
 | Optional OSS UIs | **SPCS services** | Superset, Backstage, Evidence, Cloud Carbon Footprint (all containerised — Streamlit-in-Snowflake is Streamlit-only and has package limits) |
 
+### Backstage placement (optional, caveated)
+
+Backstage fits Snowflake less comfortably than it fits Databricks, and the reason is its database. Backstage needs **PostgreSQL in production** (SQLite is development-only) [@backstage-postgres], and Snowflake provides no Postgres endpoint — Hybrid Tables are not Postgres-wire compatible. A licence-clean deployment therefore has three options:
+
+| Option | How | Trade-off |
+|---|---|---|
+| **A. On the Kubernetes cluster** (recommended) | Backstage and its Postgres run on the cluster this solution already needs for Cilium, Tetragon, Kyverno and Litmus, fed one-way from PAM | Licence-clean and DR-able, but outside the platform |
+| **B. Two containers in one SPCS service** | Backstage plus Postgres in a single service spec, image in `EA.IMAGES` | **SPCS objects cannot be replicated** [@snowflake-spcs-limitations], so portal state is not covered by DR |
+| **C. Drop it** | Use the native Streamlit surfaces instead | Loses developer-facing portal ergonomics |
+
+Option A is the only one that is both licence-clean and DR-sound. Options B and C are stated so the trade-off is explicit rather than hidden.
+
+**Bounded role.** Backstage serves **C13 Collaboration & stakeholder access** strongly and **C1 Governed architecture repository** only partially. It receives entities one way through an entity provider [@backstage-entity-providers] and never authors PAM. The Snowflake-native Streamlit surfaces remain the executive tier.
+
 ---
 
 ## 7. Where this design beats the Databricks one
@@ -231,6 +245,7 @@ Not required: **Kafka, Flink, Neo4j, Trino or PostgreSQL.** Snowpipe Streaming c
 | Archify types limited to the five supported | PASS |
 | Snowflake-specific advantages exploited, not ignored | PASS |
 | Known Snowflake weaknesses stated with compensation | PASS |
+| Backstage placement specified with DR caveat (cluster preferred) | PASS |
 | Components that must stay outside identified (kernel layer only) | PASS |
 | Citations present | PASS |
 
@@ -239,4 +254,4 @@ Not required: **Kafka, Flink, Neo4j, Trino or PostgreSQL.** Snowpipe Streaming c
 
 ## Citations
 
-[@snowflake-openflow] [@snowflake-hybrid-tables] [@snowflake-semantic-views] [@snowflake-dcm-projects] [@snowflake-git-integration] [@snowflake-dmf] [@snowflake-iceberg-v3] [@snowflake-clean-rooms] [@snowflake-cortex-search] [@snowflake-servicenow-connector] [@snowflake-snowpipe] [@snowflake-dynamic-tables] [@snowflake-tasks] [@snowflake-horizon-catalog] [@snowflake-cortex-agents] [@snowflake-cowork] [@snowflake-streamlit] [@snowflake-model-registry] [@snowflake-execute-job-service] [@snowflake-spcs-job] [@snowflake-spcs-limitations] [@snowflake-notebook-container-runtime] [@snowflake-snowpark-connect-spark] [@snowflake-vector-type] [@archify-github] [@opa-conftest] [@cilium-tetragon] [@syft] [@pm4py]
+[@snowflake-openflow] [@snowflake-hybrid-tables] [@snowflake-semantic-views] [@snowflake-dcm-projects] [@snowflake-git-integration] [@snowflake-dmf] [@snowflake-iceberg-v3] [@snowflake-clean-rooms] [@snowflake-cortex-search] [@snowflake-servicenow-connector] [@snowflake-snowpipe] [@snowflake-dynamic-tables] [@snowflake-tasks] [@snowflake-horizon-catalog] [@snowflake-cortex-agents] [@snowflake-cowork] [@snowflake-streamlit] [@snowflake-model-registry] [@snowflake-execute-job-service] [@snowflake-spcs-job] [@snowflake-spcs-limitations] [@snowflake-notebook-container-runtime] [@snowflake-snowpark-connect-spark] [@snowflake-vector-type] [@archify-github] [@opa-conftest] [@cilium-tetragon] [@syft] [@pm4py] [@backstage-postgres] [@backstage-entity-providers]

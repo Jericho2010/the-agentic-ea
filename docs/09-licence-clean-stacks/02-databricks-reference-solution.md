@@ -144,6 +144,21 @@ Every scenario is a pipeline plus a mart plus a surface. Capability IDs match [�
 
 Apps are serverless and support Python or Node.js, which is why Streamlit, Superset, Backstage, Evidence and Cloud Carbon Footprint can all be hosted here while Grafana and Metabase cannot [@databricks-apps].
 
+### Backstage placement (optional)
+
+Backstage fits here more cleanly than it fits Snowflake, for one specific reason: it needs **PostgreSQL in production** (SQLite is development-only) [@backstage-postgres], and Databricks already provides a managed Postgres — **Lakebase**, reachable with standard Postgres drivers and ORMs and registered in Unity Catalog [@databricks-lakebase]. No extra database service, and no additional licence.
+
+| Element | Placement |
+|---|---|
+| Backstage runtime | Databricks **App** (Node.js) [@databricks-apps]. If the monorepo build does not fit the Apps runtime, deploy the built image as a container service |
+| Catalog store | **Lakebase**, in its own `ea-backstage` database, separate from the metamodel |
+| Entity source | A one-way **entity provider** at the edge of the catalog, reading the PAM export and mapping Domain → System → Component → API onto `urn:ea:*` [@backstage-entity-providers] |
+| Diagram embedding | System pages embed the Archify artefact for that URN from `ea-architecture-studio` |
+
+**Bounded role.** Backstage serves **C13 Collaboration & stakeholder access** strongly and **C1 Governed architecture repository** only partially — it is a developer catalog, not the metamodel. It must never author truth: PAM is authoritative and coverage flows one way. It must also not duplicate the executive surfaces, which stay in `ea-portfolio`, `ea-risk-console` and the AI/BI dashboards.
+
+**Is it worth it?** Only if developers are a genuine audience. Otherwise it is a second portal over the same data, and `ea-architecture-studio` already covers catalogue browsing for architects.
+
 ---
 
 ## 7. The GitHub side
@@ -192,6 +207,7 @@ Not required: **Kafka, Flink, Neo4j or Trino.** Delta tables, Spark Structured S
 | Every OSS component hosted in-platform per §5 | PASS |
 | Scenario capability IDs match baseline Table C | PASS |
 | Archify types limited to the five supported | PASS |
+| Backstage placement specified (App + Lakebase, one-way from PAM) | PASS |
 | Components that must stay outside identified (kernel layer only) | PASS |
 | Citations present | PASS |
 
@@ -200,4 +216,4 @@ Not required: **Kafka, Flink, Neo4j or Trino.** Delta tables, Spark Structured S
 
 ## Citations
 
-[@databricks-unity-catalog] [@databricks-lakeflow-connect] [@databricks-lakeflow-servicenow] [@databricks-lakeflow-sdp] [@databricks-autoloader] [@databricks-workflows] [@databricks-apps] [@databricks-agent-bricks] [@databricks-genie-code-v2] [@databricks-lakebase] [@databricks-mlflow] [@databricks-dashboards] [@databricks-clean-rooms] [@databricks-bundles] [@databricks-git-folders] [@archify-github] [@opa-conftest] [@cilium-tetragon] [@syft] [@pm4py]
+[@databricks-unity-catalog] [@databricks-lakeflow-connect] [@databricks-lakeflow-servicenow] [@databricks-lakeflow-sdp] [@databricks-autoloader] [@databricks-workflows] [@databricks-apps] [@databricks-agent-bricks] [@databricks-genie-code-v2] [@databricks-lakebase] [@databricks-mlflow] [@databricks-dashboards] [@databricks-clean-rooms] [@databricks-bundles] [@databricks-git-folders] [@archify-github] [@opa-conftest] [@cilium-tetragon] [@syft] [@pm4py] [@backstage-postgres] [@backstage-entity-providers]

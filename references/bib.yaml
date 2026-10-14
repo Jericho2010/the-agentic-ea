@@ -440,3 +440,16 @@
   url: "https://docs.snowflake.com/en/sql-reference/data-types-vector"
   accessed: "2026-10-13"
   tags: [snowflake, vectors]
+
+- id: backstage-postgres
+  title: "Backstage — Switching from SQLite to PostgreSQL"
+  url: "https://backstage.io/docs/tutorials/switching-sqlite-postgres/"
+  accessed: "2026-10-13"
+  tags: [backstage, database]
+  note: "Backstage uses SQLite or in-memory for development and PostgreSQL for production."
+
+- id: backstage-entity-providers
+  title: "Backstage — External integrations and entity providers"
+  url: "https://backstage.io/docs/features/software-catalog/external-integrations/"
+  accessed: "2026-10-13"
+  tags: [backstage, catalog]
