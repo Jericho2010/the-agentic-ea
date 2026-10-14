@@ -1,6 +1,6 @@
 ---
 title: "Build Specification: The Agentic EA Platform"
-version: "1.0"
+version: "1.1"
 date_created: "2026-10-14"
 last_updated: "2026-10-14"
 owner: "Enterprise Architecture Core Team"
@@ -9,7 +9,7 @@ tags: ["architecture", "spec", "build-specification", "agentic-ea", "databricks"
 
 # 9.3 — Build Specification: The Agentic EA Platform
 
-**Status:** approved spec v1 · **Date:** 2026-10-14 · **Scope:** Full machine-executable build specification translating Section 9.2 into unambiguous engineering contracts, data schemas, infrastructure configurations, and verification criteria.
+**Status:** approved spec v1.1 · **Date:** 2026-10-14 · **Scope:** Full machine-executable build specification translating Section 9.2 into unambiguous engineering contracts, data schemas, infrastructure configurations, and verification criteria.
 
 ---
 
@@ -20,10 +20,10 @@ This specification defines the exact technical requirements, schemas, component 
 ### 1.1 Objective
 Replace legacy, passive EA repositories (e.g., Orbus Infinity) with an active, closed-loop platform consisting of:
 1. **GitHub:** Declarative intent, metamodel contracts, and PR-based ARB governance.
-2. **Databricks:** Unity Catalog analytical backbone, scenario data marts, and Lakebase (managed PostgreSQL) operational database.
-3. **Backstage:** Unified developer and architect software catalog, TechDocs, and ownership portal.
+2. **Databricks:** Unity Catalog analytical backbone, scenario data marts, Lakebase (managed PostgreSQL) operational database, and **Databricks Apps hosting runtime**.
+3. **Backstage (hosted in Databricks Apps):** Unified developer and architect software catalog, TechDocs, and ownership portal deployed natively as a Databricks App.
 4. **Archify:** Automatic, on-demand compilation of typed architecture graph data into interactive SVG/HTML diagrams.
-5. **Agentic Workflows:** Autonomous GitHub Actions and Databricks jobs for continuous discovery (Cartographer), pre-merge PR governance (ARB Gate), and reality reconciliation (Drift Detector).
+5. **Agentic Workflows:** Autonomous GitHub Actions and Databricks jobs for continuous discovery (Cartographer), pre-merge PR governance (ARB Gate with dual LLM provider options), and reality reconciliation (Drift Detector).
 
 ### 1.2 Non-Goals
 - Building proprietary desktop diagramming plugins (e.g., Microsoft Visio stencils).
@@ -37,8 +37,10 @@ Replace legacy, passive EA repositories (e.g., Orbus Infinity) with an active, c
 - **ADR:** Architecture Decision Record (Markdown format, version-controlled in Git).
 - **ARB:** Architecture Review Board.
 - **DAB:** Databricks Asset Bundle (declarative YAML format for Databricks infrastructure).
+- **Databricks Apps:** Serverless application hosting environment within Databricks workspaces.
 - **Lakebase:** Databricks managed PostgreSQL engine registered in Unity Catalog.
 - **MCP:** Model Context Protocol (standard interface for LLM tool invocation).
+- **Mosaic AI Model Serving:** Databricks managed inference serving for open-weights or external foundation models.
 - **PAM:** Platform Architecture Metamodel (open graph metamodel: nodes, edges, aliases, evidence).
 - **SDP:** Spark Declarative Pipelines (Delta Live Tables declarative transform engine).
 - **TIME:** Tolerate, Invest, Migrate, Eliminate (application portfolio disposition matrix).
@@ -51,11 +53,15 @@ Replace legacy, passive EA repositories (e.g., Orbus Infinity) with an active, c
 ### 3.1 Functional Requirements (REQ)
 - **REQ-001**: The system shall store the single source of truth for architectural intent (PAM schemas, ADRs, capability models) in Git.
 - **REQ-002**: The Databricks environment shall maintain four unified schemas in Unity Catalog: `ea.metamodel`, `ea.bronze`, `ea.silver`, and `ea.gold`.
-- **REQ-003**: Backstage shall run on Node.js and persist all internal state and catalog entities into Databricks Lakebase PostgreSQL.
-- **REQ-004**: Backstage shall ingest entities one-way from Databricks `ea.metamodel.nodes` via a scheduled custom Entity Provider.
+- **REQ-003 (Backstage Hosting in Databricks Apps)**: Backstage shall be deployed and executed as a **Databricks App** using the serverless Node.js runtime, connecting directly to Databricks Lakebase PostgreSQL within the same workspace boundary.
+- **REQ-004**: Backstage shall ingest entities one-way from Databricks `ea.metamodel.nodes` via a scheduled custom Entity Provider querying Lakebase.
 - **REQ-005**: Archify shall compile typed JSON models into standalone SVG/HTML supporting five canonical types: `architecture`, `workflow`, `sequence`, `dataflow`, and `lifecycle`.
 - **REQ-006**: Every Pull Request modifying application architecture or infrastructure files shall trigger an autonomous ARB review action that posts a markdown summary and Archify visual diff.
 - **REQ-007**: A daily scheduled Drift Detector shall compare declared Git entities against live CMDB/cloud records in `ea.gold.cmdb_reconciled` and open a GitHub issue if drift $> 0$.
+- **REQ-008 (Dual LLM Provider Support)**: The ARB Reviewer Agent evaluator shall support **both** of the following LLM provider options via pluggable configuration:
+  - **Option A (In-Platform Databricks Mosaic AI Model Serving):** Invokes an enterprise-hosted open-weights model (e.g., `databricks-meta-llama-3-1-70b-instruct`, `dbrx-instruct`, or `deepseek-v3`) via Databricks Model Serving endpoints with zero data egress outside the Databricks security perimeter.
+  - **Option B (External LLM API):** Invokes external managed frontier endpoints (e.g., OpenAI `gpt-4o`, Google Gemini 1.5 Pro, or Anthropic Claude 3.5 Sonnet) via standard REST APIs.
+  - The evaluator script and GitHub Action shall dynamically toggle between Option A and Option B using the `LLM_PROVIDER` environment variable without requiring code modifications.
 
 ### 3.2 Constraints (CON)
 - **CON-001 (Licence Filter)**: Only **GitHub**, **Databricks**, and permissive open-source software (OSS) may be used. No commercial third-party EA licenses permitted.
@@ -83,14 +89,19 @@ Replace legacy, passive EA repositories (e.g., Orbus Infinity) with an active, c
 │   ├── databricks.yml
 │   └── resources/
 │       ├── metamodel_tables.sql
-│       └── ingestion_pipelines.yml
+│       ├── lakebase_db.yml
+│       └── backstage_app.yml
 ├── backstage/
 │   ├── app-config.yaml
+│   ├── app.yaml
+│   ├── package.json
 │   └── packages/backend/src/plugins/ea-catalog-provider.ts
 ├── archify/
 │   ├── Dockerfile
 │   └── bridge/
 │       └── pam-to-archify.py
+├── scripts/
+│   └── agent_arb_evaluator.py
 └── schemas/pam/
     ├── nodes.schema.json
     ├── edges.schema.json
@@ -215,6 +226,22 @@ resources:
       catalog: ea
       database_name: ea_operational
 
+  apps:
+    ea_backstage_portal:
+      name: "ea-backstage-portal"
+      description: "Developer and EA software catalog portal hosted inside Databricks Apps"
+      source_code_path: ../backstage
+      command: ["node", "packages/backend/dist/index.js"]
+      env:
+        - name: NODE_ENV
+          value: production
+        - name: LAKEBASE_POSTGRES_HOST
+          valueFrom: "secrets/ea-scope/lakebase-host"
+        - name: LAKEBASE_POSTGRES_USER
+          valueFrom: "secrets/ea-scope/lakebase-user"
+        - name: LAKEBASE_POSTGRES_PASSWORD
+          valueFrom: "secrets/ea-scope/lakebase-password"
+
   pipelines:
     ea_reconciliation_pipeline:
       name: "EA Reconciliation & Gold Marts"
@@ -247,20 +274,36 @@ ALTER TABLE ea.metamodel.nodes ADD CONSTRAINT pk_pam_nodes PRIMARY KEY (urn);
 
 ---
 
-### Subsystem 3: Backstage Portal Configuration (`backstage/`)
+### Subsystem 3: Backstage in Databricks Apps (`backstage/`)
 
-Backstage is configured to use Databricks Lakebase Postgres and load the custom PAM entity provider.
+Backstage is packaged to run within **Databricks Apps**, connecting to Databricks Lakebase Postgres.
 
-#### Contract 3.1: `app-config.yaml` (Database & Catalog)
+#### Contract 3.1: Databricks App Manifest (`app.yaml`)
+```yaml
+version: 1
+name: ea-backstage-portal
+runtime: nodejs20
+env:
+  PORT: 8080
+  APP_CONFIG_app_baseUrl: https://${DATABRICKS_APP_URL}
+  APP_CONFIG_backend_baseUrl: https://${DATABRICKS_APP_URL}
+  APP_CONFIG_backend_listen_port: 8080
+build:
+  command: "yarn build:backend"
+run:
+  command: "node packages/backend/dist/index.js"
+```
+
+#### Contract 3.2: `app-config.yaml` (Database & Catalog)
 ```yaml
 app:
   title: Enterprise Architecture Portal
-  baseUrl: http://localhost:3000
+  baseUrl: ${APP_CONFIG_app_baseUrl}
 
 backend:
-  baseUrl: http://localhost:7007
+  baseUrl: ${APP_CONFIG_backend_baseUrl}
   listen:
-    port: 7007
+    port: ${APP_CONFIG_backend_listen_port}
   database:
     client: pg
     connection:
@@ -281,7 +324,7 @@ catalog:
         timeout: { minutes: 3 }
 ```
 
-#### Contract 3.2: Entity Provider Interface (`ea-catalog-provider.ts`)
+#### Contract 3.3: Entity Provider Interface (`ea-catalog-provider.ts`)
 ```typescript
 import { EntityProvider, EntityProviderConnection } from '@backstage/plugin-catalog-node';
 import { Client } from 'pg';
@@ -323,7 +366,7 @@ export class EAMetamodelProvider implements EntityProvider {
 
     await this.connection.applyMutation({
       type: 'full',
-      entities: entities.map(e => ({ entity: e, locationKey: 'ea-provider:db' })),
+      entities: entities.map(e => ({ entity: e, locationKey: 'ea-provider:lakebase' })),
     });
   }
 }
@@ -391,9 +434,52 @@ archify finalize \
 
 ---
 
-### Subsystem 5: Agentic Automation Workflows (`.github/workflows/`)
+### Subsystem 5: Agentic Automation Workflows & Dual LLM Support
 
-#### Contract 5.1: Autonomous ARB Review Gate (`arb-gate.yml`)
+#### Contract 5.1: Evaluator Provider Interface (`scripts/agent_arb_evaluator.py`)
+```python
+# Evaluator accepts dual provider selection via CLI or ENV:
+# --provider databricks_mosaic  -> Queries Databricks Model Serving endpoint
+# --provider external           -> Queries External OpenAI / Gemini / Anthropic API
+
+import os
+import argparse
+import requests
+import json
+
+def get_llm_client(provider: str):
+    if provider == "databricks_mosaic":
+        host = os.environ["DATABRICKS_HOST"].rstrip("/")
+        token = os.environ["DATABRICKS_TOKEN"]
+        endpoint = os.environ.get("DATABRICKS_SERVING_ENDPOINT", "databricks-meta-llama-3-1-70b-instruct")
+        url = f"{host}/serving-endpoints/{endpoint}/invocations"
+        headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+        def complete(prompt: str) -> str:
+            payload = {"messages": [{"role": "user", "content": prompt}], "temperature": 0.1}
+            r = requests.post(url, headers=headers, json=payload, timeout=60)
+            r.raise_for_status()
+            return r.json()["choices"][0]["message"]["content"]
+        return complete
+
+    elif provider == "external":
+        base_url = os.environ.get("EXTERNAL_LLM_BASE_URL", "https://api.openai.com/v1").rstrip("/")
+        api_key = os.environ["EXTERNAL_LLM_API_KEY"]
+        model = os.environ.get("EXTERNAL_LLM_MODEL", "gpt-4o")
+        url = f"{base_url}/chat/completions"
+        headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+
+        def complete(prompt: str) -> str:
+            payload = {"model": model, "messages": [{"role": "user", "content": prompt}], "temperature": 0.1}
+            r = requests.post(url, headers=headers, json=payload, timeout=60)
+            r.raise_for_status()
+            return r.json()["choices"][0]["message"]["content"]
+        return complete
+    else:
+        raise ValueError(f"Unsupported LLM provider: {provider}")
+```
+
+#### Contract 5.2: Autonomous ARB Review Gate (`arb-gate.yml`)
 ```yaml
 name: "Autonomous ARB Review Gate"
 on:
@@ -422,11 +508,19 @@ jobs:
 
       - name: Run ARB Agent Evaluator
         env:
+          # Select provider: 'databricks_mosaic' or 'external'
+          LLM_PROVIDER: ${{ vars.LLM_PROVIDER || 'databricks_mosaic' }}
+          # Option A credentials (Databricks Mosaic AI Model Serving)
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          DATABRICKS_SERVING_ENDPOINT: ${{ vars.DATABRICKS_SERVING_ENDPOINT || 'databricks-meta-llama-3-1-70b-instruct' }}
+          # Option B credentials (External API)
+          EXTERNAL_LLM_API_KEY: ${{ secrets.EXTERNAL_LLM_API_KEY }}
+          EXTERNAL_LLM_BASE_URL: ${{ vars.EXTERNAL_LLM_BASE_URL || 'https://api.openai.com/v1' }}
+          EXTERNAL_LLM_MODEL: ${{ vars.EXTERNAL_LLM_MODEL || 'gpt-4o' }}
         run: |
           python scripts/agent_arb_evaluator.py \
+            --provider "$LLM_PROVIDER" \
             --pr-number ${{ github.event.pull_request.number }} \
             --diff-output ./diff.patch \
             --out-comment ./arb_comment.md \
@@ -461,10 +555,11 @@ jobs:
 |---|---|---|---|---|
 | **AC-001** | Schema Validation | An invalid node JSON missing `owner_team` | AJV schema validator runs | Pipeline exits status 1 and highlights missing field |
 | **AC-002** | Backbone Deploy | Valid Databricks credentials | `databricks bundle deploy -t dev` runs | `ea.metamodel` tables and Lakebase instance exist in Unity Catalog |
-| **AC-003** | Backstage Sync | 10 application nodes loaded in Lakebase | Backstage catalog scheduler runs | 10 entities appear in Backstage `/catalog` with `urn` annotations |
+| **AC-003** | Backstage in Databricks Apps | Backstage app bundled via DAB | `databricks apps start ea-backstage-portal` runs | App starts in Databricks, serves UI on HTTPS URL, and connects to Lakebase |
 | **AC-004** | Archify Render | A valid PAM subgraph JSON | `archify finalize` runs | Valid SVG file created with 0 overlapping nodes |
 | **AC-005** | ARB PR Gate | A PR introducing an unapproved database | GitHub PR action triggers | Action leaves comment identifying violation and posts visual diff |
 | **AC-006** | Drift Alert | Cloud CUR lists AWS Aurora missing from Git | Daily Drift Detector runs | GitHub Issue created with title `[Drift] Unregistered DB in us-east-1` |
+| **AC-007** | Dual LLM Switching | Configured with `LLM_PROVIDER=databricks_mosaic` vs `external` | ARB evaluator runs | Evaluator successfully queries the selected endpoint and generates identical markdown evaluation format |
 
 ---
 
@@ -473,7 +568,7 @@ jobs:
 The implementation must proceed sequentially according to this vertical slice:
 
 ```
-[Task 1: Schemas] ──> [Task 2: Databricks DAB] ──> [Task 3: Backstage] ──> [Task 4: Archify] ──> [Task 5: CI Agents]
+[Task 1: Schemas] ──> [Task 2: Databricks DAB & Lakebase] ──> [Task 3: Backstage Databricks App] ──> [Task 4: Archify] ──> [Task 5: CI Agents with Dual LLM]
 ```
 
 - [ ] **Task 1: Metamodel Schema Foundation**
@@ -481,19 +576,19 @@ The implementation must proceed sequentially according to this vertical slice:
   - Add AJV schema validation script to GitHub Actions.
   - *Verify:* Run `npm run test:schemas` against valid and invalid sample payloads.
 - [ ] **Task 2: Databricks Asset Bundle & Lakebase**
-  - Author `databricks/databricks.yml` and table DDL scripts.
-  - Configure Lakebase PostgreSQL operational instance.
+  - Author `databricks/databricks.yml` declaring Unity Catalog tables, Lakebase PostgreSQL instance, and Backstage app resource.
   - *Verify:* `databricks bundle validate` passes and creates staging tables.
-- [ ] **Task 3: Backstage Scaffolding & Provider**
+- [ ] **Task 3: Backstage in Databricks Apps Scaffolding**
   - Scaffold Backstage Node.js app using `@backstage/create-app`.
-  - Wire `app-config.yaml` to Lakebase Postgres.
+  - Author Databricks App manifest (`app.yaml`) and wire `app-config.yaml` to Lakebase Postgres.
   - Implement `EAMetamodelProvider` to sync Delta nodes into Backstage catalog.
-  - *Verify:* `yarn dev` boots and loads catalog entities from Lakebase.
+  - *Verify:* Deploy to Databricks dev target (`databricks bundle deploy -t dev`) and verify app URL boots.
 - [ ] **Task 4: Archify CLI Integration Bridge**
   - Write `bridge/pam-to-archify.py` to extract subgraphs to typed Archify JSON.
   - Package Docker container with Archify CLI.
   - *Verify:* Export a 5-node cluster and generate a valid SVG.
-- [ ] **Task 5: ARB Gate & Drift Workflows**
-  - Implement `.github/workflows/arb-gate.yml` and evaluator script.
-  - Implement `.github/workflows/drift-detector.yml`.
-  - *Verify:* Submit a synthetic test PR and verify comment and Archify diff attachment.
+- [ ] **Task 5: ARB Gate & Drift Workflows (Dual LLM Support)**
+  - Implement `scripts/agent_arb_evaluator.py` supporting both `databricks_mosaic` and `external` backends.
+  - Author `.github/workflows/arb-gate.yml` with provider selection variables.
+  - Author `.github/workflows/drift-detector.yml`.
+  - *Verify:* Test evaluation against Databricks Mosaic AI serving endpoint and external fallback API.
