@@ -1,0 +1,198 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Agentic EA Platform — Collaborative Co-Driving in Backstage",
+    "subtitle": "Real-time WebSocket Keystroke Relay, Herdr PTY Terminal Multiplexer, and Omnigent Sandbox",
+    "output": ".archify/architecture-collaborative-codriving-20261015-121500/collaborative-codriving.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    {
+      "id": "user_ea",
+      "type": "external",
+      "icon": "person",
+      "label": "Enterprise Architect",
+      "sublabel": "Browser Session • Zero SSH Required",
+      "pos": [540, 50],
+      "size": [220, 60],
+      "tag": "Human In-The-Loop"
+    },
+    {
+      "id": "backstage_cockpit",
+      "type": "frontend",
+      "label": "Backstage Operating Cockpit",
+      "sublabel": "Databricks Apps • Catalog & Lineage",
+      "pos": [280, 190],
+      "size": [260, 60],
+      "tag": "Primary Portal"
+    },
+    {
+      "id": "copilot_drawer",
+      "type": "frontend",
+      "label": "Slide-Out Copilot Drawer",
+      "sublabel": "Live Thought Stream & Action Buttons",
+      "pos": [680, 190],
+      "size": [280, 60],
+      "tag": "Co-Driving UI"
+    },
+    {
+      "id": "omnigent_supervisor",
+      "type": "backend",
+      "label": "Omnigent Control Plane",
+      "sublabel": "Spend Caps • gVisor Jail • Policy Checks",
+      "pos": [280, 330],
+      "size": [280, 60],
+      "tag": "Governance"
+    },
+    {
+      "id": "ws_gateway",
+      "type": "backend",
+      "label": "WebSocket Keystroke Relay",
+      "sublabel": "Sub-10ms Bi-directional Terminal Bridge",
+      "pos": [680, 330],
+      "size": [280, 60],
+      "tag": "Real-Time Bridge"
+    },
+    {
+      "id": "herdr_multiplexer",
+      "type": "backend",
+      "label": "Herdr PTY Multiplexer",
+      "sublabel": "Pane State Detection: BLOCKED ➔ WORKING",
+      "pos": [280, 480],
+      "size": [280, 60],
+      "tag": "PTY Engine"
+    },
+    {
+      "id": "agent_copilot",
+      "type": "backend",
+      "label": "Strategic Copilot Agent",
+      "sublabel": "Autonomous Reasoning in /dev/pts/3",
+      "pos": [680, 480],
+      "size": [260, 60],
+      "tag": "Agent CLI"
+    },
+    {
+      "id": "git_worktree",
+      "type": "backend",
+      "label": "Ephemeral Git Worktree",
+      "sublabel": "Branch: feat/payments-lakebase-adr",
+      "pos": [1080, 480],
+      "size": [220, 60],
+      "tag": "Isolated Repo"
+    },
+    {
+      "id": "uc_pam",
+      "type": "database",
+      "label": "Unity Catalog PAM Graph",
+      "sublabel": "Topology, TIME Standards & ADR History",
+      "pos": [680, 640],
+      "size": [260, 60],
+      "tag": "Knowledge Graph"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Human Interaction Layer",
+      "wraps": ["user_ea"]
+    },
+    {
+      "kind": "region",
+      "label": "Backstage Operating Cockpit (Databricks Apps)",
+      "wraps": ["backstage_cockpit", "copilot_drawer"]
+    },
+    {
+      "kind": "security-group",
+      "label": "Control & Streaming Fabric",
+      "wraps": ["omnigent_supervisor", "ws_gateway"]
+    },
+    {
+      "kind": "security-group",
+      "label": "Ring 2 Execution Sandbox (Omnigent Container)",
+      "wraps": ["herdr_multiplexer", "agent_copilot", "git_worktree"]
+    },
+    {
+      "kind": "region",
+      "label": "Databricks Enterprise Data Backbone",
+      "wraps": ["uc_pam"]
+    }
+  ],
+  "connections": [
+    {
+      "id": "c-ea-cockpit",
+      "from": "user_ea",
+      "to": "backstage_cockpit",
+      "label": "browses catalog & maps",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "c-ea-drawer",
+      "from": "user_ea",
+      "to": "copilot_drawer",
+      "label": "clicks 'Draft PostgreSQL ADR'",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "variant": "emphasis"
+    },
+    {
+      "id": "c-cockpit-drawer",
+      "from": "backstage_cockpit",
+      "to": "copilot_drawer",
+      "label": "opens co-driving session",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "c-drawer-ws",
+      "from": "copilot_drawer",
+      "to": "ws_gateway",
+      "label": "streams input & stdout",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "variant": "emphasis"
+    },
+    {
+      "id": "c-omni-herdr",
+      "from": "omnigent_supervisor",
+      "to": "herdr_multiplexer",
+      "label": "enforces container jail & spend",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "c-ws-herdr",
+      "from": "ws_gateway",
+      "to": "herdr_multiplexer",
+      "label": "injects keystroke into TTY",
+      "fromSide": "left",
+      "toSide": "right",
+      "variant": "emphasis"
+    },
+    {
+      "id": "c-herdr-agent",
+      "from": "herdr_multiplexer",
+      "to": "agent_copilot",
+      "label": "scrapes prompts / unblocks TTY",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "c-agent-worktree",
+      "from": "agent_copilot",
+      "to": "git_worktree",
+      "label": "writes ADR markdown",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "c-agent-uc",
+      "from": "agent_copilot",
+      "to": "uc_pam",
+      "label": "queries 14 downstream edges",
+      "fromSide": "bottom",
+      "toSide": "top"
+    }
+  ]
+}

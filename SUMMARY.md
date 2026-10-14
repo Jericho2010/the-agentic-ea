@@ -102,10 +102,11 @@ Primary navigation for *The Agentic EA*. Prefer this file when jumping between c
 ## Part X — The Agentic EA — Solution Ideation. Evo 2: Sandboxed Multi-Agent Runtime & Collaborative Governance
 - [10.1 Architecture of the Agent Runtime Fabric](docs/11-solution-ideation-evo2/01-runtime-fabric-architecture.md) — **Diagram: Omnigent control plane + Herdr multiplexer**
 - [10.2 The 4-Ring Sandboxing Specification](docs/11-solution-ideation-evo2/02-sandboxing-specification.md) — **Spec: bubblewrap OS isolation, worktrees, network proxy**
-- [10.3 Collaborative Co-Driving in Backstage](docs/11-solution-ideation-evo2/03-collaborative-codriving.md) — **Workflow: WebSocket terminal stream, the Blocked-State bridge**
+- [10.3 Collaborative Co-Driving in Backstage](docs/11-solution-ideation-evo2/03-collaborative-codriving.md) — **Workflow: WebSocket terminal stream, the Blocked-State bridge, UI diagram**
 - [10.4 Concurrent Multi-Repo Cartography](docs/11-solution-ideation-evo2/04-multi-repo-cartography.md) — **Pipeline: parallel worktree fleet, atomic Delta merges**
 
 ## Schemas & assets
 - [Archify bridge notes](schemas/archify-bridge.md)
 - [PAM schema sketch](schemas/pam/metamodel.schema.json)
+- [Interactive Diagrams](assets/diagrams/README.md) — **Archify showcase diagrams & UI visual models**
 

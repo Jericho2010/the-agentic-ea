@@ -10,6 +10,13 @@ One of the biggest frustrations with first-generation AI bots is that they are *
 
 Enterprise Architects and engineering leads should never have to open an SSH terminal or manage background daemon processes. Instead, the interaction takes place through the **Backstage Copilot Drawer**, hosted natively in Databricks Apps:
 
+![Collaborative Co-Driving in Backstage](../../assets/diagrams/collaborative-codriving-ui.svg)
+
+> **Interactive Architecture Diagram (Archify Showcase):** The system architecture and real-time streaming bridge is compiled as an interactive explorable diagram at [`assets/diagrams/collaborative-codriving-architecture.html`](../../assets/diagrams/collaborative-codriving-architecture.html) with standalone vector graphic at [`assets/diagrams/collaborative-codriving-architecture.svg`](../../assets/diagrams/collaborative-codriving-architecture.svg) and specification at [`assets/diagrams/collaborative-codriving-architecture.json`](../../assets/diagrams/collaborative-codriving-architecture.json).
+
+<details>
+<summary>Click to view ASCII interaction schematic</summary>
+
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ BACKSTAGE OPERATING COCKPIT (Browser / Databricks Apps)                     │
@@ -41,6 +48,8 @@ Enterprise Architects and engineering leads should never have to open an SSH ter
 │   • Pane Status: BLOCKED ──► Injects Keystroke ──► Transitions to WORKING    │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
+
+</details>
 
 ---
 
