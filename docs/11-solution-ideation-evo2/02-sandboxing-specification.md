@@ -1,0 +1,144 @@
+# 10.2 The 4-Ring Sandboxing Specification
+
+Allowing autonomous AI agents to run shell commands, analyze source code, and propose infrastructure changes requires rigorous security boundaries. If an agent runs without isolation, a single rogue command or prompt injection could read sensitive local files, overwrite git history, or leak credentials.
+
+Evo 2 establishes a **4-Ring Defense-in-Depth Sandboxing Model**. Each ring provides an independent layer of protection. Even if an agent bypasses an inner ring, the outer rings prevent any damage to the host system or enterprise network.
+
+---
+
+## 1. The 4 Rings of Protection
+
+```text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ RING 4: NETWORK & EGRESS PROXY (Omnigent)                                   │
+│  • Blocks unapproved external internet domains                              │
+│  • Automatically detects and redacts personal data (PII) and secret tokens  │
+│  • Enforces hard token and dollar budgets per task                          │
+│                                                                             │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │ RING 3: OPERATING SYSTEM ISOLATION (Bubblewrap / Omnibox)             │  │
+│  │  • Mounts host filesystem as strictly read-only                       │  │
+│  │  • Hides sensitive user folders (~/.ssh, ~/.aws, ~/.databricks)      │  │
+│  │  • Disables root privileges using unprivileged user namespaces        │  │
+│  │                                                                       │  │
+│  │  ┌─────────────────────────────────────────────────────────────────┐  │  │
+│  │  │ RING 2: FILESYSTEM & GIT ISOLATION (Herdr Worktrees)            │  │  │
+│  │  │  • Ephemeral Git worktree per task (zero main-branch collisions)│  │  │
+│  │  │  • Dedicated temporary scratch space (/tmp/scratch)             │  │  │
+│  │  │  • Auto-destroyed immediately upon task completion              │  │  │
+│  │  │                                                                 │  │  │
+│  │  │  ┌───────────────────────────────────────────────────────────┐  │  │  │
+│  │  │  │ RING 1: TERMINAL & PROCESS ISOLATION (Herdr Panes)        │  │  │  │
+│  │  │  │  • Dedicated pseudo-terminal (PTY) session per agent     │  │  │  │
+│  │  │  │  • Continuous state detection (working, blocked, done)   │  │  │  │
+│  │  │  │  • Safe bracketed-paste input (no buffer overflow)       │  │  │  │
+│  │  │  └───────────────────────────────────────────────────────────┘  │  │  │
+│  │  └─────────────────────────────────────────────────────────────────┘  │  │
+│  └───────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 2. Detailed Ring Breakdown
+
+### Ring 1: Terminal & Process Isolation (Herdr Panes)
+Every agent runs inside a dedicated pseudo-terminal (PTY) pane managed by **Herdr**.
+- **No Shared Shell Sessions:** Agents never share a bash session. Each runs as an independent child process.
+- **Process State Tracking:** Herdr tracks whether the process is actively computing, finished, or paused at a prompt.
+- **Controlled Keystroke Injection:** Inputs are sent using bracketed-paste boundaries, preventing escape-sequence injection attacks where malicious text mimics terminal control characters.
+
+### Ring 2: Filesystem & Git Isolation (Herdr Worktrees)
+Agents that inspect or modify code never touch the primary git working tree.
+- **Disposable Folders:** Herdr uses `git worktree add` to create a lightweight, temporary directory checked out to the exact commit or pull request being reviewed.
+- **Independent Git Index:** The agent's git index and staging area are separate from any human engineer's work.
+- **Automatic Tear-Down:** When the agent finishes (`done`), the worktree is automatically pruned (`git worktree remove --force`). No orphan files or dirty working trees remain on the host.
+
+### Ring 3: Operating System Isolation (Bubblewrap / Omnibox)
+At the kernel level, the agent process is contained using standard Linux unprivileged user namespaces and `bubblewrap` (`bwrap`).
+- **Read-Only Root:** The root filesystem (`/`, `/usr`, `/lib`, `/bin`) is mounted read-only. The agent cannot install system packages, modify binaries, or tamper with system libraries.
+- **Credential Masking:** Crucial directories containing user secrets are explicitly hidden by mounting empty `tmpfs` overlays over them:
+  - `~/.ssh/` $\rightarrow$ Hidden (empty)
+  - `~/.aws/` $\rightarrow$ Hidden (empty)
+  - `~/.databricks/` $\rightarrow$ Hidden (empty)
+  - `~/.bashrc` / `~/.zshrc` $\rightarrow$ Hidden (empty)
+- **Only Two Writable Paths:** The agent is only permitted to write to two locations:
+  1. Its specific assigned Git worktree directory.
+  2. An isolated ephemeral RAM disk mounted at `/tmp/scratch`.
+
+### Ring 4: Network & Data Egress Control (Omnigent Proxy)
+All network traffic generated by the agent or its tools must pass through an outbound proxy managed by **Omnigent**.
+- **Strict Domain Allowlist:** The agent cannot make arbitrary internet requests. It can only reach pre-approved enterprise services:
+  - `github.corp.internal` (Git API)
+  - `company.databricks.com` (Databricks Unity Catalog API)
+  - Approved LLM API endpoints
+- **Data Redaction:** The proxy inspects outbound text payloads using regex and pattern detectors to strip:
+  - Private access tokens and API keys (`ghp_*`, `dapi*`, Bearer tokens).
+  - Personally Identifiable Information (email addresses, phone numbers, employee IDs).
+- **Cost & Quota Caps:** Hard limits are enforced per session (e.g., maximum 50,000 tokens or $1.00 per task). If an agent enters an infinite reasoning loop, the proxy cuts execution immediately.
+
+---
+
+## 3. Concrete Sandbox Definition (YAML Specification)
+
+The sandbox is declared as a clean, human-readable configuration file interpreted by Omnigent when launching an agent:
+
+```yaml
+# omnigent-sandbox.yaml
+name: enterprise-ea-agent-sandbox
+version: "1.0"
+
+# Ring 3: Kernel & OS Isolation (Bubblewrap)
+isolation:
+  engine: bubblewrap
+  read_only_mounts:
+    - /
+    - /usr
+    - /lib
+    - /bin
+    - /opt
+  masked_paths:
+    - ~/.ssh
+    - ~/.aws
+    - ~/.azure
+    - ~/.databricks
+    - ~/.config
+    - /etc/shadow
+  writable_mounts:
+    - ${TASK_WORKTREE_PATH}
+    - /tmp/scratch
+
+# Ring 2: Git Worktree Configuration
+workspace:
+  base_repo: ~/Projects/the-agentic-ea
+  worktree_prefix: /tmp/ea-worktrees/task-
+  auto_prune_on_exit: true
+
+# Ring 4: Network & Egress Policies
+network:
+  default_policy: deny
+  allowlist:
+    - api.github.com
+    - "*.databricks.com"
+  redaction_rules:
+    - pattern: "ghp_[A-Za-z0-9_]{36}"
+      replacement: "[REDACTED_GITHUB_TOKEN]"
+    - pattern: "dapi[a-f0-9]{32}"
+      replacement: "[REDACTED_DATABRICKS_TOKEN]"
+  budget_limits:
+    max_tokens_per_task: 60000
+    max_cost_usd_per_task: 1.50
+    max_duration_seconds: 300
+```
+
+---
+
+## 4. Failure Modes & Self-Healing Behaviors
+
+| Event | What the Agent Tries to Do | How the Sandbox Responds | Outcome |
+| :--- | :--- | :--- | :--- |
+| **Accidental Overwrite** | Agent runs `rm -rf /` or tries to edit a core system library. | Ring 3 blocks the system call (`Read-only file system`). | Command fails immediately. System remains completely untouched. |
+| **Credential Theft** | Prompt injection tricks agent into running `cat ~/.ssh/id_rsa`. | Ring 3 presents an empty dummy folder. | Agent reads an empty file. Zero credentials exposed. |
+| **Git Corruption** | Agent runs `git push --force origin main`. | Ring 2 isolates the agent in an ephemeral worktree without push rights. | Git rejects the operation. Primary repo history is safe. |
+| **Infinite Loop** | Agent gets stuck in a recursive tool-calling loop. | Ring 4 spending and time limits trigger after 300s or 60k tokens. | Omnigent sends a terminate signal to Herdr. Job ends cleanly. |
+| **Unapproved Egress** | Malicious dependency attempts to download an external binary from an unknown IP. | Ring 4 network proxy drops the TCP connection (`Connection refused`). | Download blocked and security event logged in Databricks audit log. |

@@ -93,6 +93,12 @@ Orbus Infinity is the baseline enterprise architecture practice: a governed repo
 - [9.2 How an Agent Builds the Solution](docs/10-solution-ideation/02-how-an-agent-builds-the-solution.md)
 - [9.3 Build Specification: The Agentic EA Platform](docs/10-solution-ideation/03-build-specification.md)
 
+### Part X — The Agentic EA — Solution Ideation. Evo 2: Sandboxed Multi-Agent Runtime & Collaborative Governance
+- [10.1 Architecture of the Agent Runtime Fabric](docs/11-solution-ideation-evo2/01-runtime-fabric-architecture.md)
+- [10.2 The 4-Ring Sandboxing Specification](docs/11-solution-ideation-evo2/02-sandboxing-specification.md)
+- [10.3 Collaborative Co-Driving in Backstage](docs/11-solution-ideation-evo2/03-collaborative-codriving.md)
+- [10.4 Concurrent Multi-Repo Cartography](docs/11-solution-ideation-evo2/04-multi-repo-cartography.md)
+
 ### Appendices
 - [A Glossary](docs/08-appendices/glossary.md)
 - [B Bibliography](docs/08-appendices/bibliography.md)
@@ -112,6 +118,7 @@ Orbus Infinity is the baseline enterprise architecture practice: a governed repo
 ## Build Log
 
 - 2026-10-14 - Part IX Specification & Archify Architecture - Authored User Perspective (9.1), Agent Build Strategy (9.2), Build Specification (9.3), and compiled interactive Archify showcase diagram with the Human Interaction Layer and The 4 Cockpits.
+- 2026-10-14 - Part X Solution Ideation Evo 2 - Authored runtime fabric architecture (10.1), 4-ring sandboxing specification (10.2), collaborative co-driving in Backstage (10.3), and concurrent multi-repo cartography (10.4) integrating Omnigent governance and Herdr multiplexing.
 
 ## License
 
