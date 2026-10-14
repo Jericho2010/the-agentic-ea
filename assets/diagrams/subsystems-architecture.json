@@ -14,8 +14,9 @@
       "icon": "person",
       "label": "Software Engineer",
       "sublabel": "Code & IaC Author",
-      "pos": [50, 50],
-      "size": [160, 60]
+      "pos": [140, 50],
+      "size": [180, 60],
+      "tag": "Engineer"
     },
     {
       "id": "user_ea",
@@ -23,8 +24,8 @@
       "icon": "person",
       "label": "Enterprise Architect",
       "sublabel": "Editor-in-Chief & Strategy",
-      "pos": [320, 50],
-      "size": [170, 60],
+      "pos": [580, 50],
+      "size": [200, 60],
       "tag": "Primary User"
     },
     {
@@ -33,94 +34,88 @@
       "icon": "person",
       "label": "CIO & Tech Leadership",
       "sublabel": "Portfolio & Risk Decisions",
-      "pos": [880, 50],
-      "size": [170, 60],
+      "pos": [1020, 50],
+      "size": [180, 60],
       "tag": "Executive"
     },
     {
-      "id": "ui_github_pr",
+      "id": "ui_github",
       "type": "frontend",
-      "label": "GitHub PR Interface",
-      "sublabel": "Zero-Meeting ARB Reviews",
-      "pos": [50, 230],
-      "size": [160, 60],
-      "tag": "Governance"
+      "label": "GitHub PR Review Gate",
+      "sublabel": "Developer In-Flow & ARB Bot",
+      "pos": [140, 200],
+      "size": [180, 60],
+      "tag": "Dev In-Flow"
     },
     {
       "id": "ui_backstage",
       "type": "frontend",
-      "label": "Backstage Cockpit",
-      "sublabel": "Living Maps & Action Inbox",
-      "pos": [320, 230],
-      "size": [170, 60],
-      "tag": "Daily UI"
-    },
-    {
-      "id": "ui_copilot",
-      "type": "frontend",
-      "label": "Agent Copilot Chat",
-      "sublabel": "Natural Language Terminal",
-      "pos": [600, 230],
-      "size": [170, 60],
-      "tag": "Chat / NL"
+      "label": "Backstage Unified Cockpit",
+      "sublabel": "Databricks Apps • Maps & Copilot",
+      "pos": [580, 200],
+      "size": [200, 60],
+      "tag": "Primary EA Home"
     },
     {
       "id": "ui_dashboards",
       "type": "frontend",
       "label": "Databricks AI/BI",
-      "sublabel": "TIME Matrix & FinOps",
-      "pos": [880, 230],
-      "size": [170, 60],
+      "sublabel": "TIME Matrix & FinOps Metrics",
+      "pos": [1020, 200],
+      "size": [180, 60],
       "tag": "Executive UI"
+    },
+    {
+      "id": "archify_engine",
+      "type": "backend",
+      "label": "Archify Visualizer",
+      "sublabel": "SVG Compiler & Living Maps",
+      "pos": [40, 360],
+      "size": [150, 60],
+      "tag": "Visual Engine"
     },
     {
       "id": "agent_arb",
       "type": "backend",
       "label": "ARB Reviewer Agent",
       "sublabel": "Pre-Merge Compliance Checks",
-      "pos": [50, 410],
-      "size": [160, 60]
-    },
-    {
-      "id": "archify_engine",
-      "type": "backend",
-      "label": "Archify Visualizer",
-      "sublabel": "SVG Compiler & PR Diffs",
-      "pos": [320, 410],
-      "size": [170, 60],
-      "tag": "Visual Engine"
-    },
-    {
-      "id": "agent_copilot_core",
-      "type": "backend",
-      "label": "Strategic Copilot Agent",
-      "sublabel": "What-If & ADR Synthesis",
-      "pos": [600, 410],
-      "size": [170, 60]
+      "pos": [280, 360],
+      "size": [150, 60],
+      "tag": "CI Gate"
     },
     {
       "id": "tri_modal_llm",
       "type": "cloud",
       "label": "Tri-Modal LLM Engine",
       "sublabel": "A: Mosaic | B: API | C: CLI",
-      "pos": [880, 410],
-      "size": [170, 60],
+      "pos": [570, 360],
+      "size": [180, 60],
       "tag": "Pluggable AI"
+    },
+    {
+      "id": "agent_copilot",
+      "type": "backend",
+      "label": "Strategic Copilot Agent",
+      "sublabel": "What-If Blast Radius & ADRs",
+      "pos": [880, 360],
+      "size": [150, 60],
+      "tag": "Reasoning"
     },
     {
       "id": "agent_cartographer",
       "type": "backend",
       "label": "Cartographer Agent",
       "sublabel": "AST & Cloud Auto-Discovery",
-      "pos": [50, 590],
-      "size": [160, 60]
+      "pos": [1160, 360],
+      "size": [150, 60],
+      "tag": "Discovery"
     },
     {
       "id": "lakebase_pg",
       "type": "database",
       "label": "Lakebase PostgreSQL",
       "sublabel": "Operational Catalog DB",
-      "pos": [320, 590],
+      "pos": [300, 530],
       "size": [170, 60],
       "tag": "Managed DB"
     },
@@ -129,8 +124,8 @@
       "type": "database",
       "label": "Unity Catalog PAM",
       "sublabel": "Nodes, Edges, Evidence",
-      "pos": [600, 590],
-      "size": [170, 60],
+      "pos": [620, 530],
+      "size": [180, 60],
       "tag": "Delta Tables"
     },
     {
@@ -138,7 +133,7 @@
       "type": "database",
       "label": "Gold Scenario Marts",
       "sublabel": "TIME, EOL & Drift Marts",
-      "pos": [880, 590],
+      "pos": [960, 530],
       "size": [170, 60],
       "tag": "Analytics"
     }
@@ -151,13 +146,13 @@
     },
     {
       "kind": "region",
-      "label": "User Interaction Surfaces (The 4 Cockpits)",
-      "wraps": ["ui_github_pr", "ui_backstage", "ui_copilot", "ui_dashboards"]
+      "label": "The 3 User Workspaces (Where Stakeholders Actually Work)",
+      "wraps": ["ui_github", "ui_backstage", "ui_dashboards"]
     },
     {
       "kind": "security-group",
-      "label": "Autonomous Agentic Workforce & Visualizer",
-      "wraps": ["agent_arb", "archify_engine", "agent_copilot_core", "tri_modal_llm"]
+      "label": "Autonomous Agent Workforce & AI Engines",
+      "wraps": ["archify_engine", "agent_arb", "tri_modal_llm", "agent_copilot", "agent_cartographer"]
     },
     {
       "kind": "region",
@@ -167,10 +162,10 @@
   ],
   "connections": [
     {
-      "id": "c-dev-to-pr",
+      "id": "c-dev-to-gh",
       "from": "user_dev",
-      "to": "ui_github_pr",
-      "label": "submits PR",
+      "to": "ui_github",
+      "label": "submits PRs & code",
       "fromSide": "bottom",
       "toSide": "top"
     },
@@ -178,18 +173,10 @@
       "id": "c-ea-to-backstage",
       "from": "user_ea",
       "to": "ui_backstage",
-      "label": "browses living maps & alerts",
+      "label": "steers architecture & waivers",
       "fromSide": "bottom",
       "toSide": "top",
       "variant": "emphasis"
-    },
-    {
-      "id": "c-ea-to-copilot",
-      "from": "user_ea",
-      "to": "ui_copilot",
-      "label": "asks What-If & drafts ADRs",
-      "fromSide": "right",
-      "toSide": "top"
     },
     {
       "id": "c-cio-to-dashboards",
@@ -200,16 +187,8 @@
       "toSide": "top"
     },
     {
-      "id": "c-cio-to-copilot",
-      "from": "user_cio",
-      "to": "ui_copilot",
-      "label": "queries risk in plain language",
-      "fromSide": "left",
-      "toSide": "top"
-    },
-    {
-      "id": "c-pr-to-arb",
-      "from": "ui_github_pr",
+      "id": "c-gh-to-arb",
+      "from": "ui_github",
       "to": "agent_arb",
       "label": "invokes review gate",
       "fromSide": "bottom",
@@ -220,25 +199,25 @@
       "from": "agent_arb",
       "to": "archify_engine",
       "label": "delta JSON",
-      "fromSide": "right",
-      "toSide": "left"
+      "fromSide": "left",
+      "toSide": "right"
     },
     {
-      "id": "c-archify-to-pr",
+      "id": "c-archify-to-gh",
       "from": "archify_engine",
-      "to": "ui_github_pr",
+      "to": "ui_github",
       "label": "attaches visual diff SVG",
-      "fromSide": "left",
+      "fromSide": "top",
       "toSide": "bottom",
       "variant": "emphasis"
     },
     {
-      "id": "c-copilot-to-core",
-      "from": "ui_copilot",
-      "to": "agent_copilot_core",
-      "label": "natural language request",
-      "fromSide": "bottom",
-      "toSide": "top"
+      "id": "c-archify-to-backstage",
+      "from": "archify_engine",
+      "to": "ui_backstage",
+      "label": "embeds interactive maps",
+      "fromSide": "top",
+      "toSide": "bottom"
     },
     {
       "id": "c-arb-to-llm",
@@ -251,11 +230,19 @@
     },
     {
       "id": "c-copilot-to-llm",
-      "from": "agent_copilot_core",
+      "from": "agent_copilot",
       "to": "tri_modal_llm",
       "label": "synthesis query",
-      "fromSide": "right",
-      "toSide": "left"
+      "fromSide": "left",
+      "toSide": "right"
+    },
+    {
+      "id": "c-backstage-to-copilot",
+      "from": "ui_backstage",
+      "to": "agent_copilot",
+      "label": "Copilot chat drawer",
+      "fromSide": "bottom",
+      "toSide": "top"
     },
     {
       "id": "c-carto-to-pam",
@@ -263,8 +250,16 @@
       "to": "uc_pam_graph",
       "label": "continuous auto-discovery",
       "fromSide": "bottom",
-      "toSide": "bottom",
+      "toSide": "top",
       "variant": "dashed"
+    },
+    {
+      "id": "c-pam-to-copilot",
+      "from": "uc_pam_graph",
+      "to": "agent_copilot",
+      "label": "graph blast-radius query",
+      "fromSide": "top",
+      "toSide": "bottom"
     },
     {
       "id": "c-pam-to-lakebase",
@@ -278,31 +273,15 @@
       "id": "c-lakebase-to-backstage",
       "from": "lakebase_pg",
       "to": "ui_backstage",
-      "label": "powers software catalog",
-      "fromSide": "top",
-      "toSide": "bottom"
+      "label": "powers software catalog"
     },
     {
-      "id": "c-pam-to-copilot",
+      "id": "c-pam-to-gold",
       "from": "uc_pam_graph",
-      "to": "agent_copilot_core",
-      "label": "graph blast-radius query",
-      "fromSide": "top",
-      "toSide": "bottom"
-    },
-    {
-      "id": "c-pam-to-archify",
-      "from": "uc_pam_graph",
-      "to": "archify_engine",
-      "label": "subgraph export"
-    },
-    {
-      "id": "c-archify-to-backstage",
-      "from": "archify_engine",
-      "to": "ui_backstage",
-      "label": "embeds interactive maps",
-      "fromSide": "top",
-      "toSide": "bottom"
+      "to": "uc_gold_marts",
+      "label": "builds scenario marts",
+      "fromSide": "right",
+      "toSide": "left"
     },
     {
       "id": "c-gold-to-dashboards",
@@ -316,29 +295,31 @@
   "cards": [
     {
       "dot": "cyan",
-      "title": "Layer 1: Human Personas & Surfaces",
+      "title": "Layer 1: Human Personas & The 3 Workspaces",
       "items": [
-        "Enterprise Architect: Uses Backstage daily cockpit, approves PR waivers, directs Copilot",
-        "Software Engineer: Works where code lives (GitHub PRs) and views Backstage catalog",
-        "CIO & Leadership: Monitors Databricks AI/BI dashboards and asks plain-language questions"
+        "Software Engineer: Works strictly in GitHub PRs with automated visual diffs and zero context switching",
+        "Enterprise Architect: Single unified cockpit in Backstage (Databricks Apps) with living maps and Copilot drawer",
+        "CIO & Tech Leadership: Consumes executive portfolio health and FinOps metrics in Databricks AI/BI"
       ]
     },
     {
       "dot": "emerald",
-      "title": "Layer 2: Autonomous Agent Workforce",
+      "title": "Layer 2: Autonomous Agent Workforce & AI Engines",
       "items": [
-        "ARB Reviewer Agent: Evaluates PR diffs against standards and triggers Archify diffs",
-        "Strategic Copilot Agent: Simulates blast radius and cuts target-state ADR drafts",
-        "Tri-Modal LLM Engine: Pluggable execution (Mosaic AI, External API, or Demo Subscription CLI)"
+        "ARB Reviewer Agent: Automated compliance checking against PAM rules on every GitHub pull request",
+        "Archify Visualizer: Compiles deterministic SVG diffs for PRs and interactive living maps for Backstage",
+        "Strategic Copilot: Natural-language reasoning engine for What-If scenario simulations and ADR drafts",
+        "Cartographer Agent: Background scanner auto-discovering ASTs, cloud resources, and pipelines",
+        "Tri-Modal LLM Engine: Pluggable execution (Mosaic AI Serving, External API, or Local Subscription CLI)"
       ]
     },
     {
       "dot": "amber",
-      "title": "Layer 3: Enterprise Data Backbone",
+      "title": "Layer 3: Databricks Enterprise Data Backbone",
       "items": [
-        "Unity Catalog: Stores the live PAM knowledge graph (nodes, edges, evidence)",
-        "Lakebase Managed Postgres: Houses Backstage operational catalog and ARB action queues",
-        "Gold Scenario Marts: Pre-aggregates TIME disposition, EOL risk, and cloud FinOps telemetry"
+        "Unity Catalog: Stores the live PAM knowledge graph (nodes, edges, evidence Delta tables)",
+        "Lakebase Managed PostgreSQL: Powers the Backstage software catalog and operational state",
+        "Gold Scenario Marts: Pre-aggregates TIME disposition, tech debt, and cloud FinOps telemetry"
       ]
     }
   ]
