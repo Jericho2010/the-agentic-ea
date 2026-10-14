@@ -112,6 +112,57 @@ Replace legacy, passive EA repositories (e.g., Orbus Infinity) with an active, c
 
 ---
 
+### 4.0 Subsystem Architecture Blueprint (Archify Showcase)
+
+The architectural relationships, security boundaries, and data contracts across all five subsystems are formally compiled into a validated, interactive Archify architecture specification:
+
+> **Interactive Visualization:** The complete interactive architecture diagram is compiled at [`assets/diagrams/subsystems-architecture.html`](../../assets/diagrams/subsystems-architecture.html). It provides click-to-trace relationship routing, boundary security groups, and subsystem summary cards with zero manual diagramming.
+
+```mermaid
+flowchart TD
+  subgraph gh [GitHub Platform: Intent & CI Governance]
+    PR[Developer PR]
+    Schemas[PAM Schemas JSON Schema]
+    Gate[ARB Review Gate Action]
+    Eval[Tri-Modal Evaluator]
+    Carto[Cartographer Sweep]
+  end
+
+  subgraph prov [Tri-Modal Provider Options]
+    Mosaic[Option A: Databricks Mosaic AI Model Serving]
+    ExtAPI[Option B: External Managed LLM API]
+    SubCLI[Option C: Headless Subscription CLI agy/cursor]
+  end
+
+  subgraph arch [Archify Visual Engine]
+    Bridge[PAM Archify Bridge]
+    ArchCLI[Archify Engine CLI]
+  end
+
+  subgraph dbx [Databricks Workspace: Data Backbone & Apps]
+    UC[(Unity Catalog: ea.metamodel & ea.gold)]
+    LB[(Lakebase Managed PostgreSQL: ea_operational)]
+    BS[Backstage Portal: Databricks Apps Node.js 20]
+  end
+
+  PR -->|triggers review| Gate
+  Gate -->|validates| Schemas
+  Gate -->|invokes| Eval
+  Eval -.->|Option A (Prod)| Mosaic
+  Eval -.->|Option B (API)| ExtAPI
+  Eval -.->|Option C ($0 Demo)| SubCLI
+  Eval -->|emits delta JSON| ArchCLI
+  ArchCLI -->|visual diff SVG| Gate
+  Carto -.->|lands raw metadata| UC
+  UC -->|SCD2 sync| LB
+  LB -->|SQL query active_nodes| BS
+  UC -->|subgraph query| Bridge
+  Bridge -->|typed JSON| ArchCLI
+  ArchCLI -->|embeds interactive SVG| BS
+```
+
+---
+
 ### Subsystem 1: Core Metamodel Contracts (`schemas/pam/`)
 
 The platform architecture metamodel is defined as strict JSON Schema draft-07 files.
@@ -380,30 +431,52 @@ export class EAMetamodelProvider implements EntityProvider {
 
 Archify transforms graph extracts from Databricks into interactive SVG diagrams.
 
-#### Contract 4.1: Archify Input Schema (`archify-input.schema.json`)
+#### Contract 4.1: Archify Architecture Specification Schema (`architecture.schema.json`)
 ```json
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "ArchifyInputSpec",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Archify Architecture Diagram",
   "type": "object",
-  "required": ["diagram_type", "title", "components", "connections"],
+  "required": ["schema_version", "diagram_type", "meta", "components"],
   "properties": {
-    "diagram_type": {
-      "type": "string",
-      "enum": ["architecture", "workflow", "sequence", "dataflow", "lifecycle"]
+    "schema_version": { "const": 1 },
+    "diagram_type": { "const": "architecture" },
+    "meta": {
+      "type": "object",
+      "required": ["title", "output"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1 },
+        "subtitle": { "type": "string" },
+        "output": { "type": "string" },
+        "quality_profile": { "enum": ["showcase", "standard"], "default": "showcase" }
+      }
     },
-    "title": { "type": "string" },
     "components": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "label"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9_-]+$" },
+          "type": { "enum": ["frontend", "backend", "database", "cloud", "security", "messagebus", "external"] },
+          "label": { "type": "string", "minLength": 1 },
+          "sublabel": { "type": "string" },
+          "tag": { "type": "string" },
+          "pos": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+          "size": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 }
+        }
+      }
+    },
+    "boundaries": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "label", "kind"],
+        "required": ["kind", "label", "wraps"],
         "properties": {
-          "id": { "type": "string" },
-          "label": { "type": "string" },
-          "kind": { "type": "string" },
-          "status": { "type": "string" },
-          "metadata": { "type": "object" }
+          "kind": { "enum": ["region", "security-group"] },
+          "label": { "type": "string", "minLength": 1 },
+          "wraps": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
         }
       }
     },
@@ -411,12 +484,27 @@ Archify transforms graph extracts from Databricks into interactive SVG diagrams.
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["from", "to", "label"],
+        "required": ["from", "to"],
         "properties": {
+          "id": { "type": "string" },
           "from": { "type": "string" },
           "to": { "type": "string" },
           "label": { "type": "string" },
-          "animated": { "type": "boolean", "default": false }
+          "variant": { "enum": ["default", "emphasis", "dashed", "security"] },
+          "fromSide": { "enum": ["left", "right", "top", "bottom"] },
+          "toSide": { "enum": ["left", "right", "top", "bottom"] }
+        }
+      }
+    },
+    "cards": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["dot", "title", "items"],
+        "properties": {
+          "dot": { "enum": ["cyan", "emerald", "rose", "amber", "purple", "blue"] },
+          "title": { "type": "string" },
+          "items": { "type": "array", "items": { "type": "string" } }
         }
       }
     }
