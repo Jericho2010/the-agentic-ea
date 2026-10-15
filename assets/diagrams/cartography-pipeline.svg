@@ -1,0 +1,231 @@
+<svg viewBox="0 0 1206 660" data-layout-contract="readable-v2" role="img" lang="en" aria-labelledby="archify-diagram-title archify-diagram-description" data-animation="trace" data-preset="signal-flow" data-quality-profile="showcase">
+        <title id="archify-diagram-title">5-Step Parallel Cartography Pipeline</title>
+        <desc id="archify-diagram-description">Concurrent Multi-Repo Discovery, Worktrees, AST/IaC Extraction, Schema Gate, and Delta MERGE</desc>
+        <!-- Definitions -->
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-default" />
+          </marker>
+          <marker id="arrowhead-emphasis" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-emphasis" />
+          </marker>
+          <marker id="arrowhead-security" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-security" />
+          </marker>
+          <marker id="arrowhead-dashed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-dashed" />
+          </marker>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" class="c-grid" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+
+        <!-- Background Grid -->
+        <rect width="100%" height="100%" fill="url(#grid)" />
+
+        <!-- Swimlanes -->
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-0" x="40" y="52" width="1092" height="106" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="54" y="74" class="t-dim" font-size="10" font-weight="600">01 / Orchestration &amp; Governance (Omnigent)</text>
+
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-1" x="40" y="178" width="1092" height="106" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="54" y="200" class="t-dim" font-size="10" font-weight="600">02 / Herdr Multi-Worktree Fleet (Sandboxes)</text>
+
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-2" x="40" y="304" width="1092" height="106" rx="10" class="c-lane" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="exception-lane" data-composition-frame-id="lane-2-exception" x="46" y="310" width="1080" height="94" rx="8" class="c-security-group" stroke-width="1"/>
+        <text x="54" y="326" class="t-security" font-size="10" font-weight="600">EX / Error Isolation &amp; Containment</text>
+
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-3" x="40" y="430" width="1092" height="106" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="54" y="452" class="t-dim" font-size="10" font-weight="600">04 / Unity Catalog &amp; Living Maps</text>
+
+        <!-- Phase headers -->
+        <line x1="73" y1="35" x2="387.4" y2="35" class="a-default" stroke-width="1.1"/>
+        <rect x="73" y="27" width="314.4" height="16" rx="4" class="c-mask"/>
+        <text x="230.2" y="39" class="t-muted" font-size="8" font-weight="600" text-anchor="middle">Step 1: Discovery</text>
+        <line x1="415.4" y1="35" x2="513" y2="35" class="a-default" stroke-width="1.1"/>
+        <rect x="415.4" y="27" width="97.6" height="16" rx="4" class="c-mask"/>
+        <text x="464.2" y="39" class="t-muted" font-size="8" font-weight="600" text-anchor="middle">Step 2: Worktree</text>
+        <line x1="642.5999999999999" y1="35" x2="751.3999999999999" y2="35" class="a-emphasis" stroke-width="1.1"/>
+        <rect x="642.5999999999999" y="27" width="108.8" height="16" rx="4" class="c-mask"/>
+        <text x="696.9999999999999" y="39" class="t-backend" font-size="8" font-weight="600" text-anchor="middle">Step 3: Extraction</text>
+        <line x1="869.8" y1="35" x2="978.5999999999999" y2="35" class="a-security" stroke-width="1.1"/>
+        <rect x="869.8" y="27" width="108.8" height="16" rx="4" class="c-mask"/>
+        <text x="924.1999999999999" y="39" class="t-security" font-size="8" font-weight="600" text-anchor="middle">Step 4: Validation</text>
+        <line x1="1006.5999999999999" y1="35" x2="1121" y2="35" class="a-emphasis" stroke-width="1.1"/>
+        <rect x="1006.5999999999999" y="27" width="114.39999999999999" height="16" rx="4" class="c-mask"/>
+        <text x="1063.8" y="39" class="t-backend" font-size="8" font-weight="600" text-anchor="middle">Step 5: Delta Merge</text>
+
+        <!-- Workflow groups -->
+
+
+        <!-- Edge paths -->
+        <path data-edge-from="herdr_alloc" data-edge-to="ast_extractor" data-edge-label="run extractors" data-edge-key="0" data-edge-id="e-alloc-ast" data-composition-routing="workflow-v2-auto" data-edge-role="" data-composition-points="532.4,246;617.5999999999999,246" d="M 532.4 246 L 617.5999999999999 246" class="a-default" data-animate="edge" style="--step:2" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="ast_extractor" data-edge-to="schema_gate" data-edge-label="validate nodes" data-edge-key="1" data-edge-id="e-ast-gate" data-composition-routing="workflow-v2-auto" data-edge-role="" data-composition-points="759.5999999999999,246;844.8,246" d="M 759.5999999999999 246 L 844.8 246" class="a-default" data-animate="edge" style="--step:3" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="batch_consolidation" data-edge-to="delta_merger" data-edge-label="atomic batch" data-edge-key="2" data-edge-id="e-batch-delta" data-composition-routing="workflow-v2-auto" data-edge-role="" data-composition-points="1123.6,120;1187.2,120;1187.2,498;1123.6,498" d="M 1123.6 120 L 1187.2 120 L 1187.2 498 L 1123.6 498" class="a-emphasis" data-animate="edge" style="--step:5" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path data-edge-from="coordinator" data-edge-to="herdr_alloc" data-edge-label="spawn batch" data-edge-key="3" data-edge-id="e-coord-alloc" data-composition-routing="workflow-v2-auto" data-edge-role="" data-composition-points="341.4,154;341.4,300;461.4,300;461.4,280" d="M 341.4 154 L 341.4 300 L 461.4 300 L 461.4 280" class="a-emphasis" data-animate="edge" style="--step:1" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path data-edge-from="syntax_warning" data-edge-to="batch_consolidation" data-edge-label="continue sweep" data-edge-key="4" data-edge-id="e-err-batch" data-composition-routing="workflow-v2-auto" data-edge-role="branch" data-composition-points="915.8,406;915.8,426;1052.6,426;1052.6,154" d="M 915.8 406 L 915.8 426 L 1052.6 426 L 1052.6 154" class="a-dashed" data-animate="edge" style="--step:11" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <path data-edge-from="schema_gate" data-edge-to="batch_consolidation" data-edge-label="valid PAM delta" data-edge-key="5" data-edge-id="e-gate-batch" data-composition-routing="workflow-v2-auto" data-edge-role="" data-composition-points="915.8,280;915.8,300;1040.6,300;1040.6,154" d="M 915.8 280 L 915.8 300 L 1040.6 300 L 1040.6 154" class="a-emphasis" data-animate="edge" style="--step:4" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path data-edge-from="schema_gate" data-edge-to="syntax_warning" data-edge-label="syntax error" data-edge-key="6" data-edge-id="e-gate-err" data-composition-routing="workflow-v2-auto" data-edge-role="error" data-composition-points="844.8,258;828.8,258;828.8,426;903.8,426;903.8,406" d="M 844.8 258 L 828.8 258 L 828.8 426 L 903.8 426 L 903.8 406" class="a-security" data-animate="edge" style="--step:12" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <path data-edge-from="git_provider" data-edge-to="coordinator" data-edge-label="polls commits" data-edge-key="7" data-edge-id="e-git-coord" data-composition-routing="workflow-v2-auto" data-edge-role="" data-composition-points="190,120;270.4,120" d="M 190 120 L 270.4 120" class="a-default" data-animate="edge" style="--step:0" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+
+        <!-- Nodes -->
+        <g id="node-git_provider" data-node-id="git_provider" data-node-label="Git Provider API" tabindex="0" role="button" aria-label="Focus Git Provider API, GitHub / GitLab (200+ repos), Orchestration &amp; Governance (Omnigent) › Step 1: Discovery" aria-pressed="false" data-node-kind="external" data-node-sublabel="GitHub / GitLab (200+ repos)" data-node-tag="Step 1: Poll" data-node-context="Orchestration &amp; Governance (Omnigent) › Step 1: Discovery">
+          <title>Git Provider API · GitHub / GitLab (200+ repos) · Orchestration &amp; Governance (Omnigent) › Step 1: Discovery · Step 1: Poll</title>
+          <rect x="48" y="86" width="142" height="68" rx="6" class="c-mask"/>
+          <rect x="48" y="86" width="142" height="68" rx="6" class="c-external" data-animate="node" style="--step:0" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(54 92) scale(0.6875)">
+            <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
+            <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="119.8" y="107" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Git Provider API</text>
+          <text data-detail="context" x="119" y="124" class="t-muted" font-size="7.9" text-anchor="middle">GitHub / GitLab (200+ repos)</text>
+        <text data-detail="fine" x="119" y="142" class="t-external" font-size="7" text-anchor="middle">Step 1: Poll</text>
+        </g>
+
+        <g id="node-coordinator" data-node-id="coordinator" data-node-label="Cartographer Lead" tabindex="0" role="button" aria-label="Focus Cartographer Lead, batch partition -j$(nproc-1), Orchestration &amp; Governance (Omnigent) › Step 1: Discovery" aria-pressed="false" data-node-kind="backend" data-node-sublabel="batch partition -j$(nproc-1)" data-node-tag="active delta 24h" data-node-context="Orchestration &amp; Governance (Omnigent) › Step 1: Discovery">
+          <title>Cartographer Lead · batch partition -j$(nproc-1) · Orchestration &amp; Governance (Omnigent) › Step 1: Discovery · active delta 24h</title>
+          <rect x="270.4" y="86" width="142" height="68" rx="6" class="c-mask"/>
+          <rect x="270.4" y="86" width="142" height="68" rx="6" class="c-backend" data-animate="node" style="--step:1" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(276.4 92) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="345.5" y="107" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Cartographer Lead</text>
+          <text data-detail="context" x="341.4" y="124" class="t-muted" font-size="7.9" text-anchor="middle">batch partition -j$(nproc-1)</text>
+        <text data-detail="fine" x="341.4" y="142" class="t-backend" font-size="7" text-anchor="middle">active delta 24h</text>
+        </g>
+
+        <g id="node-batch_consolidation" data-node-id="batch_consolidation" data-node-label="Batch Aggregator" tabindex="0" role="button" aria-label="Focus Batch Aggregator, consolidates PAM Delta, Orchestration &amp; Governance (Omnigent) › Step 5: Delta Merge" aria-pressed="false" data-node-kind="backend" data-node-sublabel="consolidates PAM Delta" data-node-tag="awaits workers" data-node-context="Orchestration &amp; Governance (Omnigent) › Step 5: Delta Merge">
+          <title>Batch Aggregator · consolidates PAM Delta · Orchestration &amp; Governance (Omnigent) › Step 5: Delta Merge · awaits workers</title>
+          <rect x="981.5999999999999" y="86" width="142" height="68" rx="6" class="c-mask"/>
+          <rect x="981.5999999999999" y="86" width="142" height="68" rx="6" class="c-backend" data-animate="node" style="--step:5" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(987.5999999999999 92) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="1053.3999999999999" y="107" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Batch Aggregator</text>
+          <text data-detail="context" x="1052.6" y="124" class="t-muted" font-size="8" text-anchor="middle">consolidates PAM Delta</text>
+        <text data-detail="fine" x="1052.6" y="142" class="t-backend" font-size="7" text-anchor="middle">awaits workers</text>
+        </g>
+
+        <g id="node-herdr_alloc" data-node-id="herdr_alloc" data-node-label="Worktree Allocator" tabindex="0" role="button" aria-label="Focus Worktree Allocator, herdr worktree create, Herdr Multi-Worktree Fleet (Sandboxes) › Step 2: Worktree" aria-pressed="false" data-node-kind="backend" data-node-sublabel="herdr worktree create" data-node-tag="Step 2: tmpfs" data-node-context="Herdr Multi-Worktree Fleet (Sandboxes) › Step 2: Worktree">
+          <title>Worktree Allocator · herdr worktree create · Herdr Multi-Worktree Fleet (Sandboxes) › Step 2: Worktree · Step 2: tmpfs</title>
+          <rect x="390.4" y="212" width="142" height="68" rx="6" class="c-mask"/>
+          <rect x="390.4" y="212" width="142" height="68" rx="6" class="c-backend" data-animate="node" style="--step:2" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(396.4 218) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="468.79999999999995" y="233" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Worktree Allocator</text>
+          <text data-detail="context" x="461.4" y="250" class="t-muted" font-size="8" text-anchor="middle">herdr worktree create</text>
+        <text data-detail="fine" x="461.4" y="268" class="t-backend" font-size="7" text-anchor="middle">Step 2: tmpfs</text>
+        </g>
+
+        <g id="node-ast_extractor" data-node-id="ast_extractor" data-node-label="AST / IaC Parsers" tabindex="0" role="button" aria-label="Focus AST / IaC Parsers, pom.xml, .tf, k8s, deps, Herdr Multi-Worktree Fleet (Sandboxes) › Step 3: Extraction" aria-pressed="false" data-node-kind="backend" data-node-sublabel="pom.xml, .tf, k8s, deps" data-node-tag="Step 3: Extract" data-node-context="Herdr Multi-Worktree Fleet (Sandboxes) › Step 3: Extraction">
+          <title>AST / IaC Parsers · pom.xml, .tf, k8s, deps · Herdr Multi-Worktree Fleet (Sandboxes) › Step 3: Extraction · Step 3: Extract</title>
+          <rect x="617.5999999999999" y="212" width="142" height="68" rx="6" class="c-mask"/>
+          <rect x="617.5999999999999" y="212" width="142" height="68" rx="6" class="c-backend" data-animate="node" style="--step:3" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(623.5999999999999 218) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="692.6999999999999" y="233" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">AST / IaC Parsers</text>
+          <text data-detail="context" x="688.5999999999999" y="250" class="t-muted" font-size="8" text-anchor="middle">pom.xml, .tf, k8s, deps</text>
+        <text data-detail="fine" x="688.5999999999999" y="268" class="t-backend" font-size="7" text-anchor="middle">Step 3: Extract</text>
+        </g>
+
+        <g id="node-schema_gate" data-node-id="schema_gate" data-node-label="PAM Contract Gate" tabindex="0" role="button" aria-label="Focus PAM Contract Gate, jsonschema validation, Herdr Multi-Worktree Fleet (Sandboxes) › Step 4: Validation" aria-pressed="false" data-node-kind="security" data-node-sublabel="jsonschema validation" data-node-tag="Step 4: Verify" data-node-context="Herdr Multi-Worktree Fleet (Sandboxes) › Step 4: Validation">
+          <title>PAM Contract Gate · jsonschema validation · Herdr Multi-Worktree Fleet (Sandboxes) › Step 4: Validation · Step 4: Verify</title>
+          <rect x="844.8" y="212" width="142" height="68" rx="6" class="c-mask"/>
+          <rect x="844.8" y="212" width="142" height="68" rx="6" class="c-security" data-animate="node" style="--step:4" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(850.8 218) scale(0.6875)">
+            <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
+            <path d="m5.8 8 1.5 1.5 3-3"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="919.9" y="233" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">PAM Contract Gate</text>
+          <text data-detail="context" x="915.8" y="250" class="t-muted" font-size="8" text-anchor="middle">jsonschema validation</text>
+        <text data-detail="fine" x="915.8" y="268" class="t-security" font-size="7" text-anchor="middle">Step 4: Verify</text>
+        </g>
+
+        <g id="node-syntax_warning" data-node-id="syntax_warning" data-node-label="Warning Evidence Log" tabindex="0" role="button" aria-label="Focus Warning Evidence Log, records syntax anomaly, Error Isolation &amp; Containment › Step 4: Validation" aria-pressed="false" data-node-kind="messagebus" data-node-sublabel="records syntax anomaly" data-node-tag="non-fatal" data-node-context="Error Isolation &amp; Containment › Step 4: Validation">
+          <title>Warning Evidence Log · records syntax anomaly · Error Isolation &amp; Containment › Step 4: Validation · non-fatal</title>
+          <rect x="844.8" y="338" width="142" height="68" rx="6" class="c-mask"/>
+          <rect x="844.8" y="338" width="142" height="68" rx="6" class="c-messagebus" data-animate="node" style="--step:12" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="messagebus" class="semantic-sigil s-messagebus" transform="translate(850.8 344) scale(0.6875)">
+            <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/>
+            <circle cx="5" cy="4.5" r="1" class="sigil-fill"/>
+            <circle cx="10.5" cy="8" r="1" class="sigil-fill"/>
+            <circle cx="7" cy="11.5" r="1" class="sigil-fill"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="915.8" y="370.2" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Warning Evidence Log</text>
+          <text data-detail="context" x="915.8" y="385.1" class="t-muted" font-size="8" text-anchor="middle">records syntax anomaly</text>
+        <text data-detail="fine" x="915.8" y="397.9" class="t-messagebus" font-size="7" text-anchor="middle">non-fatal</text>
+        </g>
+
+        <g id="node-delta_merger" data-node-id="delta_merger" data-node-label="Delta MERGE &amp; Sync" tabindex="0" role="button" aria-label="Focus Delta MERGE &amp; Sync, atomic commit &amp; Backstage, Unity Catalog &amp; Living Maps › Step 5: Delta Merge" aria-pressed="false" data-node-kind="database" data-node-sublabel="atomic commit &amp; Backstage" data-node-tag="Step 5: ACID" data-node-context="Unity Catalog &amp; Living Maps › Step 5: Delta Merge">
+          <title>Delta MERGE &amp; Sync · atomic commit &amp; Backstage · Unity Catalog &amp; Living Maps › Step 5: Delta Merge · Step 5: ACID</title>
+          <rect x="981.5999999999999" y="464" width="142" height="68" rx="6" class="c-mask"/>
+          <rect x="981.5999999999999" y="464" width="142" height="68" rx="6" class="c-database" data-animate="node" style="--step:6" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(987.5999999999999 470) scale(0.6875)">
+            <ellipse cx="8" cy="4" rx="5" ry="2"/>
+            <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="1060" y="485" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Delta MERGE &amp; Sync</text>
+          <text data-detail="context" x="1052.6" y="502" class="t-muted" font-size="8" text-anchor="middle">atomic commit &amp; Backstage</text>
+        <text data-detail="fine" x="1052.6" y="520" class="t-database" font-size="7" text-anchor="middle">Step 5: ACID</text>
+        </g>
+
+        <!-- Edge labels -->
+        <g data-detail="context" data-edge-from="herdr_alloc" data-edge-to="ast_extractor" data-edge-label="run extractors" data-edge-key="0" data-edge-id="e-alloc-ast">
+          <rect x="536.4" y="226" width="77.2" height="14" rx="3" class="c-mask"/>
+          <text x="575" y="236" class="t-edge-default" font-size="8" text-anchor="middle">run extractors</text>
+        </g>
+        <g data-detail="context" data-edge-from="ast_extractor" data-edge-to="schema_gate" data-edge-label="validate nodes" data-edge-key="1" data-edge-id="e-ast-gate">
+          <rect x="763.5999999999999" y="226" width="77.2" height="14" rx="3" class="c-mask"/>
+          <text x="802.1999999999999" y="236" class="t-edge-default" font-size="8" text-anchor="middle">validate nodes</text>
+        </g>
+        <g data-detail="context" data-edge-from="batch_consolidation" data-edge-to="delta_merger" data-edge-label="atomic batch" data-edge-key="2" data-edge-id="e-batch-delta">
+          <rect x="1121.6000000000001" y="100" width="67.6" height="14" rx="3" class="c-mask"/>
+          <text x="1155.4" y="110" class="t-edge-emphasis" font-size="8" text-anchor="middle">atomic batch</text>
+        </g>
+        <g data-detail="context" data-edge-from="coordinator" data-edge-to="herdr_alloc" data-edge-label="spawn batch" data-edge-key="3" data-edge-id="e-coord-alloc">
+          <rect x="370" y="280" width="62.8" height="14" rx="3" class="c-mask"/>
+          <text x="401.4" y="290" class="t-edge-emphasis" font-size="8" text-anchor="middle">spawn batch</text>
+        </g>
+        <g data-detail="context" data-edge-from="syntax_warning" data-edge-to="batch_consolidation" data-edge-label="continue sweep" data-edge-key="4" data-edge-id="e-err-batch">
+          <rect x="945.5999999999999" y="406" width="77.2" height="14" rx="3" class="c-mask"/>
+          <text x="984.1999999999999" y="416" class="t-edge-dashed" font-size="8" text-anchor="middle">continue sweep</text>
+        </g>
+        <g data-detail="context" data-edge-from="schema_gate" data-edge-to="batch_consolidation" data-edge-label="valid PAM delta" data-edge-key="5" data-edge-id="e-gate-batch">
+          <rect x="937.1999999999999" y="280" width="82" height="14" rx="3" class="c-mask"/>
+          <text x="978.1999999999999" y="290" class="t-edge-emphasis" font-size="8" text-anchor="middle">valid PAM delta</text>
+        </g>
+        <g data-detail="context" data-edge-from="schema_gate" data-edge-to="syntax_warning" data-edge-label="syntax error" data-edge-key="6" data-edge-id="e-gate-err">
+          <rect x="832.5" y="406" width="67.6" height="14" rx="3" class="c-mask"/>
+          <text x="866.3" y="416" class="t-edge-security" font-size="8" text-anchor="middle">syntax error</text>
+        </g>
+        <g data-detail="context" data-edge-from="git_provider" data-edge-to="coordinator" data-edge-label="polls commits" data-edge-key="7" data-edge-id="e-git-coord">
+          <rect x="194" y="100" width="72.4" height="14" rx="3" class="c-mask"/>
+          <text x="230.2" y="110" class="t-edge-default" font-size="8" text-anchor="middle">polls commits</text>
+        </g>
+
+        <!-- Legend -->
+        <g data-legend="" data-legend-bridge="">
+          <text x="20" y="560" class="t-primary" font-size="12" font-weight="650">Legend</text>
+          <g data-legend-semantic-kind="backend" data-legend-kind="backend" data-legend-label="Agent logic" data-legend-x="20" data-legend-baseline="580" data-legend-width="91">
+            <rect x="20" y="572" width="14" height="9" rx="2" class="c-backend" stroke-width="1"/>
+            <text x="42" y="580" class="t-muted" font-size="7.5" font-weight="500">Agent logic</text>
+          </g>
+          <g data-legend-semantic-kind="security" data-legend-kind="security" data-legend-label="Policy" data-legend-x="118" data-legend-baseline="580" data-legend-width="70">
+            <rect x="118" y="572" width="14" height="9" rx="2" class="c-security" stroke-width="1"/>
+            <text x="140" y="580" class="t-muted" font-size="7.5" font-weight="500">Policy</text>
+          </g>
+          <g data-legend-semantic-kind="messagebus" data-legend-kind="messagebus" data-legend-label="Tool action" data-legend-x="195" data-legend-baseline="580" data-legend-width="91">
+            <rect x="195" y="572" width="14" height="9" rx="2" class="c-messagebus" stroke-width="1"/>
+            <text x="217" y="580" class="t-muted" font-size="7.5" font-weight="500">Tool action</text>
+          </g>
+          <g data-legend-semantic-kind="database" data-legend-kind="database" data-legend-label="Context / trace" data-legend-x="293" data-legend-baseline="580" data-legend-width="109">
+            <rect x="293" y="572" width="14" height="9" rx="2" class="c-database" stroke-width="1"/>
+            <text x="315" y="580" class="t-muted" font-size="7.5" font-weight="500">Context / trace</text>
+          </g>
+          <g data-legend-semantic-kind="external" data-legend-kind="external" data-legend-label="External system" data-legend-x="409" data-legend-baseline="580" data-legend-width="109">
+            <rect x="409" y="572" width="14" height="9" rx="2" class="c-external" stroke-width="1"/>
+            <text x="431" y="580" class="t-muted" font-size="7.5" font-weight="500">External system</text>
+          </g>
+        </g>
+      </svg>

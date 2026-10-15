@@ -20,9 +20,15 @@ This directory contains standalone, interactive HTML, raster PNG images, and pub
    - Vector Architecture SVG: [`collaborative-codriving-architecture.svg`](./collaborative-codriving-architecture.svg)
    - Source JSON: [`collaborative-codriving-architecture.json`](./collaborative-codriving-architecture.json)
 
-4. **Concurrent Multi-Repo Cartography Fleet (Section 10.4):**
+4. **Concurrent Multi-Repo Cartography Fleet (Section 10.4, 1):**
    - High-Resolution Image: [`fleet-architecture.png`](./fleet-architecture.png)
    - Vector Fleet Architecture Mockup: [`fleet-architecture-mockup.svg`](./fleet-architecture-mockup.svg)
    - Interactive Architecture HTML: [`fleet-architecture.html`](./fleet-architecture.html)
    - Vector Architecture SVG: [`fleet-architecture.svg`](./fleet-architecture.svg)
    - Source JSON: [`fleet-architecture.json`](./fleet-architecture.json)
+
+5. **5-Step Parallel Cartography Pipeline (Section 10.4, 2):**
+   - Interactive Workflow HTML: [`cartography-pipeline.html`](./cartography-pipeline.html)
+   - High-Resolution Image: [`cartography-pipeline.png`](./cartography-pipeline.png)
+   - Vector Workflow SVG: [`cartography-pipeline.svg`](./cartography-pipeline.svg)
+   - Source JSON: [`cartography-pipeline.json`](./cartography-pipeline.json)

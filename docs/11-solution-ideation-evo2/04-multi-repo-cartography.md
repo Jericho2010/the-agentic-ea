@@ -53,6 +53,10 @@ Instead of cloning repositories one by one, a central **Cartographer Coordinator
 
 ## 2. The 5-Step Parallel Cartography Pipeline
 
+![5-Step Parallel Cartography Pipeline](../../assets/diagrams/cartography-pipeline.svg)
+
+> **Interactive Workflow Diagram (Archify Showcase):** The complete animated execution flow with error containment branches is compiled as an interactive explorable diagram at [`assets/diagrams/cartography-pipeline.html`](../../assets/diagrams/cartography-pipeline.html), with high-resolution raster image at [`assets/diagrams/cartography-pipeline.png`](../../assets/diagrams/cartography-pipeline.png), standalone vector graphic at [`assets/diagrams/cartography-pipeline.svg`](../../assets/diagrams/cartography-pipeline.svg), and specification at [`assets/diagrams/cartography-pipeline.json`](../../assets/diagrams/cartography-pipeline.json).
+
 ### Step 1: Inventory Discovery
 The Coordinator queries the organization's Git provider (e.g., `GET /orgs/company/repos`) and filters for repositories that have had commits in the last 24 hours. Repositories are queued in batches based on available system hardware (`-j$(nproc)`).
 

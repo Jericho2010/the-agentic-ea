@@ -1,0 +1,207 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "5-Step Parallel Cartography Pipeline",
+    "subtitle": "Concurrent Multi-Repo Discovery, Worktrees, AST/IaC Extraction, Schema Gate, and Delta MERGE",
+    "animation": "trace",
+    "visual_preset": "signal-flow",
+    "quality_profile": "showcase",
+    "output": ".archify/workflow-cartography-pipeline-20261015-194800/cartography-pipeline.html"
+  },
+  "lanes": [
+    { "id": "orchestration", "label": "Orchestration & Governance (Omnigent)" },
+    { "id": "fleet", "label": "Herdr Multi-Worktree Fleet (Sandboxes)" },
+    { "id": "validation", "label": "Error Isolation & Containment", "variant": "exception" },
+    { "id": "persistence", "label": "Unity Catalog & Living Maps" }
+  ],
+  "phases": [
+    { "id": "p1_discovery", "label": "Step 1: Discovery", "fromCol": 0, "toCol": 1 },
+    { "id": "p2_allocation", "label": "Step 2: Worktree", "fromCol": 2, "toCol": 2 },
+    { "id": "p3_extraction", "label": "Step 3: Extraction", "fromCol": 3, "toCol": 3, "variant": "emphasis" },
+    { "id": "p4_validation", "label": "Step 4: Validation", "fromCol": 4, "toCol": 4, "variant": "security" },
+    { "id": "p5_ingestion", "label": "Step 5: Delta Merge", "fromCol": 5, "toCol": 5, "variant": "emphasis" }
+  ],
+  "mainPath": [
+    "git_provider",
+    "coordinator",
+    "herdr_alloc",
+    "ast_extractor",
+    "schema_gate",
+    "batch_consolidation",
+    "delta_merger"
+  ],
+  "nodes": [
+    {
+      "id": "git_provider",
+      "lane": "orchestration",
+      "col": 0,
+      "type": "external",
+      "label": "Git Provider API",
+      "sublabel": "GitHub / GitLab (200+ repos)",
+      "tag": "Step 1: Poll",
+      "width": 142
+    },
+    {
+      "id": "coordinator",
+      "lane": "orchestration",
+      "col": 1,
+      "type": "backend",
+      "label": "Cartographer Lead",
+      "sublabel": "batch partition -j$(nproc-1)",
+      "tag": "active delta 24h",
+      "width": 142
+    },
+    {
+      "id": "herdr_alloc",
+      "lane": "fleet",
+      "col": 2,
+      "type": "backend",
+      "label": "Worktree Allocator",
+      "sublabel": "herdr worktree create",
+      "tag": "Step 2: tmpfs",
+      "width": 142
+    },
+    {
+      "id": "ast_extractor",
+      "lane": "fleet",
+      "col": 3,
+      "type": "backend",
+      "label": "AST / IaC Parsers",
+      "sublabel": "pom.xml, .tf, k8s, deps",
+      "tag": "Step 3: Extract",
+      "width": 142
+    },
+    {
+      "id": "schema_gate",
+      "lane": "fleet",
+      "col": 4,
+      "type": "security",
+      "label": "PAM Contract Gate",
+      "sublabel": "jsonschema validation",
+      "tag": "Step 4: Verify",
+      "width": 142
+    },
+    {
+      "id": "syntax_warning",
+      "lane": "validation",
+      "col": 4,
+      "type": "messagebus",
+      "label": "Warning Evidence Log",
+      "sublabel": "records syntax anomaly",
+      "tag": "non-fatal",
+      "width": 142
+    },
+    {
+      "id": "batch_consolidation",
+      "lane": "orchestration",
+      "col": 5,
+      "type": "backend",
+      "label": "Batch Aggregator",
+      "sublabel": "consolidates PAM Delta",
+      "tag": "awaits workers",
+      "width": 142
+    },
+    {
+      "id": "delta_merger",
+      "lane": "persistence",
+      "col": 5,
+      "type": "database",
+      "label": "Delta MERGE & Sync",
+      "sublabel": "atomic commit & Backstage",
+      "tag": "Step 5: ACID",
+      "width": 142
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-git-coord",
+      "from": "git_provider",
+      "to": "coordinator",
+      "label": "polls commits",
+      "variant": "default"
+    },
+    {
+      "id": "e-coord-alloc",
+      "from": "coordinator",
+      "to": "herdr_alloc",
+      "label": "spawn batch",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e-alloc-ast",
+      "from": "herdr_alloc",
+      "to": "ast_extractor",
+      "label": "run extractors",
+      "variant": "default"
+    },
+    {
+      "id": "e-ast-gate",
+      "from": "ast_extractor",
+      "to": "schema_gate",
+      "label": "validate nodes",
+      "variant": "default"
+    },
+    {
+      "id": "e-gate-batch",
+      "from": "schema_gate",
+      "to": "batch_consolidation",
+      "label": "valid PAM delta",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e-gate-err",
+      "from": "schema_gate",
+      "to": "syntax_warning",
+      "label": "syntax error",
+      "variant": "security",
+      "role": "error"
+    },
+    {
+      "id": "e-err-batch",
+      "from": "syntax_warning",
+      "to": "batch_consolidation",
+      "label": "continue sweep",
+      "variant": "dashed",
+      "role": "branch"
+    },
+    {
+      "id": "e-batch-delta",
+      "from": "batch_consolidation",
+      "to": "delta_merger",
+      "label": "atomic batch",
+      "variant": "emphasis"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "The 5-Step Pipeline",
+      "items": [
+        "Step 1 (Discovery): Polls 200+ repos with commits in last 24h; rate-limited via Omnigent token cache",
+        "Step 2 (Worktree): Herdr allocates instant tmpfs worktrees sharing local Git objects with zero network cloning",
+        "Step 3 (Extraction): Lightweight parsers extract service dependencies, Terraform cloud resources, and code AST",
+        "Step 4 (Validation): Validates discovered entities against strict PAM Contract 1.1 metamodel schemas",
+        "Step 5 (Ingestion): Executes an atomic Delta Lake MERGE query into Unity Catalog with SCD2 lifecycle tracking"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Fault Isolation & Safety",
+      "items": [
+        "Syntax anomalies or parse failures log a non-fatal warning to evidence without halting the enterprise sweep",
+        "Linux cgroups cap each worker pane at 512MB RAM, preventing memory starvation",
+        "Worktrees reside on ephemeral tmpfs RAM disks and are automatically pruned on exit"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Living Architecture Sync",
+      "items": [
+        "Discovered microservices are stamped with lifecycle_status = 'run'",
+        "Decommissioned services automatically transition to 'retired' with historical audit records",
+        "Backstage Living Architecture Maps update in real time with zero manual documentation lag"
+      ]
+    }
+  ]
+}
