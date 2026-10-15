@@ -10,6 +10,13 @@ In a large enterprise with hundreds of microservices, running sequential reposit
 
 Instead of cloning repositories one by one, a central **Cartographer Coordinator** splits the work across a fleet of sandboxed worker panes managed by **Herdr** and governed by **Omnigent**:
 
+![Concurrent Multi-Repo Cartography Fleet Architecture](../../assets/diagrams/fleet-architecture.png)
+
+> **Interactive Architecture Diagram (Archify Showcase):** The full fleet orchestration model is compiled as an interactive explorable diagram at [`assets/diagrams/fleet-architecture.html`](../../assets/diagrams/fleet-architecture.html) with standalone vector graphics at [`assets/diagrams/fleet-architecture-mockup.svg`](../../assets/diagrams/fleet-architecture-mockup.svg) and [`assets/diagrams/fleet-architecture.svg`](../../assets/diagrams/fleet-architecture.svg), and model specification at [`assets/diagrams/fleet-architecture.json`](../../assets/diagrams/fleet-architecture.json).
+
+<details>
+<summary>Click to view ASCII interaction schematic</summary>
+
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ CARTOGRAPHER COORDINATOR AGENT                                              │
@@ -39,6 +46,8 @@ Instead of cloning repositories one by one, a central **Cartographer Coordinator
 │   WHEN NOT MATCHED THEN INSERT ...                                          │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
+
+</details>
 
 ---
 

@@ -1,6 +1,6 @@
 # Diagrams & Architecture Visualizations
 
-This directory contains standalone, interactive HTML and publication-grade SVG diagrams for the Agentic EA platform.
+This directory contains standalone, interactive HTML, raster PNG images, and publication-grade SVG diagrams for the Agentic EA platform.
 
 ## Available Diagrams
 
@@ -19,3 +19,10 @@ This directory contains standalone, interactive HTML and publication-grade SVG d
    - Interactive Architecture HTML: [`collaborative-codriving-architecture.html`](./collaborative-codriving-architecture.html)
    - Vector Architecture SVG: [`collaborative-codriving-architecture.svg`](./collaborative-codriving-architecture.svg)
    - Source JSON: [`collaborative-codriving-architecture.json`](./collaborative-codriving-architecture.json)
+
+4. **Concurrent Multi-Repo Cartography Fleet (Section 10.4):**
+   - High-Resolution Image: [`fleet-architecture.png`](./fleet-architecture.png)
+   - Vector Fleet Architecture Mockup: [`fleet-architecture-mockup.svg`](./fleet-architecture-mockup.svg)
+   - Interactive Architecture HTML: [`fleet-architecture.html`](./fleet-architecture.html)
+   - Vector Architecture SVG: [`fleet-architecture.svg`](./fleet-architecture.svg)
+   - Source JSON: [`fleet-architecture.json`](./fleet-architecture.json)

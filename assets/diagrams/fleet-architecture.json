@@ -1,0 +1,205 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Agentic EA Platform — Concurrent Multi-Repo Cartography Fleet",
+    "subtitle": "Parallel Worktree Fleet Orchestration with Herdr, Omnigent, and Atomic Delta Ingestion",
+    "output": ".archify/architecture-fleet-architecture-20261015-194500/fleet-architecture.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    {
+      "id": "git_api",
+      "type": "external",
+      "icon": "cloud",
+      "label": "Enterprise Git Provider",
+      "sublabel": "GitHub / GitLab API • 200+ Repos",
+      "pos": [460, 50],
+      "size": [220, 60],
+      "tag": "Source Repos"
+    },
+    {
+      "id": "coord_agent",
+      "type": "backend",
+      "label": "Cartographer Coordinator",
+      "sublabel": "Batch Partitioning • Rate Limiting",
+      "pos": [460, 190],
+      "size": [220, 60],
+      "tag": "Coordinator"
+    },
+    {
+      "id": "herdr_fleet",
+      "type": "backend",
+      "label": "Herdr Fleet Orchestrator",
+      "sublabel": "cgroups (512MB) • tmpfs Worktrees",
+      "pos": [460, 330],
+      "size": [220, 60],
+      "tag": "Multiplexer"
+    },
+    {
+      "id": "worker_p1",
+      "type": "backend",
+      "label": "Worker 1: payments-api",
+      "sublabel": "AST / IaC / PAM Validator",
+      "pos": [80, 480],
+      "size": [220, 60],
+      "tag": "Worker Pane"
+    },
+    {
+      "id": "worker_p2",
+      "type": "backend",
+      "label": "Worker 2: auth-service",
+      "sublabel": "AST / IaC / PAM Validator",
+      "pos": [460, 480],
+      "size": [220, 60],
+      "tag": "Worker Pane"
+    },
+    {
+      "id": "worker_pn",
+      "type": "backend",
+      "label": "Worker N: inventory-svc",
+      "sublabel": "AST / IaC / PAM Validator",
+      "pos": [840, 480],
+      "size": [220, 60],
+      "tag": "Worker Pane"
+    },
+    {
+      "id": "omni_aggregator",
+      "type": "backend",
+      "label": "Omnigent Batch Consolidation",
+      "sublabel": "Consolidates Validated PAM JSON",
+      "pos": [450, 630],
+      "size": [240, 60],
+      "tag": "Aggregation"
+    },
+    {
+      "id": "uc_delta_merge",
+      "type": "database",
+      "label": "Unity Catalog Delta Ingestion",
+      "sublabel": "Atomic MERGE INTO ea.metamodel.nodes",
+      "pos": [440, 780],
+      "size": [260, 60],
+      "tag": "Delta Lake"
+    },
+    {
+      "id": "backstage_maps",
+      "type": "frontend",
+      "label": "Backstage Living Maps",
+      "sublabel": "Real-Time Topology Sync",
+      "pos": [820, 780],
+      "size": [220, 60],
+      "tag": "Portal UI"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Enterprise Git Repositories",
+      "wraps": ["git_api"]
+    },
+    {
+      "kind": "security-group",
+      "label": "Orchestration & Governance Layer",
+      "wraps": ["coord_agent", "herdr_fleet"]
+    },
+    {
+      "kind": "security-group",
+      "label": "Herdr Parallel Worktree Fleet (Sandboxed Panes)",
+      "wraps": ["worker_p1", "worker_p2", "worker_pn"]
+    },
+    {
+      "kind": "region",
+      "label": "Batch Consolidation & Validation",
+      "wraps": ["omni_aggregator"]
+    },
+    {
+      "kind": "region",
+      "label": "Databricks Unity Catalog & Backstage (Part 9)",
+      "wraps": ["uc_delta_merge", "backstage_maps"]
+    }
+  ],
+  "connections": [
+    {
+      "id": "c-git-coord",
+      "from": "git_api",
+      "to": "coord_agent",
+      "label": "polls active commits (24h)",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "c-coord-herdr",
+      "from": "coord_agent",
+      "to": "herdr_fleet",
+      "label": "spawns parallel batches",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "variant": "emphasis"
+    },
+    {
+      "id": "c-herdr-w1",
+      "from": "herdr_fleet",
+      "to": "worker_p1",
+      "label": "allocates /tmp/wt/p1",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "c-herdr-w2",
+      "from": "herdr_fleet",
+      "to": "worker_p2",
+      "label": "allocates /tmp/wt/p2",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "c-herdr-wn",
+      "from": "herdr_fleet",
+      "to": "worker_pn",
+      "label": "allocates /tmp/wt/pn",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "c-w1-omni",
+      "from": "worker_p1",
+      "to": "omni_aggregator",
+      "label": "streams PAM delta",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "c-w2-omni",
+      "from": "worker_p2",
+      "to": "omni_aggregator",
+      "label": "streams PAM delta",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "c-wn-omni",
+      "from": "worker_pn",
+      "to": "omni_aggregator",
+      "label": "streams PAM delta",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "c-omni-uc",
+      "from": "omni_aggregator",
+      "to": "uc_delta_merge",
+      "label": "atomic MERGE INTO",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "variant": "emphasis"
+    },
+    {
+      "id": "c-uc-backstage",
+      "from": "uc_delta_merge",
+      "to": "backstage_maps",
+      "label": "updates living graphs",
+      "fromSide": "right",
+      "toSide": "left"
+    }
+  ]
+}
