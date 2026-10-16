@@ -159,6 +159,132 @@ SEED_NODES = [
             "disposition": "Eliminate",
         },
     },
+    # --------------------------------------------------------------------------
+    # Business Capabilities (Level-1 Strategic Domains & Level-2 Capabilities)
+    # --------------------------------------------------------------------------
+    {
+        "urn": "urn:ea:capability:customer-experience",
+        "name": "Customer Experience",
+        "kind": "BusinessCapability",
+        "owner_team": "exec-digital",
+        "lifecycle_status": "run",
+        "criticality": "Tier-1",
+        "metadata": {
+            "level": 1,
+            "domain": "Digital Commerce",
+            "description": "End-to-end customer interaction, catalog discovery, and shopping journey.",
+        },
+    },
+    {
+        "urn": "urn:ea:capability:finance-and-billing",
+        "name": "Finance & Billing",
+        "kind": "BusinessCapability",
+        "owner_team": "exec-finance",
+        "lifecycle_status": "run",
+        "criticality": "Tier-0",
+        "metadata": {
+            "level": 1,
+            "domain": "Financial Systems",
+            "description": "Payment authorization, merchant settlement, ledger bookkeeping, and billing.",
+        },
+    },
+    {
+        "urn": "urn:ea:capability:security-and-compliance",
+        "name": "Security & Compliance",
+        "kind": "BusinessCapability",
+        "owner_team": "exec-security",
+        "lifecycle_status": "run",
+        "criticality": "Tier-0",
+        "metadata": {
+            "level": 1,
+            "domain": "Enterprise Security",
+            "description": "Identity verification, access control, encryption, and PII regulatory protection.",
+        },
+    },
+    {
+        "urn": "urn:ea:capability:digital-storefront",
+        "name": "Digital Storefront",
+        "kind": "BusinessCapability",
+        "owner_team": "team-frontend",
+        "lifecycle_status": "run",
+        "criticality": "Tier-1",
+        "metadata": {
+            "level": 2,
+            "parent_urn": "urn:ea:capability:customer-experience",
+            "parent_name": "Customer Experience",
+            "description": "Web and mobile digital channel presentation and shopping cart management.",
+        },
+    },
+    {
+        "urn": "urn:ea:capability:order-fulfillment",
+        "name": "Order Fulfillment",
+        "kind": "BusinessCapability",
+        "owner_team": "team-checkout",
+        "lifecycle_status": "run",
+        "criticality": "Tier-1",
+        "metadata": {
+            "level": 2,
+            "parent_urn": "urn:ea:capability:customer-experience",
+            "parent_name": "Customer Experience",
+            "description": "Checkout orchestration, order lifecycle processing, and inventory capture.",
+        },
+    },
+    {
+        "urn": "urn:ea:capability:payment-processing",
+        "name": "Payment Processing",
+        "kind": "BusinessCapability",
+        "owner_team": "team-payments",
+        "lifecycle_status": "run",
+        "criticality": "Tier-0",
+        "metadata": {
+            "level": 2,
+            "parent_urn": "urn:ea:capability:finance-and-billing",
+            "parent_name": "Finance & Billing",
+            "description": "PCI-compliant payment transaction gateway, acquiring routing, and card authorization.",
+        },
+    },
+    {
+        "urn": "urn:ea:capability:subscription-billing",
+        "name": "Subscription & Invoicing",
+        "kind": "BusinessCapability",
+        "owner_team": "team-data-platform",
+        "lifecycle_status": "run",
+        "criticality": "Tier-0",
+        "metadata": {
+            "level": 2,
+            "parent_urn": "urn:ea:capability:finance-and-billing",
+            "parent_name": "Finance & Billing",
+            "description": "Recurring customer invoicing, ledger persistence, and receivables accounting.",
+        },
+    },
+    {
+        "urn": "urn:ea:capability:identity-and-access-management",
+        "name": "Identity & Access Management",
+        "kind": "BusinessCapability",
+        "owner_team": "team-auth",
+        "lifecycle_status": "run",
+        "criticality": "Tier-0",
+        "metadata": {
+            "level": 2,
+            "parent_urn": "urn:ea:capability:security-and-compliance",
+            "parent_name": "Security & Compliance",
+            "description": "Authentication tokens, mTLS ingress verification, and user session management.",
+        },
+    },
+    {
+        "urn": "urn:ea:capability:data-privacy-and-governance",
+        "name": "Data Privacy & Governance",
+        "kind": "BusinessCapability",
+        "owner_team": "team-data-platform",
+        "lifecycle_status": "run",
+        "criticality": "Tier-1",
+        "metadata": {
+            "level": 2,
+            "parent_urn": "urn:ea:capability:security-and-compliance",
+            "parent_name": "Security & Compliance",
+            "description": "PII event stream filtering, regulatory data retention, and audit logging.",
+        },
+    },
 ]
 
 SEED_EDGES = [
@@ -223,6 +349,117 @@ SEED_EDGES = [
         "target_urn": "urn:ea:database:cassandra-legacy-cluster",
         "relation": "accesses",
         "protocol": "CQL/TCP",
+        "contains_pii": True,
+    },
+    # --------------------------------------------------------------------------
+    # Capability Hierarchy Edges (Level-1 aggregates Level-2)
+    # --------------------------------------------------------------------------
+    {
+        "source_urn": "urn:ea:capability:customer-experience",
+        "target_urn": "urn:ea:capability:digital-storefront",
+        "relation": "aggregates",
+        "protocol": "ArchiMate/Composition",
+        "contains_pii": False,
+    },
+    {
+        "source_urn": "urn:ea:capability:customer-experience",
+        "target_urn": "urn:ea:capability:order-fulfillment",
+        "relation": "aggregates",
+        "protocol": "ArchiMate/Composition",
+        "contains_pii": False,
+    },
+    {
+        "source_urn": "urn:ea:capability:finance-and-billing",
+        "target_urn": "urn:ea:capability:payment-processing",
+        "relation": "aggregates",
+        "protocol": "ArchiMate/Composition",
+        "contains_pii": False,
+    },
+    {
+        "source_urn": "urn:ea:capability:finance-and-billing",
+        "target_urn": "urn:ea:capability:subscription-billing",
+        "relation": "aggregates",
+        "protocol": "ArchiMate/Composition",
+        "contains_pii": False,
+    },
+    {
+        "source_urn": "urn:ea:capability:security-and-compliance",
+        "target_urn": "urn:ea:capability:identity-and-access-management",
+        "relation": "aggregates",
+        "protocol": "ArchiMate/Composition",
+        "contains_pii": False,
+    },
+    {
+        "source_urn": "urn:ea:capability:security-and-compliance",
+        "target_urn": "urn:ea:capability:data-privacy-and-governance",
+        "relation": "aggregates",
+        "protocol": "ArchiMate/Composition",
+        "contains_pii": False,
+    },
+    # --------------------------------------------------------------------------
+    # Business Capability Realization Edges (Application/Service realizes Capability)
+    # --------------------------------------------------------------------------
+    {
+        "source_urn": "urn:ea:application:web-storefront",
+        "target_urn": "urn:ea:capability:digital-storefront",
+        "relation": "realizes",
+        "protocol": "Application/Realization",
+        "contains_pii": False,
+    },
+    {
+        "source_urn": "urn:ea:microservice:checkout-service",
+        "target_urn": "urn:ea:capability:order-fulfillment",
+        "relation": "realizes",
+        "protocol": "Service/Realization",
+        "contains_pii": False,
+    },
+    {
+        "source_urn": "urn:ea:database:cassandra-legacy-cluster",
+        "target_urn": "urn:ea:capability:order-fulfillment",
+        "relation": "realizes",
+        "protocol": "Datastore/Realization",
+        "contains_pii": True,
+    },
+    {
+        "source_urn": "urn:ea:microservice:payments-api",
+        "target_urn": "urn:ea:capability:payment-processing",
+        "relation": "realizes",
+        "protocol": "API/Realization",
+        "contains_pii": True,
+    },
+    {
+        "source_urn": "urn:ea:microservice:payments-service",
+        "target_urn": "urn:ea:capability:payment-processing",
+        "relation": "realizes",
+        "protocol": "Service/Realization",
+        "contains_pii": True,
+    },
+    {
+        "source_urn": "urn:ea:database:billing-db",
+        "target_urn": "urn:ea:capability:subscription-billing",
+        "relation": "realizes",
+        "protocol": "Datastore/Realization",
+        "contains_pii": True,
+    },
+    {
+        "source_urn": "urn:ea:microservice:auth-service",
+        "target_urn": "urn:ea:capability:identity-and-access-management",
+        "relation": "realizes",
+        "protocol": "Service/Realization",
+        "contains_pii": False,
+    },
+    {
+        "source_urn": "urn:ea:microservice:auth-gateway",
+        "target_urn": "urn:ea:capability:identity-and-access-management",
+        "relation": "realizes",
+        "protocol": "Gateway/Realization",
+        "contains_pii": False,
+    },
+    {
+        "source_urn": "urn:ea:cloudresource:customer-pii-stream",
+        "target_urn": "urn:ea:capability:data-privacy-and-governance",
+        "relation": "realizes",
+        "protocol": "EventStream/Realization",
         "contains_pii": True,
     },
 ]
@@ -299,6 +536,108 @@ SEED_DRIFT = [
 ]
 
 
+SEED_CAPABILITY_REALIZATIONS = [
+    {
+        "capability_urn": "urn:ea:capability:digital-storefront",
+        "capability_name": "Digital Storefront",
+        "capability_level": 2,
+        "parent_capability_urn": "urn:ea:capability:customer-experience",
+        "parent_capability_name": "Customer Experience",
+        "realizing_entity_urn": "urn:ea:application:web-storefront",
+        "realizing_entity_name": "web-storefront",
+        "realizing_entity_kind": "Application",
+        "disposition": "Invest",
+        "allocated_annual_cost": 34999.92,
+        "tech_debt_score": 15,
+        "criticality": "Tier-1",
+    },
+    {
+        "capability_urn": "urn:ea:capability:order-fulfillment",
+        "capability_name": "Order Fulfillment",
+        "capability_level": 2,
+        "parent_capability_urn": "urn:ea:capability:customer-experience",
+        "parent_capability_name": "Customer Experience",
+        "realizing_entity_urn": "urn:ea:microservice:checkout-service",
+        "realizing_entity_name": "checkout-service",
+        "realizing_entity_kind": "Microservice",
+        "disposition": "Invest",
+        "allocated_annual_cost": 48000.00,
+        "tech_debt_score": 18,
+        "criticality": "Tier-1",
+    },
+    {
+        "capability_urn": "urn:ea:capability:order-fulfillment",
+        "capability_name": "Order Fulfillment",
+        "capability_level": 2,
+        "parent_capability_urn": "urn:ea:capability:customer-experience",
+        "parent_capability_name": "Customer Experience",
+        "realizing_entity_urn": "urn:ea:database:cassandra-legacy-cluster",
+        "realizing_entity_name": "cassandra-legacy-cluster",
+        "realizing_entity_kind": "Database",
+        "disposition": "Eliminate",
+        "allocated_annual_cost": 64999.92,
+        "tech_debt_score": 90,
+        "criticality": "Tier-2",
+    },
+    {
+        "capability_urn": "urn:ea:capability:payment-processing",
+        "capability_name": "Payment Processing",
+        "capability_level": 2,
+        "parent_capability_urn": "urn:ea:capability:finance-and-billing",
+        "parent_capability_name": "Finance & Billing",
+        "realizing_entity_urn": "urn:ea:microservice:payments-api",
+        "realizing_entity_name": "payments-api",
+        "realizing_entity_kind": "Microservice",
+        "disposition": "Invest",
+        "allocated_annual_cost": 72000.00,
+        "tech_debt_score": 10,
+        "criticality": "Tier-0",
+    },
+    {
+        "capability_urn": "urn:ea:capability:subscription-billing",
+        "capability_name": "Subscription & Invoicing",
+        "capability_level": 2,
+        "parent_capability_urn": "urn:ea:capability:finance-and-billing",
+        "parent_capability_name": "Finance & Billing",
+        "realizing_entity_urn": "urn:ea:database:billing-db",
+        "realizing_entity_name": "billing-db",
+        "realizing_entity_kind": "Database",
+        "disposition": "Invest",
+        "allocated_annual_cost": 54999.96,
+        "tech_debt_score": 12,
+        "criticality": "Tier-0",
+    },
+    {
+        "capability_urn": "urn:ea:capability:identity-and-access-management",
+        "capability_name": "Identity & Access Management",
+        "capability_level": 2,
+        "parent_capability_urn": "urn:ea:capability:security-and-compliance",
+        "parent_capability_name": "Security & Compliance",
+        "realizing_entity_urn": "urn:ea:microservice:auth-service",
+        "realizing_entity_name": "auth-service",
+        "realizing_entity_kind": "Microservice",
+        "disposition": "Tolerate",
+        "allocated_annual_cost": 24999.96,
+        "tech_debt_score": 35,
+        "criticality": "Tier-0",
+    },
+    {
+        "capability_urn": "urn:ea:capability:data-privacy-and-governance",
+        "capability_name": "Data Privacy & Governance",
+        "capability_level": 2,
+        "parent_capability_urn": "urn:ea:capability:security-and-compliance",
+        "parent_capability_name": "Security & Compliance",
+        "realizing_entity_urn": "urn:ea:cloudresource:customer-pii-stream",
+        "realizing_entity_name": "customer-pii-stream",
+        "realizing_entity_kind": "CloudResource",
+        "disposition": "Migrate",
+        "allocated_annual_cost": 7800.00,
+        "tech_debt_score": 65,
+        "criticality": "Tier-1",
+    },
+]
+
+
 def seed_database() -> Dict[str, int]:
     """Seed the Unity Catalog conformed tables."""
     client = get_unity_catalog_client()
@@ -306,14 +645,17 @@ def seed_database() -> Dict[str, int]:
     e_count = client.merge_edges(SEED_EDGES)
     t_count = client.save_time_matrix(SEED_TIME_MATRIX)
     d_count = client.save_drift_records(SEED_DRIFT)
+    c_count = client.save_capability_realizations(SEED_CAPABILITY_REALIZATIONS)
     return {
         "nodes": n_count,
         "edges": e_count,
         "time_matrix": t_count,
         "drift": d_count,
+        "capability_realizations": c_count,
     }
 
 
 if __name__ == "__main__":
     res = seed_database()
     print(f"✓ Seeded Databricks Unity Catalog conformed tables: {res}")
+

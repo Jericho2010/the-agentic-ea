@@ -307,17 +307,57 @@ class StandaloneConformancePipeline:
         logger.info(f"Identified {drift_count} architecture drift discrepancies.")
         return drift_count
 
+    def reconcile_capability_realizations(self) -> int:
+        """
+        Reconciles business capabilities with realizing architectural entities and FinOps spend.
+        Populates ea.gold.capability_realization.
+        """
+        logger.info("Reconciling business capability realizations and FinOps investment alignment...")
+        from src.data_backbone.seed import SEED_NODES, SEED_EDGES, SEED_CAPABILITY_REALIZATIONS
+
+        # Ensure business capability nodes exist in catalog
+        cap_nodes = [n for n in SEED_NODES if n.get("kind") == "BusinessCapability"]
+        self.client.merge_nodes(cap_nodes)
+
+        # Ensure capability edges exist in catalog
+        cap_edges = [e for e in SEED_EDGES if e.get("relation") in ("aggregates", "realizes")]
+        self.client.merge_edges(cap_edges)
+
+        # Retrieve current time matrix for dynamic cost and debt lookup
+        time_rows = self.client.get_time_matrix()
+        time_by_name = {r["name"]: r for r in time_rows}
+        time_by_urn = {r["urn"]: r for r in time_rows}
+
+        records = []
+        for seed_rec in SEED_CAPABILITY_REALIZATIONS:
+            rec = dict(seed_rec)
+            # Link to latest time_matrix if available
+            ent_name = rec["realizing_entity_name"]
+            ent_urn = rec["realizing_entity_urn"]
+            tm = time_by_name.get(ent_name) or time_by_urn.get(ent_urn)
+            if tm:
+                rec["annual_run_cost"] = tm.get("annual_run_cost", rec["allocated_annual_cost"])
+                rec["allocated_annual_cost"] = tm.get("annual_run_cost", rec["allocated_annual_cost"])
+                rec["tech_debt_score"] = tm.get("tech_debt_score", rec["tech_debt_score"])
+                rec["disposition"] = tm.get("disposition", rec["disposition"])
+            records.append(rec)
+
+        count = self.client.save_capability_realizations(records)
+        logger.info(f"Reconciled {count} business capability realization records in {SCHEMA_GOLD}.capability_realization.")
+        return count
 
     def run_all(self) -> Dict[str, Any]:
         """Run the complete end-to-end conformance pipeline."""
         res_git = self.conform_bronze_git_repos()
         count_time = self.reconcile_time_matrix()
         count_drift = self.reconcile_drift()
+        count_cap = self.reconcile_capability_realizations()
         return {
             "status": "success",
             "git_conformance": res_git,
             "time_matrix_records": count_time,
             "drift_discrepancies": count_drift,
+            "capability_realization_records": count_cap,
         }
 
 

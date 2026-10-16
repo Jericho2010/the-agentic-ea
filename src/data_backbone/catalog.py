@@ -115,4 +115,23 @@ DDL_STATEMENTS = {
     USING DELTA
     COMMENT 'Reconciled architecture drift between declared manifests and live estate telemetry';
     """,
+    "gold_capability_realization": f"""
+    CREATE TABLE IF NOT EXISTS {SCHEMA_GOLD}.capability_realization (
+        capability_urn STRING NOT NULL COMMENT 'Unique Capability URN (e.g. urn:ea:capability:payment-processing)',
+        capability_name STRING NOT NULL COMMENT 'Canonical business capability name',
+        capability_level INT NOT NULL COMMENT 'Hierarchical level (1 = L1 Domain, 2 = L2 Functional)',
+        parent_capability_urn STRING COMMENT 'Parent capability URN for L2 capabilities',
+        parent_capability_name STRING COMMENT 'Parent capability name for L2 capabilities',
+        realizing_entity_urn STRING NOT NULL COMMENT 'PAM entity URN realizing this capability',
+        realizing_entity_name STRING NOT NULL COMMENT 'Name of application, microservice, or database',
+        realizing_entity_kind STRING NOT NULL COMMENT 'Kind of realizing entity (Application, Microservice, Database, etc.)',
+        disposition STRING NOT NULL COMMENT 'Gartner TIME disposition (Invest, Tolerate, Migrate, Eliminate)',
+        allocated_annual_cost DOUBLE NOT NULL COMMENT 'Annualized cloud run cost allocated to this capability in USD',
+        tech_debt_score INT NOT NULL COMMENT 'Technical debt score of realizing entity (0-100)',
+        criticality STRING NOT NULL COMMENT 'Operational criticality tier (Tier-0, Tier-1, Tier-2, Tier-3)'
+    )
+    USING DELTA
+    COMMENT 'Executive Business Capability Realization and FinOps Investment Alignment Data Mart';
+    """,
 }
+

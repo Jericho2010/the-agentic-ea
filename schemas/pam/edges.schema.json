@@ -16,7 +16,8 @@
         "realizes",
         "depends_on",
         "hosted_on",
-        "migrates_to"
+        "migrates_to",
+        "aggregates"
       ]
     },
     "protocol": { "type": "string" },

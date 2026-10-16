@@ -104,14 +104,16 @@ with col_h2:
     """, unsafe_allow_html=True)
 
 # Navigation Tabs
-tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time, tab_migration = st.tabs([
+tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time, tab_migration, tab_capabilities = st.tabs([
     "🏛️ Estate Catalog",
     "🗺️ Living Architecture Maps",
     "🧭 EA Navigator Cockpit",
     "🛡️ EA Sentinel Governance",
     "📊 Executive TIME Matrix",
     "🚀 Target-State Migration Roadmap",
+    "🎯 Business Capabilities & Investment",
 ])
+
 
 
 # ==============================================================================
@@ -453,4 +455,87 @@ with tab_migration:
         g_col3.metric("Target Planned Nodes", f"{target_graph['summary']['target_planned_nodes_count']} nodes")
         st.markdown(f"**Retired Systems:** {', '.join([u.split(':')[-1] for u in target_graph['retired_nodes']])}")
         st.markdown(f"**Target-State Modern Assets:** {', '.join([u.split(':')[-1] for u in target_graph['planned_nodes']])}")
+
+
+# ==============================================================================
+# TAB 7: BUSINESS CAPABILITIES & INVESTMENT
+# ==============================================================================
+with tab_capabilities:
+    st.subheader("🎯 Business Capability Modeling & Strategic Investment Alignment")
+    st.caption("Hierarchical capability tree (Level-1 Strategic Domains & Level-2 Functional Capabilities) with FinOps cloud run cost attribution and technical debt concentration.")
+
+    cap_tree = navigator.get_capability_tree()
+    cap_summary = navigator.get_capability_finops_summary()
+    cap_realizations = client.get_capability_realizations()
+
+    # Top Level Executive KPIs
+    c_kpi1, c_kpi2, c_kpi3, c_kpi4 = st.columns(4)
+    c_kpi1.metric("Total Capability Spend", f"${cap_tree['total_estate_capability_spend_usd']:,.2f}/yr", "100.0% Attributed")
+    c_kpi2.metric("Strategic Domains (L1)", f"{cap_tree['l1_domains_count']} Strategic Domains")
+    c_kpi3.metric("Functional Capabilities (L2)", f"{cap_tree['l2_capabilities_count']} Capabilities")
+    c_kpi4.metric("Realizing Systems", f"{cap_tree['total_realizations_count']} Production Realizations")
+
+    st.markdown("---")
+    st.markdown("#### 🏛️ Strategic Domain FinOps Investment Allocation (Level-1)")
+
+    col_d1, col_d2, col_d3 = st.columns(3)
+    domain_columns = [col_d1, col_d2, col_d3]
+    for idx, domain in enumerate(cap_tree["domains"]):
+        col = domain_columns[idx % 3]
+        with col:
+            st.markdown(f"""
+            <div style="background: #131b2e; border: 1px solid #1e293b; border-radius: 8px; padding: 14px; margin-bottom: 12px;">
+                <div style="font-size: 16px; font-weight: 700; color: #38bdf8;">{domain['name']}</div>
+                <div style="font-size: 13px; color: #94a3b8; margin-top: 4px;">Domain: {domain['domain']}</div>
+                <div style="font-size: 20px; font-weight: 800; color: #f8fafc; margin-top: 8px;">${domain['total_annual_cost']:,.2f}/yr</div>
+                <div style="font-size: 13px; color: #34d399; font-weight: 600;">{domain['percentage_of_estate']}% of Enterprise Cloud Spend</div>
+                <div style="font-size: 12px; color: #cbd5e1; margin-top: 6px;">Average Tech Debt: <b>{domain['avg_tech_debt']}/100</b></div>
+                <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">Realized by: <i>{', '.join(domain['realizing_systems'])}</i></div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.markdown("#### 📊 Capability FinOps & Technical Debt Heatmap")
+    df_cap_summary = pd.DataFrame(cap_summary)
+    st.dataframe(df_cap_summary, use_container_width=True)
+
+    st.markdown("---")
+    st.markdown("#### 🌳 Interactive Hierarchical Capability Tree Explorer")
+
+    for domain in cap_tree["domains"]:
+        with st.expander(f"📁 {domain['name']} — ${domain['total_annual_cost']:,.2f}/yr ({domain['percentage_of_estate']}%)", expanded=True):
+            st.markdown(f"**Domain Description:** {domain['description']}")
+            st.markdown(f"**Owning Leadership:** `{domain['owner_team']}` | **Criticality:** `{domain['criticality']}`")
+
+            for cap in domain["capabilities"]:
+                st.markdown(f"##### ↳ `{cap['name']}` ({cap['urn']})")
+                c_col1, c_col2, c_col3 = st.columns(3)
+                c_col1.metric("Capability Spend", f"${cap['allocated_annual_cost']:,.2f}/yr", f"{cap['percentage_of_estate']}% of Estate")
+                c_col2.metric("Tech Debt Exposure", f"{cap['max_tech_debt']}/100 max", f"Avg: {cap['avg_tech_debt']}/100")
+                c_col3.metric("Realizing Systems", f"{cap['realizing_count']} components")
+
+                st.markdown("**Realizing Architectural Entities (PAM `realizes` Contracts):**")
+                df_reals = pd.DataFrame(cap["realizing_entities"])[[
+                    "realizing_entity_name", "realizing_entity_kind", "disposition",
+                    "allocated_annual_cost", "tech_debt_score", "criticality"
+                ]]
+                st.dataframe(df_reals, use_container_width=True)
+                st.markdown(" ")
+
+    st.markdown("---")
+    st.markdown("#### 📋 Conformed Gold Table: `ea.gold.capability_realization`")
+    if cap_realizations:
+        df_full = pd.DataFrame(cap_realizations)[[
+            "capability_name", "capability_level", "parent_capability_name",
+            "realizing_entity_name", "realizing_entity_kind", "disposition",
+            "allocated_annual_cost", "tech_debt_score", "criticality"
+        ]]
+        st.dataframe(df_full, use_container_width=True)
+        st.download_button(
+            label="📥 Download Capability Realizations (CSV)",
+            data=df_full.to_csv(index=False),
+            file_name="ea_gold_capability_realization.csv",
+            mime="text/csv",
+        )
+
 

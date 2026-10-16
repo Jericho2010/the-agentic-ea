@@ -79,13 +79,14 @@ the-agentic-ea/
 - **Visual Delta Diff:** Generates dual Archify `diagram_delta.html` and `.svg` highlighting non-compliant resources in rose red.
 
 ### D. Databricks App UI Cockpit (`apps/ea_navigator/app.py`)
-- Deployable inside Databricks Apps with 6 interactive tabs:
+- Deployable inside Databricks Apps with 7 interactive tabs:
   1. **Estate Catalog:** Filterable table of all conformed PAM entities and ArchiMate relations.
   2. **Living Architecture Maps:** Embedded interactive Archify HTML maps with pan, zoom, and tooltips.
   3. **EA Navigator Cockpit:** Conversational interface with live blast-radius calculations and MADR exporter.
   4. **EA Sentinel Audit:** PR evaluation view with visual architecture diffs and policy violation badges.
   5. **Executive TIME Matrix:** Portfolio quadrant analysis with FinOps annual run-cost aggregations.
   6. **Target-State Migration Roadmap:** Phased modernization waves, target PAM metamodel topology, and MADR v3.0 decision record exporter.
+  7. **Business Capabilities & Investment:** Hierarchical capability tree (L1 Domains & L2 Capabilities) with FinOps cloud run-cost attribution and tech debt heatmaps.
 
 ---
 
@@ -111,6 +112,8 @@ streamlit run apps/ea_navigator/app.py
 - **2026-10-16 - Scenario S01 Verified (APM / TIME Model)** - Implemented and validated dedicated scenario test `tests/scenarios/test_s01_apm_time.py`. Verified 100% coverage across all 4 Gartner TIME quadrants (Invest: $209,999.88, Tolerate: $24,999.96, Migrate: $7,800.00, Eliminate: $64,999.92), confirmed portfolio spend aggregation to exactly $307,799.76 in `ea.gold.time_matrix`, validated Tab 5 integration in Databricks App Cockpit, bringing automated test suite to 21/21 passing tests.
 - **2026-10-16 - Scenario S02 Verified (Technology Obsolescence & Lifecycle Risk EOL/EOS)** - Implemented and validated dedicated scenario test `tests/scenarios/test_s02_eol_eos.py`. Verified detection and risk categorization of assets past/near EOL (cassandra-legacy-cluster: EXPIRED/CRITICAL, customer-pii-stream: NEAR_EOL/HIGH, auth-service: NEAR_EOL/APPROACHING_EOL), EA Navigator BFS blast-radius calculation for sunset datastore (4 upstream callers: payments-service, payments-api, checkout-service, web-storefront; $234,999.84/yr financial risk, customer PII exposure), EA Sentinel pre-merge gate and Navigator binding guard enforcing EA-POL-001 against bindings to sunset assets, and Databricks App UI Tab 5 Lifecycle Risk dashboard panel. Automated test suite expanded to 27/27 passing tests (100% success), with `./demo.sh` passing end-to-end with exit code 0.
 - **2026-10-17 - Scenario S03 Verified (Target State Architecture & Cloud Migration Roadmapping)** - Implemented plan_target_state_migration, get_target_state_graph, and Tab 6 Migration Roadmap in app.py. Validated 3 phased waves, PAM target-state mapping (orders-delta-table, customer-events-dlt, hosted_on, migrates_to), MADR v3.0 decision record, and $64,999.92/yr spend elimination. Dedicated test suite tests/scenarios/test_s03_target_state_migration.py passing 6/6 tests, master suite 33/33 tests passing, demo.sh exit code 0.
+- **2026-10-17 - Scenario S04 Verified (Business Capability Modeling & Strategic Investment Alignment)** - Conformed hierarchical business capability nodes (Level-1 Strategic Domains & Level-2 Functional Capabilities) in PAM metamodel with realizes and aggregates relationships. Created conformed gold data mart ea.gold.capability_realization via Unity Catalog client attributing exactly $307,799.76/yr estate spend (Customer Experience: $147,999.84, Finance & Billing: $126,999.96, Security & Compliance: $32,799.96) and identifying technical debt concentrations. Integrated Tab 7 into Databricks App Cockpit. Dedicated test suite tests/scenarios/test_s04_capabilities.py passing 6/6 tests, master suite 39/39 tests passing (100%), and demo.sh passing with exit code 0.
+
 
 
 

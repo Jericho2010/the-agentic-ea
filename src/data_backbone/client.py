@@ -152,6 +152,24 @@ class UnityCatalogClient:
         );
         """)
 
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS gold_capability_realization (
+            capability_urn TEXT NOT NULL,
+            capability_name TEXT NOT NULL,
+            capability_level INTEGER NOT NULL,
+            parent_capability_urn TEXT,
+            parent_capability_name TEXT,
+            realizing_entity_urn TEXT NOT NULL,
+            realizing_entity_name TEXT NOT NULL,
+            realizing_entity_kind TEXT NOT NULL,
+            disposition TEXT NOT NULL,
+            allocated_annual_cost REAL NOT NULL,
+            tech_debt_score INTEGER NOT NULL,
+            criticality TEXT NOT NULL,
+            PRIMARY KEY (capability_urn, realizing_entity_urn)
+        );
+        """)
+
         conn.commit()
         conn.close()
 
@@ -213,6 +231,66 @@ class UnityCatalogClient:
         rows = [dict(r) for r in cur.fetchall()]
         conn.close()
         return rows
+
+    def get_capability_realizations(self) -> List[Dict[str, Any]]:
+        """Retrieve conformed business capability realization data mart records."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM gold_capability_realization ORDER BY capability_level, capability_name, allocated_annual_cost DESC;")
+        rows = [dict(r) for r in cur.fetchall()]
+        conn.close()
+        return rows
+
+    def get_capability_summary(self) -> List[Dict[str, Any]]:
+        """
+        Aggregate FinOps spend, realizing entity count, and average tech debt per capability.
+        Returns aggregated summary rows for L1 domains and L2 capabilities.
+        """
+        rows = self.get_capability_realizations()
+        by_cap: Dict[str, Dict[str, Any]] = {}
+        for r in rows:
+            urn = r["capability_urn"]
+            if urn not in by_cap:
+                by_cap[urn] = {
+                    "capability_urn": urn,
+                    "capability_name": r["capability_name"],
+                    "capability_level": r["capability_level"],
+                    "parent_capability_urn": r.get("parent_capability_urn"),
+                    "parent_capability_name": r.get("parent_capability_name"),
+                    "total_allocated_annual_cost": 0.0,
+                    "realizing_entities": [],
+                    "realizing_count": 0,
+                    "tech_debt_scores": [],
+                    "criticality_levels": set(),
+                    "dispositions": set(),
+                }
+            by_cap[urn]["total_allocated_annual_cost"] += float(r["allocated_annual_cost"])
+            by_cap[urn]["realizing_entities"].append(r["realizing_entity_name"])
+            by_cap[urn]["realizing_count"] += 1
+            by_cap[urn]["tech_debt_scores"].append(int(r["tech_debt_score"]))
+            by_cap[urn]["criticality_levels"].add(r["criticality"])
+            by_cap[urn]["dispositions"].add(r["disposition"])
+
+        summary = []
+        for c in by_cap.values():
+            scores = c["tech_debt_scores"]
+            avg_debt = round(sum(scores) / len(scores), 1) if scores else 0.0
+            max_debt = max(scores) if scores else 0
+            summary.append({
+                "capability_urn": c["capability_urn"],
+                "capability_name": c["capability_name"],
+                "capability_level": c["capability_level"],
+                "parent_capability_urn": c["parent_capability_urn"],
+                "parent_capability_name": c["parent_capability_name"],
+                "total_annual_cost": round(c["total_allocated_annual_cost"], 2),
+                "realizing_entities": c["realizing_entities"],
+                "realizing_count": c["realizing_count"],
+                "avg_tech_debt_score": avg_debt,
+                "max_tech_debt_score": max_debt,
+                "dispositions": list(c["dispositions"]),
+            })
+        return summary
+
 
     def merge_nodes(self, nodes: List[Dict[str, Any]]) -> int:
         """Atomic upsert of PAM nodes."""
@@ -422,6 +500,49 @@ class UnityCatalogClient:
         conn.close()
         return count
 
+    def save_capability_realizations(self, records: List[Dict[str, Any]]) -> int:
+        """Upsert capability realization data mart records."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        count = 0
+        for r in records:
+            cur.execute("""
+            INSERT INTO gold_capability_realization (
+                capability_urn, capability_name, capability_level, parent_capability_urn, parent_capability_name,
+                realizing_entity_urn, realizing_entity_name, realizing_entity_kind, disposition,
+                allocated_annual_cost, tech_debt_score, criticality
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(capability_urn, realizing_entity_urn) DO UPDATE SET
+                capability_name = excluded.capability_name,
+                capability_level = excluded.capability_level,
+                parent_capability_urn = excluded.parent_capability_urn,
+                parent_capability_name = excluded.parent_capability_name,
+                realizing_entity_name = excluded.realizing_entity_name,
+                realizing_entity_kind = excluded.realizing_entity_kind,
+                disposition = excluded.disposition,
+                allocated_annual_cost = excluded.allocated_annual_cost,
+                tech_debt_score = excluded.tech_debt_score,
+                criticality = excluded.criticality;
+            """, (
+                r["capability_urn"],
+                r["capability_name"],
+                int(r["capability_level"]),
+                r.get("parent_capability_urn"),
+                r.get("parent_capability_name"),
+                r["realizing_entity_urn"],
+                r["realizing_entity_name"],
+                r.get("realizing_entity_kind", "Microservice"),
+                r["disposition"],
+                float(r["allocated_annual_cost"]),
+                int(r["tech_debt_score"]),
+                r.get("criticality", "Tier-1"),
+            ))
+            count += 1
+        conn.commit()
+        conn.close()
+        return count
+
     def _normalize_sql(self, sql: str) -> str:
         """Translates Databricks Unity Catalog 3-level namespaces (ea.<schema>.<table>) to local table names."""
         replacements = [
@@ -432,6 +553,7 @@ class UnityCatalogClient:
             ("ea.bronze.cloud_resources", "bronze_cloud_resources"),
             ("ea.gold.time_matrix", "gold_time_matrix"),
             ("ea.gold.drift_reconciled", "gold_drift_reconciled"),
+            ("ea.gold.capability_realization", "gold_capability_realization"),
         ]
         res = sql
         for uc, local in replacements:
