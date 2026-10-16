@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PAMEvidence",
+  "type": "object",
+  "required": [
+    "evidence_id",
+    "repo_url",
+    "commit_hash",
+    "ast_fingerprint",
+    "discovered_at"
+  ],
+  "properties": {
+    "evidence_id": { "type": "string" },
+    "repo_url": { "type": "string" },
+    "commit_hash": { "type": "string" },
+    "ast_fingerprint": { "type": "string" },
+    "discovered_at": { "type": "string" },
+    "source_file": { "type": "string" },
+    "extracted_by": { "type": "string" }
+  },
+  "additionalProperties": false
+}

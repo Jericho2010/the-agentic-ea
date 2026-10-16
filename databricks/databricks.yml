@@ -1,0 +1,52 @@
+bundle:
+  name: the-agentic-ea
+
+targets:
+  dev:
+    default: true
+    mode: development
+    workspace:
+      host: https://dbc-2d6963b0-153b.cloud.databricks.com/
+      profile: DEFAULT
+  prod:
+    mode: production
+    workspace:
+      host: https://dbc-2d6963b0-153b.cloud.databricks.com/
+      profile: DEFAULT
+
+resources:
+  # 1. Unity Catalog Schemas
+  schemas:
+    ea_metamodel:
+      catalog_name: ea
+      name: metamodel
+      comment: "Platform Architecture Metamodel (PAM) Conformed Tables"
+    ea_bronze:
+      catalog_name: ea
+      name: bronze
+      comment: "Raw Ingestion Feeds (Git AST, Cloud CUR, CMDB)"
+    ea_silver:
+      catalog_name: ea
+      name: silver
+      comment: "Cleaned & Validated PAM Graph Entities"
+    ea_gold:
+      catalog_name: ea
+      name: gold
+      comment: "Scenario Analytics Marts (TIME Matrix, EOL Timeline, Blast Radius Index)"
+
+  # 2. Databricks Apps: EA Navigator Cockpit (Streamlit)
+  apps:
+    ea_navigator_app:
+      name: "ea-navigator-cockpit"
+      description: "Databricks-native Enterprise Architecture Navigator Cockpit"
+      source_code_path: ../apps/ea_navigator
+
+  # 3. Delta Live Tables Ingestion & Graph Conformance Pipeline
+  pipelines:
+    ea_medallion_pipeline:
+      name: "EA Medallion Ingestion & Conformance"
+      edition: ADVANCED
+      channel: CURRENT
+      catalog: ea
+      target: silver
+      continuous: false

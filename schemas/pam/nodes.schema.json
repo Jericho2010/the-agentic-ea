@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PAMNode",
+  "type": "object",
+  "required": ["urn", "name", "kind", "owner_team", "criticality"],
+  "properties": {
+    "urn": {
+      "type": "string",
+      "pattern": "^urn:ea:[a-z0-9_-]+:[a-z0-9._-]+$"
+    },
+    "name": { "type": "string", "minLength": 1 },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "BusinessCapability",
+        "Application",
+        "Microservice",
+        "Database",
+        "CloudResource",
+        "APIInterface",
+        "AIModel"
+      ]
+    },
+    "owner_team": { "type": "string" },
+    "lifecycle_status": {
+      "type": "string",
+      "enum": ["plan", "build", "run", "phase-out", "retired"],
+      "default": "run"
+    },
+    "criticality": {
+      "type": "string",
+      "enum": ["Tier-0", "Tier-1", "Tier-2", "Tier-3"]
+    },
+    "metadata": { "type": "object" }
+  },
+  "additionalProperties": false
+}

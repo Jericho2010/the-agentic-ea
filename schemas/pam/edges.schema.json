@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PAMEdge",
+  "type": "object",
+  "required": ["source_urn", "target_urn", "relation"],
+  "properties": {
+    "source_urn": { "type": "string" },
+    "target_urn": { "type": "string" },
+    "relation": {
+      "type": "string",
+      "enum": [
+        "serves",
+        "accesses",
+        "flows_to",
+        "deploys_to",
+        "realizes",
+        "depends_on"
+      ]
+    },
+    "protocol": { "type": "string" },
+    "contains_pii": { "type": "boolean", "default": false }
+  },
+  "additionalProperties": false
+}

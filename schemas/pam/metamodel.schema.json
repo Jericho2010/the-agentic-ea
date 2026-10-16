@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local/the-agentic-ea/pam/metamodel.schema.json",
+  "title": "PAM Metamodel Sketch",
+  "type": "object",
+  "required": [
+    "nodes",
+    "edges"
+  ],
+  "properties": {
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "urn",
+          "name",
+          "layer",
+          "type"
+        ],
+        "properties": {
+          "urn": {
+            "type": "string",
+            "pattern": "^urn:ea:[a-z]+:[a-z]+:[a-z0-9-]+$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "layer": {
+            "enum": [
+              "strategy",
+              "application",
+              "technology",
+              "data",
+              "governance"
+            ]
+          },
+          "type": {
+            "type": "string"
+          },
+          "owner_team": {
+            "type": "string"
+          },
+          "repo_url": {
+            "type": "string"
+          },
+          "attributes": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "source_urn",
+          "target_urn",
+          "relationship_type"
+        ],
+        "properties": {
+          "source_urn": {
+            "type": "string"
+          },
+          "target_urn": {
+            "type": "string"
+          },
+          "relationship_type": {
+            "enum": [
+              "realizes",
+              "serves",
+              "hosted_on",
+              "accesses",
+              "consumes",
+              "exposes",
+              "flows_to",
+              "governs",
+              "threatens",
+              "bundled_in",
+              "owned_by"
+            ]
+          },
+          "attributes": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "aliases": {
+      "type": "array"
+    },
+    "evidence": {
+      "type": "array"
+    }
+  }
+}

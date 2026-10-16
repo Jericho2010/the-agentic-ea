@@ -1,0 +1,9 @@
+{
+  "evidence_id": "ev-001",
+  "repo_url": "https://github.com/company/checkout-service",
+  "commit_hash": "a1b2c3d4e5f67890",
+  "ast_fingerprint": "fp-99881122",
+  "discovered_at": "2026-10-16T14:00:00Z",
+  "source_file": "package.json",
+  "extracted_by": "cartographer-ast-v2"
+}

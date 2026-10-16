@@ -1,0 +1,12 @@
+{
+  "urn": "urn:ea:microservice:checkout-service",
+  "name": "checkout-service",
+  "kind": "Microservice",
+  "owner_team": "core-commerce",
+  "lifecycle_status": "run",
+  "criticality": "Tier-1",
+  "metadata": {
+    "repository": "github.com/company/checkout-service",
+    "language": "typescript"
+  }
+}

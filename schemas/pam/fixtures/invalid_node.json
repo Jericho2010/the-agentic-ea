@@ -1,0 +1,6 @@
+{
+  "urn": "urn:ea:microservice:orphan-service",
+  "name": "orphan-service",
+  "kind": "Microservice",
+  "criticality": "Tier-2"
+}

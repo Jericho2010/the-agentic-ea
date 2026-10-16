@@ -1,0 +1,5 @@
+{
+  "source_urn": "urn:ea:microservice:checkout-service",
+  "target_urn": "urn:ea:database:billing-db",
+  "relation": "invalid_unsupported_relation"
+}

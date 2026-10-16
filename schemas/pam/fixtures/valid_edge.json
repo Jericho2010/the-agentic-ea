@@ -1,0 +1,7 @@
+{
+  "source_urn": "urn:ea:microservice:checkout-service",
+  "target_urn": "urn:ea:database:billing-db",
+  "relation": "accesses",
+  "protocol": "postgresql",
+  "contains_pii": false
+}
