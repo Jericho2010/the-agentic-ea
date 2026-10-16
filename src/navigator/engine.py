@@ -359,6 +359,209 @@ Graph traversal reveals **{blast['upstream_count']} upstream callers** directly 
 """
         return madr
 
+    def evaluate_lifecycle_risks(self, reference_date: Optional[str] = None) -> List[Dict[str, Any]]:
+        """
+        Evaluates Technology Obsolescence & Lifecycle Risk (EOL/EOS) across all cataloged assets.
+        Cross-references ea.gold.time_matrix and ea.metamodel.nodes with live graph dependencies:
+        - Risk Classification:
+            - EXPIRED (CRITICAL): eol_date < reference_date (Past EOL, unapproved datastore)
+            - NEAR_EOL (HIGH): 0 <= days_remaining <= 365 (EOL within 1 year)
+            - APPROACHING_EOL (MEDIUM): 366 <= days_remaining <= 730 (EOL within 2 years)
+            - SUPPORTED (LOW): days_remaining > 730 (Active architectural support)
+        - Graph Impact:
+            - Discovers upstream callers at risk
+            - Aggregates financial exposure ($/yr)
+            - Flags customer PII lineage
+            - Recommends actionable modernization or sunset roadmap
+        """
+        self._load_estate_graph()
+        time_records = self.client.get_time_matrix()
+        nodes_records = self.client.get_nodes()
+        nodes_by_urn = {n["urn"]: n for n in nodes_records}
+        nodes_by_name = {n["name"].lower(): n for n in nodes_records}
+
+        if reference_date:
+            try:
+                ref_dt = datetime.strptime(reference_date, "%Y-%m-%d").date()
+            except Exception:
+                ref_dt = datetime.now(timezone.utc).date()
+        else:
+            ref_dt = datetime.now(timezone.utc).date()
+
+        results = []
+        for t in time_records:
+            name = t["name"]
+            urn = t["urn"]
+            disposition = t.get("disposition", "Tolerate")
+            annual_cost = float(t.get("annual_run_cost", 0.0))
+            tech_debt = int(t.get("tech_debt_score", 0))
+
+            # Cross-reference node details
+            node = nodes_by_urn.get(urn) or nodes_by_name.get(name.lower()) or {}
+            kind = node.get("kind", "Microservice")
+            owner_team = node.get("owner_team", "unassigned")
+            criticality = node.get("criticality", "Tier-2")
+            lifecycle_status = node.get("lifecycle_status", "run")
+            meta = node.get("metadata", {})
+
+            eol_str = t.get("eol_date") or meta.get("eol_date")
+            if not eol_str:
+                continue
+
+            try:
+                eol_dt = datetime.strptime(eol_str, "%Y-%m-%d").date()
+                days_remaining = (eol_dt - ref_dt).days
+            except Exception:
+                continue
+
+            # Classify Risk Horizon
+            if days_remaining < 0:
+                risk_level = "CRITICAL"
+                risk_status = "EXPIRED"
+                urgency = "IMMEDIATE_SUNSET"
+            elif days_remaining <= 365:
+                risk_level = "HIGH"
+                risk_status = "NEAR_EOL"
+                urgency = "MIGRATION_REQUIRED"
+            elif days_remaining <= 730:
+                risk_level = "MEDIUM"
+                risk_status = "APPROACHING_EOL"
+                urgency = "MODERNIZATION_PLANNING"
+            else:
+                risk_level = "LOW"
+                risk_status = "SUPPORTED"
+                urgency = "STABLE_INVESTMENT"
+
+            # Blast radius graph traversal
+            blast = self.calculate_blast_radius(urn)
+            upstream_callers = [c["name"] for c in blast.get("upstream_callers", [])]
+            direct_callers = [c["name"] for c in blast.get("upstream_callers", []) if c.get("is_direct")]
+            upstream_count = blast.get("upstream_count", 0)
+            fin_exposure = blast.get("financial_exposure", {}).get("total_annual_risk_usd", annual_cost)
+            has_pii = blast.get("pii_compliance", {}).get("has_pii_exposure", False)
+
+            # Remediation recommendation
+            if risk_status == "EXPIRED":
+                recom = (
+                    f"CRITICAL: Immediate sunset required for `{name}` (EOL expired {eol_str}). "
+                    f"De-risk {upstream_count} upstream services ({', '.join(upstream_callers[:3]) or 'none'}) "
+                    f"and eliminate ${annual_cost:,.2f}/yr run cost via migration to Databricks Unity Catalog."
+                )
+            elif risk_status == "NEAR_EOL":
+                recom = (
+                    f"HIGH: Fast-track migration for `{name}` before {eol_str} ({days_remaining} days remaining). "
+                    f"Protect {upstream_count} callers from unplanned operational deprecation."
+                )
+            elif risk_status == "APPROACHING_EOL":
+                recom = (
+                    f"MEDIUM: Schedule target-state modernization for `{name}` before {eol_str} ({days_remaining} days remaining). "
+                    f"Current architectural disposition: {disposition}."
+                )
+            else:
+                recom = f"LOW: Asset `{name}` is actively supported until {eol_str}. Maintain regular lifecycle monitoring."
+
+            results.append({
+                "name": name,
+                "urn": urn,
+                "kind": kind,
+                "owner_team": owner_team,
+                "criticality": criticality,
+                "lifecycle_status": lifecycle_status,
+                "disposition": disposition,
+                "annual_run_cost": annual_cost,
+                "tech_debt_score": tech_debt,
+                "eol_date": eol_str,
+                "days_remaining": days_remaining,
+                "risk_level": risk_level,
+                "risk_status": risk_status,
+                "urgency": urgency,
+                "upstream_callers_count": upstream_count,
+                "upstream_callers": upstream_callers,
+                "direct_callers": direct_callers,
+                "financial_exposure_usd": fin_exposure,
+                "has_pii_exposure": has_pii,
+                "recommendation": recom,
+            })
+
+        severity_rank = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3}
+        results.sort(key=lambda x: (severity_rank.get(x["risk_level"], 99), x["days_remaining"]))
+        return results
+
+    def validate_binding_lifecycle(
+        self, source_identifier: str, target_identifier: str, reference_date: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Validates whether establishing an architectural dependency from source to target
+        is compliant with Technology Obsolescence & Lifecycle policies.
+        Blocks bindings to deprecated/sunset assets (disposition=Eliminate, status=EXPIRED).
+        """
+        self._load_estate_graph()
+        target_urn = self.resolve_node_urn(target_identifier) or target_identifier
+        source_urn = self.resolve_node_urn(source_identifier) or source_identifier
+
+        risks = self.evaluate_lifecycle_risks(reference_date)
+        target_risk = next((r for r in risks if r["urn"] == target_urn or r["name"].lower() == target_identifier.lower()), None)
+
+        if not target_risk:
+            node = self.nodes_by_urn.get(target_urn) or self.nodes_by_name.get(target_identifier.lower())
+            if node and node.get("lifecycle_status") in ("phase-out", "retired"):
+                return {
+                    "allowed": False,
+                    "status": "BLOCKED",
+                    "policy_id": "EA-POL-001",
+                    "target": target_identifier,
+                    "target_urn": target_urn,
+                    "risk_level": "CRITICAL",
+                    "reason": f"Binding from '{source_identifier}' to '{target_identifier}' is strictly blocked: target is in '{node.get('lifecycle_status')}' status.",
+                    "remediation": "Choose an approved modern architecture alternative.",
+                }
+            return {"allowed": True, "status": "APPROVED", "policy_id": None, "reason": "No lifecycle risk detected."}
+
+        if target_risk["risk_status"] == "EXPIRED" or target_risk["disposition"] == "Eliminate":
+            return {
+                "allowed": False,
+                "status": "BLOCKED",
+                "policy_id": "EA-POL-001",
+                "target": target_risk["name"],
+                "target_urn": target_risk["urn"],
+                "risk_level": "CRITICAL",
+                "risk_status": target_risk["risk_status"],
+                "eol_date": target_risk["eol_date"],
+                "reason": (
+                    f"Binding from '{source_identifier}' to '{target_risk['name']}' is strictly blocked under EA-POL-001: "
+                    f"target is past End-of-Life (EOL: {target_risk['eol_date']}, Disposition: {target_risk['disposition']}). "
+                    f"New dependencies on sunset assets are prohibited."
+                ),
+                "remediation": f"Redirect dependency to an approved modern datastore/service (e.g. Databricks Unity Catalog Delta Lake).",
+                "upstream_blast_radius": target_risk["upstream_callers_count"],
+            }
+        elif target_risk["risk_status"] == "NEAR_EOL":
+            return {
+                "allowed": True,
+                "status": "WARNING",
+                "policy_id": "EA-POL-001",
+                "target": target_risk["name"],
+                "target_urn": target_risk["urn"],
+                "risk_level": "HIGH",
+                "risk_status": target_risk["risk_status"],
+                "eol_date": target_risk["eol_date"],
+                "reason": (
+                    f"Warning: target '{target_risk['name']}' is near End-of-Life ({target_risk['days_remaining']} days remaining). "
+                    f"Architecture waiver required before production deployment."
+                ),
+                "remediation": "Ensure target migration path is committed before binding.",
+            }
+        else:
+            return {
+                "allowed": True,
+                "status": "APPROVED",
+                "policy_id": None,
+                "target": target_risk["name"],
+                "target_urn": target_risk["urn"],
+                "risk_level": target_risk["risk_level"],
+                "reason": f"Target '{target_risk['name']}' is actively supported until {target_risk['eol_date']}.",
+            }
+
     def get_codriving_actions(self, target_identifier: str) -> List[Dict[str, str]]:
         """Returns contextual interactive co-driving action chips for UI and EA Navigator interactions."""
         blast = self.calculate_blast_radius(target_identifier)
@@ -436,6 +639,34 @@ Graph traversal reveals **{blast['upstream_count']} upstream callers** directly 
 #### Governance Recommendation
 Enforce mandatory column-level tagging in Databricks Unity Catalog and encrypt transport edges via mTLS to satisfy GDPR Art. 32 security requirements.
 """
+        elif any(k in q for k in ["eol", "lifecycle", "obsolescence", "sunset", "eos", "expired", "deprecated"]):
+            risks = self.evaluate_lifecycle_risks()
+            expired = [r for r in risks if r["risk_status"] == "EXPIRED"]
+            near_eol = [r for r in risks if r["risk_status"] == "NEAR_EOL"]
+            approaching = [r for r in risks if r["risk_status"] == "APPROACHING_EOL"]
+            supported = [r for r in risks if r["risk_status"] == "SUPPORTED"]
+
+            response_text = f"""### ⏳ Technology Obsolescence & Lifecycle Risk (EOL/EOS) Assessment
+
+* **Total Conformed Systems Evaluated:** {len(risks)}
+* **Critical / Expired (Past EOL):** **{len(expired)}** systems (Immediate sunset required)
+* **High Risk (Near EOL < 1yr):** **{len(near_eol)}** systems (Active migration required)
+* **Medium Risk (Approaching < 2yr):** **{len(approaching)}** systems (Modernization planning)
+* **Supported (Low Risk > 2yr):** **{len(supported)}** systems
+
+#### Estate Lifecycle Risk Register
+| System | URN | Status | Horizon | Days | Upstream Callers | Financial Risk |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: |
+"""
+            for r in risks:
+                badge = "🔴 EXPIRED" if r["risk_status"] == "EXPIRED" else ("🟠 NEAR_EOL" if r["risk_status"] == "NEAR_EOL" else ("🟡 APPROACHING" if r["risk_status"] == "APPROACHING_EOL" else "🟢 SUPPORTED"))
+                response_text += f"| `{r['name']}` | `{r['urn']}` | {badge} | {r['eol_date']} | {r['days_remaining']}d | {r['upstream_callers_count']} callers | ${r['financial_exposure_usd']:,.2f} |\n"
+
+            response_text += f"""
+#### Strategic Modernization Roadmap
+"""
+            for r in expired + near_eol + approaching:
+                response_text += f"* **{r['name']} ({r['risk_status']}):** {r['recommendation']}\n"
         else:
             # Blast Radius & Impact Analysis
             callers_str = ", ".join([f"`{c['name']}` ({c['criticality']})" for c in blast.get("upstream_callers", [])]) or "None (Edge consumer)"

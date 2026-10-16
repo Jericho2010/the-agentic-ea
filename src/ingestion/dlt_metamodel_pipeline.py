@@ -225,7 +225,14 @@ class StandaloneConformancePipeline:
                 eol_date = "2027-04-15"
             else: # Invest
                 tech_debt = 10 if "payment" in name else (12 if "billing" in name else 18)
-                eol_date = "2030-01-01"
+                if "web" in name:
+                    eol_date = "2028-12-31"
+                elif "checkout" in name:
+                    eol_date = "2029-06-30"
+                elif "billing" in name:
+                    eol_date = "2029-12-31"
+                else:
+                    eol_date = "2030-01-01"
 
             time_records.append({
                 "name": name,

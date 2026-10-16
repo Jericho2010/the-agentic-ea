@@ -87,6 +87,7 @@ SEED_NODES = [
             "runtime": "Node.js 20",
             "status": "legacy-auth",
             "migration_target": "Auth0 / Okta",
+            "eol_date": "2027-04-15",
         },
     },
     {
@@ -127,6 +128,7 @@ SEED_NODES = [
             "contains_pii": True,
             "encryption": "KMS-Customer-Managed",
             "retention_hours": 72,
+            "eol_date": "2026-12-31",
         },
     },
     {
@@ -140,6 +142,21 @@ SEED_NODES = [
             "type": "External-SaaS",
             "protocol": "HTTPS/TLS-1.3",
             "provider": "Stripe Payments Europe",
+        },
+    },
+    {
+        "urn": "urn:ea:database:cassandra-legacy-cluster",
+        "name": "cassandra-legacy-cluster",
+        "kind": "Database",
+        "owner_team": "team-legacy-ops",
+        "lifecycle_status": "phase-out",
+        "criticality": "Tier-2",
+        "metadata": {
+            "engine": "Apache Cassandra 3.11",
+            "encryption": "None",
+            "backup_retention_days": 7,
+            "eol_date": "2025-12-31",
+            "disposition": "Eliminate",
         },
     },
 ]
@@ -192,6 +209,20 @@ SEED_EDGES = [
         "target_urn": "urn:ea:database:payments-ledger-db",
         "relation": "accesses",
         "protocol": "PostgreSQL/TLS",
+        "contains_pii": True,
+    },
+    {
+        "source_urn": "urn:ea:microservice:payments-api",
+        "target_urn": "urn:ea:microservice:payments-service",
+        "relation": "flows_to",
+        "protocol": "gRPC/mTLS",
+        "contains_pii": True,
+    },
+    {
+        "source_urn": "urn:ea:microservice:payments-service",
+        "target_urn": "urn:ea:database:cassandra-legacy-cluster",
+        "relation": "accesses",
+        "protocol": "CQL/TCP",
         "contains_pii": True,
     },
 ]

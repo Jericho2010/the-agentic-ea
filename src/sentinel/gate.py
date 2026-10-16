@@ -137,15 +137,17 @@ class EASentinelGate:
             engine_ver = r.get("engine_version", "")
             enc_type = r.get("encryption_type", "")
 
-            # 1. EA-POL-001: Unapproved / Deprecated Datastore
-            if "cassandra" in r_type or "cassandra" in r_name.lower():
+            # 1. EA-POL-001: Unapproved / Deprecated Datastore & Lifecycle Obsolescence
+            raw_text = "\n".join(r.get("raw_lines", [])).lower()
+            is_cassandra = "cassandra" in r_type or "cassandra" in r_name.lower() or "cassandra" in raw_text
+            if is_cassandra:
                 violations.append({
                     "policy_id": "EA-POL-001",
                     "resource": f"{r.get('type')}.{r_name}",
                     "severity": POLICIES["EA-POL-001"]["severity"],
                     "title": POLICIES["EA-POL-001"]["title"],
-                    "detail": f"Resource provisions Apache Cassandra (version: {engine_ver or 'legacy'}), which is classified as 'Eliminate' in Gartner TIME matrix. Approved alternative: Databricks Unity Catalog Delta Lake.",
-                    "remediation": "Replace `aws_cassandra_table` with `databricks_table` (catalog_name = 'ea', schema_name = 'silver', format = 'DELTA').",
+                    "detail": f"Resource provisions or binds to Apache Cassandra (version: {engine_ver or 'legacy/cluster'}), which is past End-of-Life (EOL: 2025-12-31) and classified as 'Eliminate' in Gartner TIME matrix. Approved alternative: Databricks Unity Catalog Delta Lake.",
+                    "remediation": "Replace `aws_cassandra_table` with `databricks_table` (catalog_name = 'ea', schema_name = 'silver', format = 'DELTA') or eliminate dependency on sunset Cassandra cluster.",
                 })
 
             # 2. EA-POL-002: Unencrypted PII Storage

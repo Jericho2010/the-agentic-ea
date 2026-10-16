@@ -353,6 +353,30 @@ with tab_time:
     df_time = pd.DataFrame(time_data)[["name", "urn", "disposition", "annual_run_cost", "tech_debt_score", "eol_date"]]
     st.dataframe(df_time, use_container_width=True)
 
+    st.markdown("---")
+    st.markdown("#### ⏳ Technology Obsolescence & Lifecycle Risk (EOL/EOS Assessment)")
+    st.caption("Automated tracking of End-of-Life horizons, affected upstream dependencies, and financial risk.")
+
+    lifecycle_risks = navigator.evaluate_lifecycle_risks()
+    if lifecycle_risks:
+        expired_count = sum(1 for r in lifecycle_risks if r["risk_status"] == "EXPIRED")
+        near_eol_count = sum(1 for r in lifecycle_risks if r["risk_status"] == "NEAR_EOL")
+        approaching_count = sum(1 for r in lifecycle_risks if r["risk_status"] == "APPROACHING_EOL")
+        supported_count = sum(1 for r in lifecycle_risks if r["risk_status"] == "SUPPORTED")
+
+        r_col1, r_col2, r_col3, r_col4 = st.columns(4)
+        r_col1.metric("🔴 Expired (Past EOL)", f"{expired_count} systems")
+        r_col2.metric("🟠 Near EOL (<1 Year)", f"{near_eol_count} systems")
+        r_col3.metric("🟡 Approaching EOL (<2 Years)", f"{approaching_count} systems")
+        r_col4.metric("🟢 Supported (>2 Years)", f"{supported_count} systems")
+
+        df_risks = pd.DataFrame(lifecycle_risks)[[
+            "name", "urn", "risk_status", "risk_level", "eol_date", "days_remaining", 
+            "upstream_callers_count", "financial_exposure_usd", "recommendation"
+        ]]
+        st.dataframe(df_risks, use_container_width=True)
+
+    st.markdown("---")
     st.markdown("#### ⚠️ Reconciled Architectural Drift (Declared vs Runtime Telemetry)")
     if drift_data:
         df_drift = pd.DataFrame(drift_data)[["urn", "discrepancy_type", "severity", "declared_state", "runtime_state", "reconciled_at"]]

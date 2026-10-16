@@ -1,0 +1,24 @@
+diff --git a/infra/terraform/modules/payments/main.tf b/infra/terraform/modules/payments/main.tf
+new file mode 100644
+index 0000000..f1a2b3c
+--- /dev/null
++++ b/infra/terraform/modules/payments/main.tf
+@@ -0,0 +1,18 @@
++# Introduce integration service binding to deprecated Cassandra cluster
++resource "aws_ecs_service" "payments_archive_sync" {
++  name            = "payments-archive-sync"
++  cluster         = "payments-cluster"
++  task_definition = "payments-archive-task:1"
++  
++  # Architectural violation: binding to deprecated/sunset asset past EOL
++  target_cluster_endpoint = "cassandra-legacy-cluster.internal.net"
++
++  tags = {
++    Environment = "production"
++    OwnerTeam   = "team-payments"
++    Tier        = "Tier-1"
++    ContainsPII = "false"
++    ManagedBy   = "Terraform"
++  }
++}
++
