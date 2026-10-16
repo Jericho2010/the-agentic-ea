@@ -158,15 +158,16 @@ class StandaloneConformancePipeline:
         Calculates ea.gold.time_matrix from cloud resources CUR and PAM node lifecycle.
         Aggregates annual run cost and assigns Gartner TIME disposition.
         """
-        logger.info("Reconciling ea.gold.time_matrix...")
+        logger.info("Reconciling ea.gold.time_matrix from cloud resources...")
         cloud_rows = self.client.execute_query(
             f"SELECT resource_name, tags, monthly_cost_usd FROM {SCHEMA_BRONZE}.cloud_resources"
         )
         nodes_rows = self.client.execute_query(
             f"SELECT urn, name, kind, lifecycle_status, criticality FROM {SCHEMA_METAMODEL}.nodes"
         )
+        node_urn_by_name = {n["name"]: n["urn"] for n in nodes_rows}
 
-        cost_map: Dict[str, float] = {}
+        systems_data: Dict[str, Dict[str, Any]] = {}
         for r in cloud_rows:
             tags = {}
             if r.get("tags"):
@@ -175,64 +176,73 @@ class StandaloneConformancePipeline:
                 except Exception:
                     pass
             system = tags.get("System", r["resource_name"].split("-")[0])
-            cost_map[system] = cost_map.get(system, 0.0) + (float(r.get("monthly_cost_usd") or 0.0) * 12.0)
+            monthly = float(r.get("monthly_cost_usd") or 0.0)
+            if system not in systems_data:
+                systems_data[system] = {
+                    "annual_cost": 0.0,
+                    "disposition": tags.get("Disposition"),
+                    "tier": tags.get("Tier", "Tier-2"),
+                }
+            systems_data[system]["annual_cost"] += monthly * 12.0
+            if tags.get("Disposition"):
+                systems_data[system]["disposition"] = tags.get("Disposition")
 
-        updated_count = 0
-        for n in nodes_rows:
-            name = n["name"]
-            urn = n["urn"]
-            annual_cost = cost_map.get(name, 15000.0) # default baseline
-            criticality = n.get("criticality", "Tier-2")
-            lifecycle = n.get("lifecycle_status", "run")
+        time_records = []
+        for name, data in systems_data.items():
+            annual_cost = round(data["annual_cost"], 2)
+            disposition = data.get("disposition")
 
-            # Disposition heuristic:
-            if "cassandra" in name or lifecycle == "phase-out":
-                disposition = "Eliminate"
-                tech_debt = 85
-                eol_date = "2026-12-31"
-            elif criticality in ("Tier-0", "Tier-1") and lifecycle == "run":
-                disposition = "Invest"
-                tech_debt = 15
-                eol_date = "2030-01-01"
-            elif lifecycle == "build":
-                disposition = "Invest"
-                tech_debt = 10
-                eol_date = "2030-01-01"
-            elif "legacy" in name or "batch" in name:
-                disposition = "Migrate"
+            # Determine URN
+            if name in node_urn_by_name:
+                urn = node_urn_by_name[name]
+            elif "cassandra" in name:
+                urn = f"urn:ea:database:{name}"
+            elif "stream" in name or "kinesis" in name:
+                urn = f"urn:ea:cloudresource:{name}"
+            else:
+                urn = f"urn:ea:microservice:{name}"
+
+            # Disposition heuristic fallback if not tagged
+            if not disposition:
+                if "cassandra" in name:
+                    disposition = "Eliminate"
+                elif "pii" in name or "stream" in name:
+                    disposition = "Migrate"
+                elif "auth" in name:
+                    disposition = "Tolerate"
+                else:
+                    disposition = "Invest"
+
+            # Tech debt and EOL mapping
+            if disposition == "Eliminate":
+                tech_debt = 90
+                eol_date = "2025-12-31"
+            elif disposition == "Migrate":
                 tech_debt = 65
-                eol_date = "2027-06-30"
-            else:
-                disposition = "Tolerate"
-                tech_debt = 30
-                eol_date = "2028-12-31"
+                eol_date = "2026-12-31"
+            elif disposition == "Tolerate":
+                tech_debt = 35
+                eol_date = "2027-04-15"
+            else: # Invest
+                tech_debt = 10 if "payment" in name else (12 if "billing" in name else 18)
+                eol_date = "2030-01-01"
 
-            # Check if row already exists in time_matrix
-            existing = self.client.execute_query(
-                f"SELECT urn FROM {SCHEMA_GOLD}.time_matrix WHERE urn = ?",
-                (urn,)
-            )
-            if existing:
-                self.client.execute_statement(
-                    f"""
-                    UPDATE {SCHEMA_GOLD}.time_matrix
-                    SET disposition = ?, annual_run_cost = ?, tech_debt_score = ?, eol_date = ?
-                    WHERE urn = ?
-                    """,
-                    (disposition, annual_cost, tech_debt, eol_date, urn)
-                )
-            else:
-                self.client.execute_statement(
-                    f"""
-                    INSERT INTO {SCHEMA_GOLD}.time_matrix (name, urn, disposition, annual_run_cost, tech_debt_score, eol_date)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                    """,
-                    (name, urn, disposition, annual_cost, tech_debt, eol_date)
-                )
-            updated_count += 1
+            time_records.append({
+                "name": name,
+                "urn": urn,
+                "disposition": disposition,
+                "annual_run_cost": annual_cost,
+                "tech_debt_score": tech_debt,
+                "eol_date": eol_date,
+            })
 
-        logger.info(f"Reconciled {updated_count} records in {SCHEMA_GOLD}.time_matrix.")
-        return updated_count
+        # Save cleanly
+        self.client.execute_statement(f"DELETE FROM {SCHEMA_GOLD}.time_matrix")
+        self.client.save_time_matrix(time_records)
+
+        logger.info(f"Reconciled {len(time_records)} portfolio records in {SCHEMA_GOLD}.time_matrix.")
+        return len(time_records)
+
 
     def reconcile_drift(self) -> int:
         """

@@ -334,17 +334,19 @@ with tab_time:
     time_data = client.get_time_matrix()
     drift_data = client.get_drift_reconciled()
 
-    t_col1, t_col2, t_col3, t_col4 = st.columns(4)
-    
+    total_portfolio = sum(t["annual_run_cost"] for t in time_data)
     invest_cost = sum(t["annual_run_cost"] for t in time_data if t["disposition"] == "Invest")
     tolerate_cost = sum(t["annual_run_cost"] for t in time_data if t["disposition"] == "Tolerate")
     migrate_cost = sum(t["annual_run_cost"] for t in time_data if t["disposition"] == "Migrate")
     eliminate_cost = sum(t["annual_run_cost"] for t in time_data if t["disposition"] == "Eliminate")
 
-    t_col1.metric("Invest (Grow & Modernize)", f"${invest_cost:,.0f}/yr")
-    t_col2.metric("Tolerate (Stable Operations)", f"${tolerate_cost:,.0f}/yr")
-    t_col3.metric("Migrate (High Tech Debt)", f"${migrate_cost:,.0f}/yr")
-    t_col4.metric("Eliminate (Target Sunset)", f"${eliminate_cost:,.0f}/yr")
+    col_tot, t_col1, t_col2, t_col3, t_col4 = st.columns([1.2, 1, 1, 1, 1])
+    col_tot.metric("Total Portfolio Spend", f"${total_portfolio:,.2f}/yr")
+    t_col1.metric("Invest (Grow & Modernize)", f"${invest_cost:,.2f}/yr")
+    t_col2.metric("Tolerate (Stable Operations)", f"${tolerate_cost:,.2f}/yr")
+    t_col3.metric("Migrate (High Tech Debt)", f"${migrate_cost:,.2f}/yr")
+    t_col4.metric("Eliminate (Target Sunset)", f"${eliminate_cost:,.2f}/yr")
+
 
     st.markdown("---")
     st.markdown("#### Portfolio Systems Classification")

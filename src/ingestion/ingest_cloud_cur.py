@@ -108,9 +108,11 @@ class CloudCURIngestor:
                     "System": "customer-pii-stream",
                     "Tier": "Tier-1",
                     "OwnerTeam": "team-data-platform",
+                    "Disposition": "Migrate",
                     "ContainsPII": "true",
                     "Encrypted": "true",
                 },
+
             },
             {
                 "name": "cassandra-legacy-nodes",

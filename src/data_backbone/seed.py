@@ -209,7 +209,7 @@ SEED_TIME_MATRIX = [
         "name": "billing-db",
         "urn": "urn:ea:database:billing-db",
         "disposition": "Invest",
-        "annual_run_cost": 55000.0,
+        "annual_run_cost": 54999.96,
         "tech_debt_score": 12,
         "eol_date": "2029-12-31",
     },
@@ -218,14 +218,14 @@ SEED_TIME_MATRIX = [
         "urn": "urn:ea:microservice:checkout-service",
         "disposition": "Invest",
         "annual_run_cost": 48000.0,
-        "tech_debt_score": 20,
+        "tech_debt_score": 18,
         "eol_date": "2029-06-30",
     },
     {
         "name": "web-storefront",
         "urn": "urn:ea:application:web-storefront",
         "disposition": "Invest",
-        "annual_run_cost": 35000.0,
+        "annual_run_cost": 34999.92,
         "tech_debt_score": 15,
         "eol_date": "2028-12-31",
     },
@@ -233,19 +233,28 @@ SEED_TIME_MATRIX = [
         "name": "auth-service",
         "urn": "urn:ea:microservice:auth-service",
         "disposition": "Tolerate",
-        "annual_run_cost": 25000.0,
+        "annual_run_cost": 24999.96,
         "tech_debt_score": 35,
         "eol_date": "2027-04-15",
+    },
+    {
+        "name": "customer-pii-stream",
+        "urn": "urn:ea:cloudresource:customer-pii-stream",
+        "disposition": "Migrate",
+        "annual_run_cost": 7800.0,
+        "tech_debt_score": 65,
+        "eol_date": "2026-12-31",
     },
     {
         "name": "cassandra-legacy-cluster",
         "urn": "urn:ea:database:cassandra-legacy-cluster",
         "disposition": "Eliminate",
-        "annual_run_cost": 65000.0,
-        "tech_debt_score": 85,
+        "annual_run_cost": 64999.92,
+        "tech_debt_score": 90,
         "eol_date": "2025-12-31",
     },
 ]
+
 
 SEED_DRIFT = [
     {

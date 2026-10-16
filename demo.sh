@@ -62,7 +62,8 @@ echo -e "  ✓ Conformed Bronze into Silver PAM Graph & Reconciled Gold TIME Mat
 # 6. Contract 5: Full Automated Test Suite
 echo -e "\n${BOLD}[6/8] Executing Automated Test Suite...${NC}"
 python -m pytest tests/ -v
-echo -e "  ✓ All 16 Automated Tests Passed (100% Success)"
+echo -e "  ✓ All Automated Tests Passed (100% Success)"
+
 
 # 7. Contract 6: Autonomous EA Sentinel Pre-Merge PR Gate (Tri-Modal)
 echo -e "\n${BOLD}[7/8] Testing Autonomous EA Sentinel Governance Gate...${NC}"

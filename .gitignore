@@ -39,3 +39,6 @@ ENV/
 .DS_Store
 *.log
 data/
+.archify/
+.pytest_cache/
+
