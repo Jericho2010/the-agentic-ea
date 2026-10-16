@@ -104,12 +104,13 @@ with col_h2:
     """, unsafe_allow_html=True)
 
 # Navigation Tabs
-tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time = st.tabs([
+tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time, tab_migration = st.tabs([
     "🏛️ Estate Catalog",
     "🗺️ Living Architecture Maps",
     "🧭 EA Navigator Cockpit",
     "🛡️ EA Sentinel Governance",
-    "📊 Executive TIME Matrix"
+    "📊 Executive TIME Matrix",
+    "🚀 Target-State Migration Roadmap",
 ])
 
 
@@ -383,3 +384,73 @@ with tab_time:
         st.dataframe(df_drift, use_container_width=True)
     else:
         st.info("Zero architecture drift detected across live estate telemetry.")
+
+
+# ==============================================================================
+# TAB 6: TARGET-STATE MIGRATION ROADMAP
+# ==============================================================================
+with tab_migration:
+    st.subheader("🚀 Target-State Architecture & Cloud Migration Roadmapping")
+    st.caption("Automated generation of phased migration waves, target-state PAM topology mapping, and FinOps cost elimination.")
+
+    col_m1, col_m2 = st.columns([2, 1])
+    selected_target = col_m1.selectbox(
+        "Candidate Legacy Asset for Target-State Cloud Migration",
+        ["cassandra-legacy-cluster", "customer-pii-stream"]
+    )
+    
+    plan = navigator.plan_target_state_migration(selected_target)
+    fin = plan["financial_summary"]
+    node = plan["target_state_node"]
+    curr = plan["current_state"]
+
+    # Top KPI Metrics
+    kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+    kpi1.metric("Legacy Cost Eliminated", f"${fin['cost_eliminated_usd']:,.2f}/yr")
+    kpi2.metric("Net Annual Savings", f"${fin['annual_savings_usd']:,.2f}/yr")
+    kpi3.metric("Tech Debt Reduction", f"-{fin['tech_debt_reduction_points']} pts", f"{fin['current_tech_debt']} ➔ {fin['target_tech_debt']}")
+    kpi4.metric("Migration Timeline", f"{len(plan['phased_waves'])} Phased Waves")
+
+    st.markdown("---")
+    st.markdown(f"#### 🌊 Phased Migration Waves: `{curr['name']}` ➔ `{node['name']}`")
+
+    for w in plan["phased_waves"]:
+        with st.expander(f"Wave {w['wave']}: {w['name']} ({w['duration']}) — Milestone: {w['milestone']}", expanded=True):
+            st.markdown(f"**Target Milestone:** `{w['milestone']}`")
+            st.markdown("**Core Migration Activities:**")
+            for act in w["activities"]:
+                st.markdown(f"- {act}")
+            st.markdown(f"**Verification & Exit Criteria:** *{w['exit_criteria']}*")
+            if "annual_cost_eliminated_usd" in w:
+                st.success(f"FinOps Milestone: Eliminates ${w['annual_cost_eliminated_usd']:,.2f}/yr in legacy infrastructure charges.")
+
+    st.markdown("---")
+    st.markdown("#### 🏛️ Target-State PAM Metamodel Mapping")
+    col_t1, col_t2 = st.columns(2)
+    with col_t1:
+        st.markdown("**New Target Node Specification:**")
+        st.json(node)
+    with col_t2:
+        st.markdown("**Target Graph Relationships (PAM Edges):**")
+        df_edges = pd.DataFrame(plan["target_state_edges"])
+        st.dataframe(df_edges, use_container_width=True)
+
+    with st.expander("📝 View / Export Compliant MADR v3.0 Architectural Decision Record"):
+        st.markdown(plan["madr"])
+        st.download_button(
+            label="📥 Download ADR (.md)",
+            data=plan["madr"],
+            file_name=f"ADR-002_{selected_target}_migration.md",
+            mime="text/markdown",
+        )
+
+    # Consolidated Estate Target Graph
+    with st.expander("🌐 Global Target-State Portfolio Topology & Elimination Summary"):
+        target_graph = navigator.get_target_state_graph()
+        g_col1, g_col2, g_col3 = st.columns(3)
+        g_col1.metric("Total Legacy Spend Eliminated", f"${target_graph['summary']['total_cost_eliminated_usd']:,.2f}/yr")
+        g_col2.metric("Total Tech Debt Drop", f"-{target_graph['summary']['total_tech_debt_eliminated_points']} pts")
+        g_col3.metric("Target Planned Nodes", f"{target_graph['summary']['target_planned_nodes_count']} nodes")
+        st.markdown(f"**Retired Systems:** {', '.join([u.split(':')[-1] for u in target_graph['retired_nodes']])}")
+        st.markdown(f"**Target-State Modern Assets:** {', '.join([u.split(':')[-1] for u in target_graph['planned_nodes']])}")
+

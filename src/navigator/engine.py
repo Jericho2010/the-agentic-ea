@@ -562,6 +562,372 @@ Graph traversal reveals **{blast['upstream_count']} upstream callers** directly 
                 "reason": f"Target '{target_risk['name']}' is actively supported until {target_risk['eol_date']}.",
             }
 
+    def plan_target_state_migration(self, target_identifier: Optional[str] = "cassandra-legacy-cluster") -> Dict[str, Any]:
+        """
+        Plans phased target-state cloud migration for enterprise components flagged
+        for Elimination or Migration (e.g. Cassandra -> Databricks Unity Catalog,
+        customer-pii-stream -> Databricks Delta Live Tables).
+        Generates:
+        1. Phased migration waves (Wave 1: Ingestion & Validation, Wave 2: Traffic Cutover, Wave 3: Decommissioning).
+        2. Target-state PAM metamodel mappings (nodes & edges with hosted_on, migrates_to).
+        3. FinOps cost elimination and tech-debt reduction quantification.
+        4. Standards-compliant MADR v3.0 decision record.
+        """
+        self._load_estate_graph()
+        target_id = target_identifier or "cassandra-legacy-cluster"
+        target_urn = self.resolve_node_urn(target_id) or target_id
+        target_name = target_id.split(":")[-1]
+
+        blast = self.calculate_blast_radius(target_urn)
+        target = blast.get("target", {})
+        fin = blast.get("financial_exposure", {})
+        pii = blast.get("pii_compliance", {})
+
+        current_annual_cost = float(target.get("annual_run_cost", 64999.92))
+        current_tech_debt = int(target.get("tech_debt_score", 90))
+        disposition = target.get("disposition", "Eliminate")
+        upstream_callers = [c["name"] for c in blast.get("upstream_callers", [])]
+
+        if "cassandra" in target_name.lower():
+            target_node = {
+                "urn": "urn:ea:database:orders-delta-table",
+                "name": "orders-delta-table",
+                "kind": "Database",
+                "owner_team": "team-data-platform",
+                "lifecycle_status": "plan",
+                "criticality": "Tier-1",
+                "metadata": {
+                    "engine": "Databricks Unity Catalog Delta Lake",
+                    "format": "DELTA",
+                    "catalog": "ea",
+                    "schema": "silver",
+                    "table": "orders",
+                    "encryption": "Unity Catalog Managed SSE / AWS KMS CMK",
+                    "migration_source": target.get("urn", "urn:ea:database:cassandra-legacy-cluster"),
+                    "target_platform": "Databricks Lakehouse (https://dbc-2d6963b0-153b.cloud.databricks.com/)",
+                },
+            }
+            target_edges = [
+                {
+                    "source_urn": "urn:ea:microservice:payments-service",
+                    "target_urn": "urn:ea:database:orders-delta-table",
+                    "relation": "accesses",
+                    "protocol": "Delta/HTTPS",
+                    "contains_pii": True,
+                },
+                {
+                    "source_urn": "urn:ea:database:cassandra-legacy-cluster",
+                    "target_urn": "urn:ea:database:orders-delta-table",
+                    "relation": "migrates_to",
+                    "protocol": "CDC/Sync",
+                    "contains_pii": True,
+                },
+                {
+                    "source_urn": "urn:ea:database:orders-delta-table",
+                    "target_urn": "urn:ea:cloudresource:databricks-unity-catalog",
+                    "relation": "hosted_on",
+                    "protocol": "Databricks-Runtime",
+                    "contains_pii": True,
+                },
+            ]
+            phased_waves = [
+                {
+                    "wave": 1,
+                    "name": "Bronze/Silver Ingestion & Parallel Validation",
+                    "duration": "Weeks 1-4",
+                    "milestone": "Dual Ingestion & Schema Parity",
+                    "activities": [
+                        "Scaffold conformed Databricks Unity Catalog table `ea.silver.orders` using Delta Lake format.",
+                        "Establish streaming Change Data Capture (CDC) pipeline replicating mutation logs from Cassandra cluster.",
+                        "Implement automated reconciliation jobs asserting 100% row-count and cryptographic checksum parity.",
+                        "Apply Unity Catalog column-level PII access control policies (ContainsPII = true).",
+                    ],
+                    "exit_criteria": "14 consecutive days of 100% data fidelity between Cassandra and Delta table with zero replication lag.",
+                    "cost_usd": 3500.0,
+                },
+                {
+                    "wave": 2,
+                    "name": "Service Traffic Cutover & Zero-Downtime Routing",
+                    "duration": "Weeks 5-8",
+                    "milestone": "Zero-Downtime Production Cutover",
+                    "activities": [
+                        "Update `payments-service` data access layer (DAL) to query Databricks Delta via high-performance SQL/ODBC/REST connector.",
+                        "Deploy canary release with feature flag toggling (`STORAGE_PROVIDER=databricks_delta`).",
+                        "Execute dark launch reads comparing response payloads and verifying p99 latency SLA (<15ms).",
+                        "Switch write master traffic 100% to Unity Catalog Delta Lake.",
+                    ],
+                    "exit_criteria": "Production read/write traffic successfully shifted to Delta with 0 transaction loss and p99 latency <15ms.",
+                    "cost_usd": 0.0,
+                },
+                {
+                    "wave": 3,
+                    "name": "Legacy Decommissioning & FinOps Cost Elimination",
+                    "duration": "Weeks 9-10",
+                    "milestone": "Cluster Teardown & Spend Realization",
+                    "activities": [
+                        "Execute final immutable point-in-time snapshot and export to AWS S3 Glacier archive.",
+                        "Sever network routes, revoke IAM security group ingress rules, and power down self-hosted Cassandra EC2 instances.",
+                        "Terminate AWS EC2 compute instances and delete unattached EBS storage volumes.",
+                        "Update PAM catalog to transition `cassandra-legacy-cluster` to `retired` status.",
+                    ],
+                    "exit_criteria": "Complete resource termination confirmed in AWS CUR billing feed with $0 ongoing compute charges.",
+                    "cost_usd": 0.0,
+                    "annual_cost_eliminated_usd": 64999.92,
+                },
+            ]
+            target_run_cost = 18000.00
+            cost_eliminated = 64999.92
+            annual_savings = 46999.92
+            target_tech_debt = 12
+
+        elif "pii" in target_name.lower() or "stream" in target_name.lower():
+            target_node = {
+                "urn": "urn:ea:cloudresource:customer-events-dlt",
+                "name": "customer-events-dlt",
+                "kind": "CloudResource",
+                "owner_team": "team-data-platform",
+                "lifecycle_status": "plan",
+                "criticality": "Tier-1",
+                "metadata": {
+                    "engine": "Databricks Delta Live Tables (DLT)",
+                    "pipeline": "dlt_customer_events_stream",
+                    "contains_pii": True,
+                    "encryption": "Unity Catalog Managed SSE",
+                    "migration_source": target.get("urn", "urn:ea:cloudresource:customer-pii-stream"),
+                },
+            }
+            target_edges = [
+                {
+                    "source_urn": "urn:ea:microservice:payments-api",
+                    "target_urn": "urn:ea:cloudresource:customer-events-dlt",
+                    "relation": "flows_to",
+                    "protocol": "Delta-Live-Tables",
+                    "contains_pii": True,
+                },
+                {
+                    "source_urn": "urn:ea:cloudresource:customer-pii-stream",
+                    "target_urn": "urn:ea:cloudresource:customer-events-dlt",
+                    "relation": "migrates_to",
+                    "protocol": "Kinesis-DLT-Bridge",
+                    "contains_pii": True,
+                },
+                {
+                    "source_urn": "urn:ea:cloudresource:customer-events-dlt",
+                    "target_urn": "urn:ea:cloudresource:databricks-unity-catalog",
+                    "relation": "hosted_on",
+                    "protocol": "Databricks-Runtime",
+                    "contains_pii": True,
+                },
+            ]
+            phased_waves = [
+                {
+                    "wave": 1,
+                    "name": "Bronze DLT Stream Ingestion",
+                    "duration": "Weeks 1-3",
+                    "milestone": "Live Table Definition & Expectations",
+                    "activities": [
+                        "Declare streaming live table `ea.bronze.customer_events` reading from enterprise event bus.",
+                        "Implement automated data quality expectations (`valid_customer_id`, `non_null_timestamp`).",
+                        "Enforce Unity Catalog column-level encryption for sensitive PII attributes.",
+                    ],
+                    "exit_criteria": "DLT streaming pipeline continuously ingesting with 0 dropped events.",
+                    "cost_usd": 1200.0,
+                },
+                {
+                    "wave": 2,
+                    "name": "Dual Fan-Out & Consumer Cutover",
+                    "duration": "Weeks 4-6",
+                    "milestone": "Downstream Consumer Migration",
+                    "activities": [
+                        "Route analytics and downstream consumers to read from conformed DLT Silver tables.",
+                        "Validate end-to-end streaming latency (<5 seconds).",
+                    ],
+                    "exit_criteria": "All active consumers successfully shifted to Delta Live Tables.",
+                    "cost_usd": 0.0,
+                },
+                {
+                    "wave": 3,
+                    "name": "Kinesis Decommissioning & Spend Elimination",
+                    "duration": "Weeks 7-8",
+                    "milestone": "Legacy Stream Teardown",
+                    "activities": [
+                        "Drain and terminate legacy unmanaged AWS Kinesis stream shards.",
+                        "Eliminate unmanaged monthly cloud infrastructure costs.",
+                    ],
+                    "exit_criteria": "AWS Kinesis resource deleted with 100% workload absorbed by Databricks DLT.",
+                    "cost_usd": 0.0,
+                    "annual_cost_eliminated_usd": 7800.00,
+                },
+            ]
+            target_run_cost = 2400.00
+            cost_eliminated = 7800.00
+            annual_savings = 5400.00
+            target_tech_debt = 15
+
+        else:
+            target_node = {
+                "urn": f"urn:ea:microservice:{target_name}-modernized",
+                "name": f"{target_name}-modernized",
+                "kind": target.get("kind", "Microservice"),
+                "owner_team": target.get("owner_team", "team-platform"),
+                "lifecycle_status": "plan",
+                "criticality": target.get("criticality", "Tier-1"),
+                "metadata": {
+                    "engine": "Databricks Unity Catalog & Managed Microservices",
+                    "migration_source": target.get("urn", target_id),
+                },
+            }
+            target_edges = [
+                {
+                    "source_urn": target.get("urn", target_id),
+                    "target_urn": f"urn:ea:microservice:{target_name}-modernized",
+                    "relation": "migrates_to",
+                    "protocol": "API/Bridge",
+                    "contains_pii": False,
+                },
+                {
+                    "source_urn": f"urn:ea:microservice:{target_name}-modernized",
+                    "target_urn": "urn:ea:cloudresource:databricks-unity-catalog",
+                    "relation": "hosted_on",
+                    "protocol": "Databricks-Runtime",
+                    "contains_pii": False,
+                },
+            ]
+            phased_waves = [
+                {
+                    "wave": 1,
+                    "name": "Target Architecture Design & Prototyping",
+                    "duration": "Weeks 1-4",
+                    "milestone": "Reference Architecture Sign-Off",
+                    "activities": [f"Design target-state deployment for {target_name} on Databricks."],
+                    "exit_criteria": "Architecture Review Board approval.",
+                    "cost_usd": 2000.0,
+                },
+                {
+                    "wave": 2,
+                    "name": "Implementation & Parallel Running",
+                    "duration": "Weeks 5-8",
+                    "milestone": "Production Validation",
+                    "activities": [f"Implement modernized data and service tier for {target_name}."],
+                    "exit_criteria": "All automated smoke tests pass.",
+                    "cost_usd": 0.0,
+                },
+                {
+                    "wave": 3,
+                    "name": "Cutover & Legacy Sunset",
+                    "duration": "Weeks 9-10",
+                    "milestone": "Legacy Sunset",
+                    "activities": [f"Decommission legacy infrastructure for {target_name}."],
+                    "exit_criteria": "Legacy system marked retired in catalog.",
+                    "cost_usd": 0.0,
+                    "annual_cost_eliminated_usd": current_annual_cost,
+                },
+            ]
+            target_run_cost = round(current_annual_cost * 0.4, 2)
+            cost_eliminated = current_annual_cost
+            annual_savings = round(current_annual_cost - target_run_cost, 2)
+            target_tech_debt = 15
+
+        madr_text = self.generate_madr(target_id)
+
+        # Save MADR record to file for persistence
+        adr_dir = ROOT_DIR / "data" / "adr"
+        adr_dir.mkdir(parents=True, exist_ok=True)
+        adr_file = adr_dir / f"ADR-002_{target_name}_migration.md"
+        adr_file.write_text(madr_text, encoding="utf-8")
+
+        return {
+            "target_identifier": target_name,
+            "current_state": {
+                "urn": target.get("urn", target_urn),
+                "name": target_name,
+                "kind": target.get("kind", "Database"),
+                "lifecycle_status": target.get("lifecycle_status", "phase-out"),
+                "disposition": disposition,
+                "annual_run_cost": current_annual_cost,
+                "tech_debt_score": current_tech_debt,
+                "eol_date": target.get("eol_date", "2025-12-31"),
+                "upstream_callers": upstream_callers,
+                "upstream_count": len(upstream_callers),
+                "has_pii": pii.get("has_pii_exposure", False),
+            },
+            "target_state_node": target_node,
+            "target_state_edges": target_edges,
+            "phased_waves": phased_waves,
+            "financial_summary": {
+                "current_annual_cost_usd": current_annual_cost,
+                "target_annual_cost_usd": target_run_cost,
+                "annual_savings_usd": annual_savings,
+                "cost_eliminated_usd": cost_eliminated,
+                "current_tech_debt": current_tech_debt,
+                "target_tech_debt": target_tech_debt,
+                "tech_debt_reduction_points": current_tech_debt - target_tech_debt,
+            },
+            "madr": madr_text,
+            "madr_path": str(adr_file),
+        }
+
+    def get_all_migration_plans(self) -> List[Dict[str, Any]]:
+        """Returns consolidated cloud migration plans for all assets flagged for Elimination or Migration."""
+        time_records = self.client.get_time_matrix()
+        candidates = [t["name"] for t in time_records if t.get("disposition") in ("Eliminate", "Migrate")]
+        if not candidates:
+            candidates = ["cassandra-legacy-cluster", "customer-pii-stream"]
+        return [self.plan_target_state_migration(c) for c in candidates]
+
+    def get_target_state_graph(self) -> Dict[str, Any]:
+        """
+        Constructs the target-state architectural graph mapping:
+        - Retained active production nodes
+        - Planned target-state modern nodes (Delta tables, DLT streams)
+        - Transitioned/retired legacy nodes
+        - Re-routed and migration edges (accesses, migrates_to, hosted_on)
+        """
+        self._load_estate_graph()
+        plans = self.get_all_migration_plans()
+
+        nodes = list(self.client.get_nodes())
+        edges = list(self.client.get_edges())
+
+        retired_urns = {p["current_state"]["urn"] for p in plans}
+        added_node_urns = {n["urn"] for n in nodes}
+
+        target_nodes = []
+        for n in nodes:
+            n_copy = dict(n)
+            if n_copy["urn"] in retired_urns:
+                n_copy["lifecycle_status"] = "retired"
+            target_nodes.append(n_copy)
+
+        target_edges = list(edges)
+
+        for p in plans:
+            new_node = p["target_state_node"]
+            if new_node["urn"] not in added_node_urns:
+                target_nodes.append(new_node)
+                added_node_urns.add(new_node["urn"])
+
+            for e in p["target_state_edges"]:
+                target_edges.append(e)
+
+        total_eliminated = sum(p["financial_summary"]["cost_eliminated_usd"] for p in plans)
+        total_tech_debt_drop = sum(p["financial_summary"]["tech_debt_reduction_points"] for p in plans)
+
+        return {
+            "nodes": target_nodes,
+            "edges": target_edges,
+            "retired_nodes": list(retired_urns),
+            "planned_nodes": [p["target_state_node"]["urn"] for p in plans],
+            "migration_plans_count": len(plans),
+            "summary": {
+                "active_nodes_count": len(target_nodes),
+                "target_planned_nodes_count": len(plans),
+                "retired_nodes_count": len(retired_urns),
+                "total_cost_eliminated_usd": total_eliminated,
+                "total_tech_debt_eliminated_points": total_tech_debt_drop,
+            },
+        }
+
     def get_codriving_actions(self, target_identifier: str) -> List[Dict[str, str]]:
         """Returns contextual interactive co-driving action chips for UI and EA Navigator interactions."""
         blast = self.calculate_blast_radius(target_identifier)
@@ -572,7 +938,7 @@ Graph traversal reveals **{blast['upstream_count']} upstream callers** directly 
             ]
 
         target_name = blast["target"]["name"]
-        return [
+        actions = [
             {
                 "label": f"💥 Simulate {target_name} Outage",
                 "action": "simulate_outage",
@@ -594,6 +960,13 @@ Graph traversal reveals **{blast['upstream_count']} upstream callers** directly 
                 "query": f"Compile visual Archify blast radius diagram highlighting all callers and sinks of {target_name}",
             },
         ]
+        if blast["target"].get("disposition") in ("Eliminate", "Migrate") or "cassandra" in target_name.lower():
+            actions.append({
+                "label": f"🚀 Plan Migration Roadmap",
+                "action": "plan_migration",
+                "query": f"Generate 3-wave target-state cloud migration plan for {target_name} to Databricks Unity Catalog",
+            })
+        return actions
 
     def query(self, user_query: str) -> Dict[str, Any]:
         """
@@ -667,6 +1040,41 @@ Enforce mandatory column-level tagging in Databricks Unity Catalog and encrypt t
 """
             for r in expired + near_eol + approaching:
                 response_text += f"* **{r['name']} ({r['risk_status']}):** {r['recommendation']}\n"
+        elif any(k in q for k in ["migration", "target state", "target-state", "wave", "roadmap", "cutover"]):
+            plan = self.plan_target_state_migration(matched_target)
+            curr = plan["current_state"]
+            node = plan["target_state_node"]
+            waves = plan["phased_waves"]
+            fin = plan["financial_summary"]
+
+            response_text = f"""### 🚀 Target-State Migration Roadmap: `{curr['name']}` ➔ `{node['name']}`
+
+* **Source Asset:** `{curr['urn']}` ({curr['kind']}, Disposition: **{curr['disposition']}**)
+* **Target Architecture:** `{node['urn']}` ({node['kind']}, Engine: **{node['metadata'].get('engine', 'Databricks Unity Catalog')}**)
+* **Financial Impact:** Eliminates **${fin['cost_eliminated_usd']:,.2f}/yr** legacy cloud spend (Net Annual Savings: **${fin['annual_savings_usd']:,.2f}/yr**)
+* **Technical Debt Reduction:** **{curr['tech_debt_score']}/100 ➔ {node.get('tech_debt_score', 12)}/100** (-{fin['tech_debt_reduction_points']} points)
+
+#### Phased Migration Execution Waves
+"""
+            for w in waves:
+                response_text += f"\n##### 🌊 Wave {w['wave']}: {w['name']} ({w['duration']})\n"
+                response_text += f"* **Milestone:** {w['milestone']}\n"
+                response_text += f"* **Activities:**\n"
+                for act in w["activities"]:
+                    response_text += f"  - {act}\n"
+                response_text += f"* **Exit Criteria:** *{w['exit_criteria']}*\n"
+
+            response_text += f"""
+#### Target-State PAM Graph Topology
+* **New Target Node:** `{node['urn']}` (`lifecycle_status: plan`)
+"""
+            for edge in plan["target_state_edges"]:
+                response_text += f"* **Edge:** `{edge['source_urn']}` ➔ `{edge['target_urn']}` (`{edge['relation']}`, protocol: `{edge.get('protocol', 'HTTPS')}`)\n"
+
+            response_text += f"""
+#### Architecture Decision Record
+* Generated: `{plan['madr_path']}`
+"""
         else:
             # Blast Radius & Impact Analysis
             callers_str = ", ".join([f"`{c['name']}` ({c['criticality']})" for c in blast.get("upstream_callers", [])]) or "None (Edge consumer)"
