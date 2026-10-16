@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Enterprise Architecture Living Map",
+    "subtitle": "Databricks Unity Catalog Conformed Metamodel Topology",
+    "output": ".archify/run-20261016-164026-918816/rendered.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    {
+      "id": "web-storefront",
+      "type": "frontend",
+      "label": "web-storefront",
+      "sublabel": "team-frontend \u2022 run",
+      "tag": "Tier-1",
+      "pos": [
+        60,
+        60
+      ],
+      "size": [
+        190,
+        60
+      ]
+    },
+    {
+      "id": "checkout-service",
+      "type": "backend",
+      "label": "checkout-service",
+      "sublabel": "team-checkout \u2022 run",
+      "tag": "Tier-1",
+      "pos": [
+        60,
+        240
+      ],
+      "size": [
+        190,
+        60
+      ]
+    },
+    {
+      "id": "billing-db",
+      "type": "database",
+      "label": "billing-db",
+      "sublabel": "team-data \u2022 run",
+      "tag": "VIOLATION",
+      "pos": [
+        60,
+        420
+      ],
+      "size": [
+        190,
+        60
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Ingress & Edge Applications",
+      "wraps": [
+        "web-storefront"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Core Enterprise Microservices",
+      "wraps": [
+        "checkout-service"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Governed Datastores & Cloud Telemetry",
+      "wraps": [
+        "billing-db"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn_0_web-storefront_checkout-service",
+      "from": "web-storefront",
+      "to": "checkout-service",
+      "label": "flows_to (HTTPS)",
+      "variant": "default"
+    },
+    {
+      "id": "conn_1_checkout-service_billing-db",
+      "from": "checkout-service",
+      "to": "billing-db",
+      "label": "accesses (TLS)",
+      "variant": "security"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Unity Catalog Metamodel Status",
+      "items": [
+        "Active PAM Nodes: 3",
+        "ArchiMate Relations: 2",
+        "Schema: ea.metamodel conformed"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "EA Sentinel Policy Alert",
+      "items": [
+        "Flagged Components: 1",
+        "Violations: Policy Failure / Unencrypted PII",
+        "Status: Gate Blocked"
+      ]
+    }
+  ]
+}

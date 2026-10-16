@@ -1,0 +1,175 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "standard",
+  "specification": {
+    "path": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-170015-522397/candidate.json",
+    "sha256": "e4f759c677fd09a6c7f22e7114b0e9cde7f285b8ddb7d0efe4b066945beb7acd",
+    "bytes": 5455
+  },
+  "artifact": {
+    "path": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-170015-522397/rendered.html",
+    "sha256": "e2a20ffecb2d81e42ca4e51a3ca58cb8b1cf6b0219ec610de9f4534fc4b4a723",
+    "bytes": 764648
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-170015-522397/rendered.finalize.json",
+    "summaryReceipt": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-170015-522397/rendered.finalize-summary.json",
+    "browserCheckReceipt": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-170015-522397/rendered.browser-check.json"
+  },
+  "update": {
+    "status": "update_available",
+    "installedVersion": "3.0.1",
+    "availableVersion": "3.1.0",
+    "releaseNotes": "https://github.com/tt-a1i/archify/releases/tag/v3.1.0",
+    "severity": "normal",
+    "checkedAt": "2026-10-16T01:45:45.614Z",
+    "source": "cache",
+    "noticeRequired": true,
+    "noticeText": "Archify update: 3.0.1 → 3.1.0. A previous check at 2026-10-16T01:45:45.614Z found a newer release. Release notes: https://github.com/tt-a1i/archify/releases/tag/v3.1.0. The installed Skill has not changed; ask to snooze or ignore this reminder.",
+    "eventKey": "archify@sha256:ffedc53390c9da6e859f41e432c5d2d0615a23cf00a503181f07efbba88a7ce8"
+  },
+  "visualReview": "not-requested",
+  "durationMs": 3255,
+  "visualReviewRecommendation": {
+    "action": "inspect-route-readability",
+    "signals": {
+      "resolvedCrossovers": 2,
+      "routesOverSuggestedBends": 3
+    },
+    "reason": "Automated gates passed, but crossings or detours still need perceptual review before claiming visual quality.",
+    "affectedRoutes": {
+      "crossings": [
+        {
+          "left": {
+            "id": "conn_1_checkout-service_auth-service",
+            "from": "checkout-service",
+            "to": "auth-service",
+            "label": "",
+            "collectionIndex": 1,
+            "artifactIndex": 2
+          },
+          "right": {
+            "id": "conn_2_checkout-service_payments-api",
+            "from": "checkout-service",
+            "to": "payments-api",
+            "label": "",
+            "collectionIndex": 2,
+            "artifactIndex": 3
+          },
+          "point": [
+            588,
+            324.00000000000006
+          ],
+          "sharedNode": "checkout-service"
+        },
+        {
+          "left": {
+            "id": "conn_3_payments-api_stripe-gateway",
+            "from": "payments-api",
+            "to": "stripe-gateway",
+            "label": "",
+            "collectionIndex": 3,
+            "artifactIndex": 4
+          },
+          "right": {
+            "id": "conn_5_payments-api_billing-db",
+            "from": "payments-api",
+            "to": "billing-db",
+            "label": "",
+            "collectionIndex": 5,
+            "artifactIndex": 6
+          },
+          "point": [
+            169,
+            504
+          ],
+          "sharedNode": "payments-api"
+        }
+      ],
+      "detours": [
+        {
+          "relationship": {
+            "id": "conn_1_checkout-service_auth-service",
+            "from": "checkout-service",
+            "to": "auth-service",
+            "label": "",
+            "collectionIndex": 1,
+            "artifactIndex": 2
+          },
+          "bends": 3,
+          "stretch": 1.24
+        },
+        {
+          "relationship": {
+            "id": "conn_2_checkout-service_payments-api",
+            "from": "checkout-service",
+            "to": "payments-api",
+            "label": "",
+            "collectionIndex": 2,
+            "artifactIndex": 3
+          },
+          "bends": 4,
+          "stretch": 1
+        },
+        {
+          "relationship": {
+            "id": "conn_3_payments-api_stripe-gateway",
+            "from": "payments-api",
+            "to": "stripe-gateway",
+            "label": "",
+            "collectionIndex": 3,
+            "artifactIndex": 4
+          },
+          "bends": 3,
+          "stretch": 1.078,
+          "directCorridorBlockers": [
+            {
+              "id": "billing-db",
+              "label": "billing-db",
+              "box": [
+                60,
+                600,
+                190,
+                60
+              ]
+            },
+            {
+              "id": "customer-pii-stream",
+              "label": "customer-pii-stream",
+              "box": [
+                60,
+                780,
+                190,
+                60
+              ]
+            }
+          ]
+        }
+      ],
+      "truncated": false
+    },
+    "hints": [
+      "checkout-service → auth-service and checkout-service → payments-api cross next to checkout-service: move node auth-service or payments-api so the two reach checkout-service from different sides (for example one level with it, one directly above or below it).",
+      "payments-api → stripe-gateway and payments-api → billing-db cross next to payments-api: move node stripe-gateway or billing-db so the two reach payments-api from different sides (for example one level with it, one directly above or below it).",
+      "checkout-service → auth-service needs 3 bends: move node checkout-service or auth-service so they share a row or column with matching centers, or sit diagonally with a clear corner.",
+      "checkout-service → payments-api needs 4 bends: move node checkout-service or payments-api so they share a row or column with matching centers, or sit diagonally with a clear corner."
+    ],
+    "repair": "Trace these relationships at the desktop viewport. For Architecture, use references/architecture-layout-repair.md: reflow a blocked main path or tangled connected scene, and repair an isolated defect locally only when the surrounding composition is accepted. Preserve all semantic content and user-fixed geometry. Rerun finalize once after the edit."
+  }
+}

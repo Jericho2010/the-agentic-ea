@@ -1,0 +1,34 @@
+diff --git a/infra/terraform/modules/customer_storage/main.tf b/infra/terraform/modules/customer_storage/main.tf
+new file mode 100644
+index 0000000..9c43d1a
+--- /dev/null
++++ b/infra/terraform/modules/customer_storage/main.tf
+@@ -0,0 +1,28 @@
++# Provision Compliant Conformed Datastore in Databricks Unity Catalog
++resource "databricks_table" "customer_audit_log" {
++  catalog_name = "ea"
++  schema_name  = "silver"
++  name         = "customer_audit_events"
++  table_type   = "MANAGED"
++  data_source_format = "DELTA"
++
++  # APPROVED: Pure Databricks Unity Catalog Delta table with central KMS CMK
++  column {
++    name = "customer_id"
++    type = "string"
++    comment = "Customer UUID"
++  }
++  column {
++    name = "event_timestamp"
++    type = "timestamp"
++  }
++
++  tags = {
++    Environment = "production"
++    OwnerTeam   = "team-customer-success"
++    Tier        = "Tier-1"
++    ContainsPII = "true"
++    Encrypted   = "true"
++  }
++}
++

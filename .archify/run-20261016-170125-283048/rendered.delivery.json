@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "d4aad5b2-7431-4f5f-b94f-1143baad4439",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-170125-283048/candidate.json",
+  "output": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-170125-283048/rendered.html",
+  "specification": {
+    "sha256": "8684cc41ea53e9d6ed1e70e8cf4a59890157ca69738809f286ca7d3a48c3e269",
+    "bytes": 5686
+  },
+  "artifact": {
+    "sha256": "71cf5410e07de91059a9ccb7226f2df56682221fc9896c2d88562db72df46b96",
+    "bytes": 764989
+  }
+}

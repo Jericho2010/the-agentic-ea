@@ -1,0 +1,1057 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "architecture",
+  "quality": "showcase",
+  "startedAt": "2026-10-16T03:39:21.080Z",
+  "specification": {
+    "path": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-163921-007279/candidate.json",
+    "sha256": "204a04c7cf01f90dfb1566993a7e0c1b458b70c1b123fefcda7cd8a149b5af21",
+    "bytes": 1933
+  },
+  "artifact": {
+    "path": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-163921-007279/rendered.html"
+  },
+  "stages": {
+    "validate": {
+      "status": "fail",
+      "exitCode": 1,
+      "durationMs": null,
+      "command": [
+        "/home/shaun/.nvm/versions/node/v22.22.0/bin/node",
+        "/home/shaun/.agents/skills/archify/bin/archify.mjs",
+        "deliver",
+        "architecture",
+        "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-163921-007279/candidate.json",
+        "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-163921-007279/rendered.html",
+        "--quality",
+        "showcase",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "deliver",
+        "receiptId": "04a22ec6-c62b-4231-b90b-b4b8fd0ead18",
+        "stage": "render",
+        "type": "architecture",
+        "input": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-163921-007279/candidate.json",
+        "output": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-163921-007279/rendered.html",
+        "error": "architecture schema validation failed:\n  / must have required property 'diagram_type' {\"missingProperty\":\"diagram_type\"}\n  /schema_version must be equal to constant {\"allowedValue\":1}\n  /meta must NOT have additional properties {\"additionalProperty\":\"category\"}\n  /meta must NOT have additional properties {\"additionalProperty\":\"quality\"}\n  /meta must NOT have additional properties {\"additionalProperty\":\"reader_profile\"}\n  /meta must NOT have additional properties {\"additionalProperty\":\"review\"}\n  /components/0 (id/label: \"web-storefront\") must NOT have additional properties {\"additionalProperty\":\"status\"}\n  /components/0 (id/label: \"web-storefront\") must NOT have additional properties {\"additionalProperty\":\"sub\"}\n  /components/1 (id/label: \"checkout-service\") must NOT have additional properties {\"additionalProperty\":\"status\"}\n  /components/1 (id/label: \"checkout-service\") must NOT have additional properties {\"additionalProperty\":\"sub\"}\n  /components/2 (id/label: \"billing-db\") must NOT have additional properties {\"additionalProperty\":\"status\"}\n  /components/2 (id/label: \"billing-db\") must NOT have additional properties {\"additionalProperty\":\"sub\"}\n  /boundaries/0 (id/label: \"b-ingress\") must have required property 'kind' {\"missingProperty\":\"kind\"}\n  /boundaries/0 (id/label: \"b-ingress\") must have required property 'wraps' {\"missingProperty\":\"wraps\"}\n  /boundaries/0 (id/label: \"b-ingress\") must NOT have additional properties {\"additionalProperty\":\"id\"}\n  /boundaries/0 (id/label: \"b-ingress\") must NOT have additional properties {\"additionalProperty\":\"type\"}\n  /boundaries/0 (id/label: \"b-ingress\") must NOT have additional properties {\"additionalProperty\":\"wrap\"}\n  /boundaries/1 (id/label: \"b-services\") must have required property 'kind' {\"missingProperty\":\"kind\"}\n  /boundaries/1 (id/label: \"b-services\") must have required property 'wraps' {\"missingProperty\":\"wraps\"}\n  /boundaries/1 (id/label: \"b-services\") must NOT have additional properties {\"additionalProperty\":\"id\"}\n  /boundaries/1 (id/label: \"b-services\") must NOT have additional properties {\"additionalProperty\":\"type\"}\n  /boundaries/1 (id/label: \"b-services\") must NOT have additional properties {\"additionalProperty\":\"wrap\"}\n  /boundaries/2 (id/label: \"b-data\") must have required property 'kind' {\"missingProperty\":\"kind\"}\n  /boundaries/2 (id/label: \"b-data\") must have required property 'wraps' {\"missingProperty\":\"wraps\"}\n  /boundaries/2 (id/label: \"b-data\") must NOT have additional properties {\"additionalProperty\":\"id\"}\n  /boundaries/2 (id/label: \"b-data\") must NOT have additional properties {\"additionalProperty\":\"type\"}\n  /boundaries/2 (id/label: \"b-data\") must NOT have additional properties {\"additionalProperty\":\"wrap\"}\n  /connections/1 (id/label: \"accesses (TLS) [PII]\") must NOT have additional properties {\"additionalProperty\":\"style\"}\n  /connections/1 (id/label: \"accesses (TLS) [PII]\") must NOT have additional properties {\"additionalProperty\":\"flow\"}",
+        "diagnostics": [
+          {
+            "code": "schema/required",
+            "severity": "error",
+            "message": "/ must have required property 'diagram_type' {\"missingProperty\":\"diagram_type\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/"
+            },
+            "evidence": {
+              "keyword": "required",
+              "missingProperty": "diagram_type"
+            },
+            "supportedFixes": [
+              "add required property \"diagram_type\""
+            ]
+          },
+          {
+            "code": "schema/const",
+            "severity": "error",
+            "message": "/schema_version must be equal to constant {\"allowedValue\":1}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/schema_version"
+            },
+            "evidence": {
+              "keyword": "const",
+              "allowedValue": 1
+            },
+            "supportedFixes": []
+          },
+          {
+            "code": "schema/additionalProperties",
+            "severity": "error",
+            "message": "/meta must NOT have additional properties {\"additionalProperty\":\"category\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/meta"
+            },
+            "evidence": {
+              "keyword": "additionalProperties",
+              "additionalProperty": "category"
+            },
+            "supportedFixes": [
+              "remove unsupported property \"category\""
+            ]
+          },
+          {
+            "code": "schema/additionalProperties",
+            "severity": "error",
+            "message": "/meta must NOT have additional properties {\"additionalProperty\":\"quality\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/meta"
+            },
+            "evidence": {
+              "keyword": "additionalProperties",
+              "additionalProperty": "quality"
+            },
+            "supportedFixes": [
+              "remove unsupported property \"quality\""
+            ]
+          },
+          {
+            "code": "schema/additionalProperties",
+            "severity": "error",
+            "message": "/meta must NOT have additional properties {\"additionalProperty\":\"reader_profile\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/meta"
+            },
+            "evidence": {
+              "keyword": "additionalProperties",
+              "additionalProperty": "reader_profile"
+            },
+            "supportedFixes": [
+              "remove unsupported property \"reader_profile\""
+            ]
+          },
+          {
+            "code": "schema/additionalProperties",
+            "severity": "error",
+            "message": "/meta must NOT have additional properties {\"additionalProperty\":\"review\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/meta"
+            },
+            "evidence": {
+              "keyword": "additionalProperties",
+              "additionalProperty": "review"
+            },
+            "supportedFixes": [
+              "remove unsupported property \"review\""
+            ]
+          },
+          {
+            "code": "schema/additionalProperties",
+            "severity": "error",
+            "message": "/components/0 (id/label: \"web-storefront\") must NOT have additional properties {\"additionalProperty\":\"status\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/components/0",
+              "identity": "web-storefront"
+            },
+            "evidence": {
+              "keyword": "additionalProperties",
+              "additionalProperty": "status"
+            },
+            "supportedFixes": [
+              "remove unsupported property \"status\""
+            ]
+          },
+          {
+            "code": "schema/additionalProperties",
+            "severity": "error",
+            "message": "/components/0 (id/label: \"web-storefront\") must NOT have additional properties {\"additionalProperty\":\"sub\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/components/0",
+              "identity": "web-storefront"
+            },
+            "evidence": {
+              "keyword": "additionalProperties",
+              "additionalProperty": "sub"
+            },
+            "supportedFixes": [
+              "remove unsupported property \"sub\""
+            ]
+          },
+          {
+            "code": "schema/additionalProperties",
+            "severity": "error",
+            "message": "/components/1 (id/label: \"checkout-service\") must NOT have additional properties {\"additionalProperty\":\"status\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/components/1",
+              "identity": "checkout-service"
+            },
+            "evidence": {
+              "keyword": "additionalProperties",
+              "additionalProperty": "status"
+            },
+            "supportedFixes": [
+              "remove unsupported property \"status\""
+            ]
+          },
+          {
+            "code": "schema/additionalProperties",
+            "severity": "error",
+            "message": "/components/1 (id/label: \"checkout-service\") must NOT have additional properties {\"additionalProperty\":\"sub\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/components/1",
+              "identity": "checkout-service"
+            },
+            "evidence": {
+              "keyword": "additionalProperties",
+              "additionalProperty": "sub"
+            },
+            "supportedFixes": [
+              "remove unsupported property \"sub\""
+            ]
+          },
+          {
+            "code": "schema/additionalProperties",
+            "severity": "error",
+            "message": "/components/2 (id/label: \"billing-db\") must NOT have additional properties {\"additionalProperty\":\"status\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/components/2",
+              "identity": "billing-db"
+            },
+            "evidence": {
+              "keyword": "additionalProperties",
+              "additionalProperty": "status"
+            },
+            "supportedFixes": [
+              "remove unsupported property \"status\""
+            ]
+          },
+          {
+            "code": "schema/additionalProperties",
+            "severity": "error",
+            "message": "/components/2 (id/label: \"billing-db\") must NOT have additional properties {\"additionalProperty\":\"sub\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/components/2",
+              "identity": "billing-db"
+            },
+            "evidence": {
+              "keyword": "additionalProperties",
+              "additionalProperty": "sub"
+            },
+            "supportedFixes": [
+              "remove unsupported property \"sub\""
+            ]
+          },
+          {
+            "code": "schema/required",
+            "severity": "error",
+            "message": "/boundaries/0 (id/label: \"b-ingress\") must have required property 'kind' {\"missingProperty\":\"kind\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/boundaries/0",
+              "identity": "b-ingress"
+            },
+            "evidence": {
+              "keyword": "required",
+              "missingProperty": "kind"
+            },
+            "supportedFixes": [
+              "add required property \"kind\""
+            ]
+          },
+          {
+            "code": "schema/required",
+            "severity": "error",
+            "message": "/boundaries/0 (id/label: \"b-ingress\") must have required property 'wraps' {\"missingProperty\":\"wraps\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/boundaries/0",
+              "identity": "b-ingress"
+            },
+            "evidence": {
+              "keyword": "required",
+              "missingProperty": "wraps"
+            },
+            "supportedFixes": [
+              "add required property \"wraps\""
+            ]
+          },
+          {
+            "code": "schema/additionalProperties",
+            "severity": "error",
+            "message": "/boundaries/0 (id/label: \"b-ingress\") must NOT have additional properties {\"additionalProperty\":\"id\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/boundaries/0",
+              "identity": "b-ingress"
+            },
+            "evidence": {
+              "keyword": "additionalProperties",
+              "additionalProperty": "id"
+            },
+            "supportedFixes": [
+              "remove unsupported property \"id\""
+            ]
+          },
+          {
+            "code": "schema/additionalProperties",
+            "severity": "error",
+            "message": "/boundaries/0 (id/label: \"b-ingress\") must NOT have additional properties {\"additionalProperty\":\"type\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/boundaries/0",
+              "identity": "b-ingress"
+            },
+            "evidence": {
+              "keyword": "additionalProperties",
+              "additionalProperty": "type"
+            },
+            "supportedFixes": [
+              "remove unsupported property \"type\""
+            ]
+          },
+          {
+            "code": "schema/additionalProperties",
+            "severity": "error",
+            "message": "/boundaries/0 (id/label: \"b-ingress\") must NOT have additional properties {\"additionalProperty\":\"wrap\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/boundaries/0",
+              "identity": "b-ingress"
+            },
+            "evidence": {
+              "keyword": "additionalProperties",
+              "additionalProperty": "wrap"
+            },
+            "supportedFixes": [
+              "remove unsupported property \"wrap\""
+            ]
+          },
+          {
+            "code": "schema/required",
+            "severity": "error",
+            "message": "/boundaries/1 (id/label: \"b-services\") must have required property 'kind' {\"missingProperty\":\"kind\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/boundaries/1",
+              "identity": "b-services"
+            },
+            "evidence": {
+              "keyword": "required",
+              "missingProperty": "kind"
+            },
+            "supportedFixes": [
+              "add required property \"kind\""
+            ]
+          },
+          {
+            "code": "schema/required",
+            "severity": "error",
+            "message": "/boundaries/1 (id/label: \"b-services\") must have required property 'wraps' {\"missingProperty\":\"wraps\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/boundaries/1",
+              "identity": "b-services"
+            },
+            "evidence": {
+              "keyword": "required",
+              "missingProperty": "wraps"
+            },
+            "supportedFixes": [
+              "add required property \"wraps\""
+            ]
+          },
+          {
+            "code": "schema/additionalProperties",
+            "severity": "error",
+            "message": "/boundaries/1 (id/label: \"b-services\") must NOT have additional properties {\"additionalProperty\":\"id\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/boundaries/1",
+              "identity": "b-services"
+            },
+            "evidence": {
+              "keyword": "additionalProperties",
+              "additionalProperty": "id"
+            },
+            "supportedFixes": [
+              "remove unsupported property \"id\""
+            ]
+          },
+          {
+            "code": "schema/additionalProperties",
+            "severity": "error",
+            "message": "/boundaries/1 (id/label: \"b-services\") must NOT have additional properties {\"additionalProperty\":\"type\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/boundaries/1",
+              "identity": "b-services"
+            },
+            "evidence": {
+              "keyword": "additionalProperties",
+              "additionalProperty": "type"
+            },
+            "supportedFixes": [
+              "remove unsupported property \"type\""
+            ]
+          },
+          {
+            "code": "schema/additionalProperties",
+            "severity": "error",
+            "message": "/boundaries/1 (id/label: \"b-services\") must NOT have additional properties {\"additionalProperty\":\"wrap\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/boundaries/1",
+              "identity": "b-services"
+            },
+            "evidence": {
+              "keyword": "additionalProperties",
+              "additionalProperty": "wrap"
+            },
+            "supportedFixes": [
+              "remove unsupported property \"wrap\""
+            ]
+          },
+          {
+            "code": "schema/required",
+            "severity": "error",
+            "message": "/boundaries/2 (id/label: \"b-data\") must have required property 'kind' {\"missingProperty\":\"kind\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/boundaries/2",
+              "identity": "b-data"
+            },
+            "evidence": {
+              "keyword": "required",
+              "missingProperty": "kind"
+            },
+            "supportedFixes": [
+              "add required property \"kind\""
+            ]
+          },
+          {
+            "code": "schema/required",
+            "severity": "error",
+            "message": "/boundaries/2 (id/label: \"b-data\") must have required property 'wraps' {\"missingProperty\":\"wraps\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/boundaries/2",
+              "identity": "b-data"
+            },
+            "evidence": {
+              "keyword": "required",
+              "missingProperty": "wraps"
+            },
+            "supportedFixes": [
+              "add required property \"wraps\""
+            ]
+          },
+          {
+            "code": "schema/additionalProperties",
+            "severity": "error",
+            "message": "/boundaries/2 (id/label: \"b-data\") must NOT have additional properties {\"additionalProperty\":\"id\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/boundaries/2",
+              "identity": "b-data"
+            },
+            "evidence": {
+              "keyword": "additionalProperties",
+              "additionalProperty": "id"
+            },
+            "supportedFixes": [
+              "remove unsupported property \"id\""
+            ]
+          },
+          {
+            "code": "schema/additionalProperties",
+            "severity": "error",
+            "message": "/boundaries/2 (id/label: \"b-data\") must NOT have additional properties {\"additionalProperty\":\"type\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/boundaries/2",
+              "identity": "b-data"
+            },
+            "evidence": {
+              "keyword": "additionalProperties",
+              "additionalProperty": "type"
+            },
+            "supportedFixes": [
+              "remove unsupported property \"type\""
+            ]
+          },
+          {
+            "code": "schema/additionalProperties",
+            "severity": "error",
+            "message": "/boundaries/2 (id/label: \"b-data\") must NOT have additional properties {\"additionalProperty\":\"wrap\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/boundaries/2",
+              "identity": "b-data"
+            },
+            "evidence": {
+              "keyword": "additionalProperties",
+              "additionalProperty": "wrap"
+            },
+            "supportedFixes": [
+              "remove unsupported property \"wrap\""
+            ]
+          },
+          {
+            "code": "schema/additionalProperties",
+            "severity": "error",
+            "message": "/connections/1 (id/label: \"accesses (TLS) [PII]\") must NOT have additional properties {\"additionalProperty\":\"style\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/connections/1",
+              "identity": "accesses (TLS) [PII]"
+            },
+            "evidence": {
+              "keyword": "additionalProperties",
+              "additionalProperty": "style"
+            },
+            "supportedFixes": [
+              "remove unsupported property \"style\""
+            ]
+          },
+          {
+            "code": "schema/additionalProperties",
+            "severity": "error",
+            "message": "/connections/1 (id/label: \"accesses (TLS) [PII]\") must NOT have additional properties {\"additionalProperty\":\"flow\"}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/connections/1",
+              "identity": "accesses (TLS) [PII]"
+            },
+            "evidence": {
+              "keyword": "additionalProperties",
+              "additionalProperty": "flow"
+            },
+            "supportedFixes": [
+              "remove unsupported property \"flow\""
+            ]
+          }
+        ],
+        "provenance": "absent",
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      },
+      "execution": "embedded-in-deliver"
+    },
+    "deliver": {
+      "status": "not-run",
+      "execution": "blocked-by-validate"
+    }
+  },
+  "diagnostics": [
+    {
+      "code": "schema/required",
+      "severity": "error",
+      "message": "/ must have required property 'diagram_type' {\"missingProperty\":\"diagram_type\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/"
+      },
+      "evidence": {
+        "keyword": "required",
+        "missingProperty": "diagram_type"
+      },
+      "supportedFixes": [
+        "add required property \"diagram_type\""
+      ]
+    },
+    {
+      "code": "schema/const",
+      "severity": "error",
+      "message": "/schema_version must be equal to constant {\"allowedValue\":1}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/schema_version"
+      },
+      "evidence": {
+        "keyword": "const",
+        "allowedValue": 1
+      },
+      "supportedFixes": []
+    },
+    {
+      "code": "schema/additionalProperties",
+      "severity": "error",
+      "message": "/meta must NOT have additional properties {\"additionalProperty\":\"category\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/meta"
+      },
+      "evidence": {
+        "keyword": "additionalProperties",
+        "additionalProperty": "category"
+      },
+      "supportedFixes": [
+        "remove unsupported property \"category\""
+      ]
+    },
+    {
+      "code": "schema/additionalProperties",
+      "severity": "error",
+      "message": "/meta must NOT have additional properties {\"additionalProperty\":\"quality\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/meta"
+      },
+      "evidence": {
+        "keyword": "additionalProperties",
+        "additionalProperty": "quality"
+      },
+      "supportedFixes": [
+        "remove unsupported property \"quality\""
+      ]
+    },
+    {
+      "code": "schema/additionalProperties",
+      "severity": "error",
+      "message": "/meta must NOT have additional properties {\"additionalProperty\":\"reader_profile\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/meta"
+      },
+      "evidence": {
+        "keyword": "additionalProperties",
+        "additionalProperty": "reader_profile"
+      },
+      "supportedFixes": [
+        "remove unsupported property \"reader_profile\""
+      ]
+    },
+    {
+      "code": "schema/additionalProperties",
+      "severity": "error",
+      "message": "/meta must NOT have additional properties {\"additionalProperty\":\"review\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/meta"
+      },
+      "evidence": {
+        "keyword": "additionalProperties",
+        "additionalProperty": "review"
+      },
+      "supportedFixes": [
+        "remove unsupported property \"review\""
+      ]
+    },
+    {
+      "code": "schema/additionalProperties",
+      "severity": "error",
+      "message": "/components/0 (id/label: \"web-storefront\") must NOT have additional properties {\"additionalProperty\":\"status\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/components/0",
+        "identity": "web-storefront"
+      },
+      "evidence": {
+        "keyword": "additionalProperties",
+        "additionalProperty": "status"
+      },
+      "supportedFixes": [
+        "remove unsupported property \"status\""
+      ]
+    },
+    {
+      "code": "schema/additionalProperties",
+      "severity": "error",
+      "message": "/components/0 (id/label: \"web-storefront\") must NOT have additional properties {\"additionalProperty\":\"sub\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/components/0",
+        "identity": "web-storefront"
+      },
+      "evidence": {
+        "keyword": "additionalProperties",
+        "additionalProperty": "sub"
+      },
+      "supportedFixes": [
+        "remove unsupported property \"sub\""
+      ]
+    },
+    {
+      "code": "schema/additionalProperties",
+      "severity": "error",
+      "message": "/components/1 (id/label: \"checkout-service\") must NOT have additional properties {\"additionalProperty\":\"status\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/components/1",
+        "identity": "checkout-service"
+      },
+      "evidence": {
+        "keyword": "additionalProperties",
+        "additionalProperty": "status"
+      },
+      "supportedFixes": [
+        "remove unsupported property \"status\""
+      ]
+    },
+    {
+      "code": "schema/additionalProperties",
+      "severity": "error",
+      "message": "/components/1 (id/label: \"checkout-service\") must NOT have additional properties {\"additionalProperty\":\"sub\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/components/1",
+        "identity": "checkout-service"
+      },
+      "evidence": {
+        "keyword": "additionalProperties",
+        "additionalProperty": "sub"
+      },
+      "supportedFixes": [
+        "remove unsupported property \"sub\""
+      ]
+    },
+    {
+      "code": "schema/additionalProperties",
+      "severity": "error",
+      "message": "/components/2 (id/label: \"billing-db\") must NOT have additional properties {\"additionalProperty\":\"status\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/components/2",
+        "identity": "billing-db"
+      },
+      "evidence": {
+        "keyword": "additionalProperties",
+        "additionalProperty": "status"
+      },
+      "supportedFixes": [
+        "remove unsupported property \"status\""
+      ]
+    },
+    {
+      "code": "schema/additionalProperties",
+      "severity": "error",
+      "message": "/components/2 (id/label: \"billing-db\") must NOT have additional properties {\"additionalProperty\":\"sub\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/components/2",
+        "identity": "billing-db"
+      },
+      "evidence": {
+        "keyword": "additionalProperties",
+        "additionalProperty": "sub"
+      },
+      "supportedFixes": [
+        "remove unsupported property \"sub\""
+      ]
+    },
+    {
+      "code": "schema/required",
+      "severity": "error",
+      "message": "/boundaries/0 (id/label: \"b-ingress\") must have required property 'kind' {\"missingProperty\":\"kind\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/boundaries/0",
+        "identity": "b-ingress"
+      },
+      "evidence": {
+        "keyword": "required",
+        "missingProperty": "kind"
+      },
+      "supportedFixes": [
+        "add required property \"kind\""
+      ]
+    },
+    {
+      "code": "schema/required",
+      "severity": "error",
+      "message": "/boundaries/0 (id/label: \"b-ingress\") must have required property 'wraps' {\"missingProperty\":\"wraps\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/boundaries/0",
+        "identity": "b-ingress"
+      },
+      "evidence": {
+        "keyword": "required",
+        "missingProperty": "wraps"
+      },
+      "supportedFixes": [
+        "add required property \"wraps\""
+      ]
+    },
+    {
+      "code": "schema/additionalProperties",
+      "severity": "error",
+      "message": "/boundaries/0 (id/label: \"b-ingress\") must NOT have additional properties {\"additionalProperty\":\"id\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/boundaries/0",
+        "identity": "b-ingress"
+      },
+      "evidence": {
+        "keyword": "additionalProperties",
+        "additionalProperty": "id"
+      },
+      "supportedFixes": [
+        "remove unsupported property \"id\""
+      ]
+    },
+    {
+      "code": "schema/additionalProperties",
+      "severity": "error",
+      "message": "/boundaries/0 (id/label: \"b-ingress\") must NOT have additional properties {\"additionalProperty\":\"type\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/boundaries/0",
+        "identity": "b-ingress"
+      },
+      "evidence": {
+        "keyword": "additionalProperties",
+        "additionalProperty": "type"
+      },
+      "supportedFixes": [
+        "remove unsupported property \"type\""
+      ]
+    },
+    {
+      "code": "schema/additionalProperties",
+      "severity": "error",
+      "message": "/boundaries/0 (id/label: \"b-ingress\") must NOT have additional properties {\"additionalProperty\":\"wrap\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/boundaries/0",
+        "identity": "b-ingress"
+      },
+      "evidence": {
+        "keyword": "additionalProperties",
+        "additionalProperty": "wrap"
+      },
+      "supportedFixes": [
+        "remove unsupported property \"wrap\""
+      ]
+    },
+    {
+      "code": "schema/required",
+      "severity": "error",
+      "message": "/boundaries/1 (id/label: \"b-services\") must have required property 'kind' {\"missingProperty\":\"kind\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/boundaries/1",
+        "identity": "b-services"
+      },
+      "evidence": {
+        "keyword": "required",
+        "missingProperty": "kind"
+      },
+      "supportedFixes": [
+        "add required property \"kind\""
+      ]
+    },
+    {
+      "code": "schema/required",
+      "severity": "error",
+      "message": "/boundaries/1 (id/label: \"b-services\") must have required property 'wraps' {\"missingProperty\":\"wraps\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/boundaries/1",
+        "identity": "b-services"
+      },
+      "evidence": {
+        "keyword": "required",
+        "missingProperty": "wraps"
+      },
+      "supportedFixes": [
+        "add required property \"wraps\""
+      ]
+    },
+    {
+      "code": "schema/additionalProperties",
+      "severity": "error",
+      "message": "/boundaries/1 (id/label: \"b-services\") must NOT have additional properties {\"additionalProperty\":\"id\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/boundaries/1",
+        "identity": "b-services"
+      },
+      "evidence": {
+        "keyword": "additionalProperties",
+        "additionalProperty": "id"
+      },
+      "supportedFixes": [
+        "remove unsupported property \"id\""
+      ]
+    },
+    {
+      "code": "schema/additionalProperties",
+      "severity": "error",
+      "message": "/boundaries/1 (id/label: \"b-services\") must NOT have additional properties {\"additionalProperty\":\"type\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/boundaries/1",
+        "identity": "b-services"
+      },
+      "evidence": {
+        "keyword": "additionalProperties",
+        "additionalProperty": "type"
+      },
+      "supportedFixes": [
+        "remove unsupported property \"type\""
+      ]
+    },
+    {
+      "code": "schema/additionalProperties",
+      "severity": "error",
+      "message": "/boundaries/1 (id/label: \"b-services\") must NOT have additional properties {\"additionalProperty\":\"wrap\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/boundaries/1",
+        "identity": "b-services"
+      },
+      "evidence": {
+        "keyword": "additionalProperties",
+        "additionalProperty": "wrap"
+      },
+      "supportedFixes": [
+        "remove unsupported property \"wrap\""
+      ]
+    },
+    {
+      "code": "schema/required",
+      "severity": "error",
+      "message": "/boundaries/2 (id/label: \"b-data\") must have required property 'kind' {\"missingProperty\":\"kind\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/boundaries/2",
+        "identity": "b-data"
+      },
+      "evidence": {
+        "keyword": "required",
+        "missingProperty": "kind"
+      },
+      "supportedFixes": [
+        "add required property \"kind\""
+      ]
+    },
+    {
+      "code": "schema/required",
+      "severity": "error",
+      "message": "/boundaries/2 (id/label: \"b-data\") must have required property 'wraps' {\"missingProperty\":\"wraps\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/boundaries/2",
+        "identity": "b-data"
+      },
+      "evidence": {
+        "keyword": "required",
+        "missingProperty": "wraps"
+      },
+      "supportedFixes": [
+        "add required property \"wraps\""
+      ]
+    },
+    {
+      "code": "schema/additionalProperties",
+      "severity": "error",
+      "message": "/boundaries/2 (id/label: \"b-data\") must NOT have additional properties {\"additionalProperty\":\"id\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/boundaries/2",
+        "identity": "b-data"
+      },
+      "evidence": {
+        "keyword": "additionalProperties",
+        "additionalProperty": "id"
+      },
+      "supportedFixes": [
+        "remove unsupported property \"id\""
+      ]
+    },
+    {
+      "code": "schema/additionalProperties",
+      "severity": "error",
+      "message": "/boundaries/2 (id/label: \"b-data\") must NOT have additional properties {\"additionalProperty\":\"type\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/boundaries/2",
+        "identity": "b-data"
+      },
+      "evidence": {
+        "keyword": "additionalProperties",
+        "additionalProperty": "type"
+      },
+      "supportedFixes": [
+        "remove unsupported property \"type\""
+      ]
+    },
+    {
+      "code": "schema/additionalProperties",
+      "severity": "error",
+      "message": "/boundaries/2 (id/label: \"b-data\") must NOT have additional properties {\"additionalProperty\":\"wrap\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/boundaries/2",
+        "identity": "b-data"
+      },
+      "evidence": {
+        "keyword": "additionalProperties",
+        "additionalProperty": "wrap"
+      },
+      "supportedFixes": [
+        "remove unsupported property \"wrap\""
+      ]
+    },
+    {
+      "code": "schema/additionalProperties",
+      "severity": "error",
+      "message": "/connections/1 (id/label: \"accesses (TLS) [PII]\") must NOT have additional properties {\"additionalProperty\":\"style\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/connections/1",
+        "identity": "accesses (TLS) [PII]"
+      },
+      "evidence": {
+        "keyword": "additionalProperties",
+        "additionalProperty": "style"
+      },
+      "supportedFixes": [
+        "remove unsupported property \"style\""
+      ]
+    },
+    {
+      "code": "schema/additionalProperties",
+      "severity": "error",
+      "message": "/connections/1 (id/label: \"accesses (TLS) [PII]\") must NOT have additional properties {\"additionalProperty\":\"flow\"}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/connections/1",
+        "identity": "accesses (TLS) [PII]"
+      },
+      "evidence": {
+        "keyword": "additionalProperties",
+        "additionalProperty": "flow"
+      },
+      "supportedFixes": [
+        "remove unsupported property \"flow\""
+      ]
+    }
+  ],
+  "evidence": {
+    "receipt": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-163921-007279/rendered.finalize.json",
+    "summaryReceipt": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-163921-007279/rendered.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "failedStage": "validate",
+  "finishedAt": "2026-10-16T03:39:21.380Z",
+  "durationMs": 299,
+  "update": {
+    "status": "update_available",
+    "installedVersion": "3.0.1",
+    "availableVersion": "3.1.0",
+    "releaseNotes": "https://github.com/tt-a1i/archify/releases/tag/v3.1.0",
+    "severity": "normal",
+    "checkedAt": "2026-10-16T01:45:45.614Z",
+    "source": "cache",
+    "noticeRequired": true,
+    "noticeText": "Archify update: 3.0.1 → 3.1.0. A previous check at 2026-10-16T01:45:45.614Z found a newer release. Release notes: https://github.com/tt-a1i/archify/releases/tag/v3.1.0. The installed Skill has not changed; ask to snooze or ignore this reminder.",
+    "eventKey": "archify@sha256:ffedc53390c9da6e859f41e432c5d2d0615a23cf00a503181f07efbba88a7ce8"
+  }
+}

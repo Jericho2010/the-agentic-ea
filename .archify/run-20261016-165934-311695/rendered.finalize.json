@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "architecture",
+  "quality": "standard",
+  "startedAt": "2026-10-16T03:59:34.367Z",
+  "specification": {
+    "path": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-165934-311695/candidate.json",
+    "sha256": "608ae36f004fbbe43e0426f392482ff4acaec800ba7fdb00fb1e3829b717c8ec",
+    "bytes": 618
+  },
+  "artifact": {
+    "path": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-165934-311695/rendered.html"
+  },
+  "stages": {
+    "validate": {
+      "status": "fail",
+      "exitCode": 1,
+      "durationMs": null,
+      "command": [
+        "/home/shaun/.nvm/versions/node/v22.22.0/bin/node",
+        "/home/shaun/.agents/skills/archify/bin/archify.mjs",
+        "deliver",
+        "architecture",
+        "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-165934-311695/candidate.json",
+        "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-165934-311695/rendered.html",
+        "--quality",
+        "standard",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "deliver",
+        "receiptId": "cb1f1558-ae52-4a45-827a-c75291df5f5e",
+        "stage": "render",
+        "type": "architecture",
+        "input": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-165934-311695/candidate.json",
+        "output": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-165934-311695/rendered.html",
+        "error": "architecture schema validation failed:\n  /components must NOT have fewer than 1 items {\"limit\":1}",
+        "diagnostics": [
+          {
+            "code": "schema/minItems",
+            "severity": "error",
+            "message": "/components must NOT have fewer than 1 items {\"limit\":1}",
+            "subject": {
+              "diagramType": "architecture",
+              "path": "/components"
+            },
+            "evidence": {
+              "keyword": "minItems",
+              "limit": 1
+            },
+            "supportedFixes": [
+              "provide at least 1 item(s)"
+            ]
+          }
+        ],
+        "provenance": "absent",
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      },
+      "execution": "embedded-in-deliver"
+    },
+    "deliver": {
+      "status": "not-run",
+      "execution": "blocked-by-validate"
+    }
+  },
+  "diagnostics": [
+    {
+      "code": "schema/minItems",
+      "severity": "error",
+      "message": "/components must NOT have fewer than 1 items {\"limit\":1}",
+      "subject": {
+        "diagramType": "architecture",
+        "path": "/components"
+      },
+      "evidence": {
+        "keyword": "minItems",
+        "limit": 1
+      },
+      "supportedFixes": [
+        "provide at least 1 item(s)"
+      ]
+    }
+  ],
+  "evidence": {
+    "receipt": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-165934-311695/rendered.finalize.json",
+    "summaryReceipt": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-165934-311695/rendered.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "failedStage": "validate",
+  "finishedAt": "2026-10-16T03:59:34.701Z",
+  "durationMs": 334,
+  "update": {
+    "status": "update_available",
+    "installedVersion": "3.0.1",
+    "availableVersion": "3.1.0",
+    "releaseNotes": "https://github.com/tt-a1i/archify/releases/tag/v3.1.0",
+    "severity": "normal",
+    "checkedAt": "2026-10-16T01:45:45.614Z",
+    "source": "cache",
+    "noticeRequired": true,
+    "noticeText": "Archify update: 3.0.1 → 3.1.0. A previous check at 2026-10-16T01:45:45.614Z found a newer release. Release notes: https://github.com/tt-a1i/archify/releases/tag/v3.1.0. The installed Skill has not changed; ask to snooze or ignore this reminder.",
+    "eventKey": "archify@sha256:ffedc53390c9da6e859f41e432c5d2d0615a23cf00a503181f07efbba88a7ce8"
+  }
+}

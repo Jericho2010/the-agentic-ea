@@ -1,0 +1,247 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "The Agentic EA \u2014 Enterprise Architecture Living Map",
+    "subtitle": "Databricks Unity Catalog Conformed Metamodel Topology",
+    "output": ".archify/run-20261016-170138-978153/rendered.html",
+    "quality_profile": "standard"
+  },
+  "components": [
+    {
+      "id": "web-storefront",
+      "type": "frontend",
+      "label": "web-storefront",
+      "sublabel": "team-frontend \u2022 run",
+      "tag": "Tier-1",
+      "pos": [
+        60,
+        60
+      ],
+      "size": [
+        190,
+        60
+      ]
+    },
+    {
+      "id": "auth-gateway",
+      "type": "backend",
+      "label": "auth-gateway",
+      "sublabel": "team-infra \u2022 run",
+      "tag": "Tier-0",
+      "pos": [
+        60,
+        240
+      ],
+      "size": [
+        190,
+        60
+      ]
+    },
+    {
+      "id": "auth-service",
+      "type": "backend",
+      "label": "auth-service",
+      "sublabel": "team-auth \u2022 run",
+      "tag": "Tier-0",
+      "pos": [
+        340,
+        240
+      ],
+      "size": [
+        190,
+        60
+      ]
+    },
+    {
+      "id": "checkout-service",
+      "type": "backend",
+      "label": "checkout-service",
+      "sublabel": "team-checkout \u2022 run",
+      "tag": "Tier-1",
+      "pos": [
+        620,
+        240
+      ],
+      "size": [
+        190,
+        60
+      ]
+    },
+    {
+      "id": "payments-api",
+      "type": "backend",
+      "label": "payments-api",
+      "sublabel": "team-payments \u2022 run",
+      "tag": "Tier-0",
+      "pos": [
+        60,
+        420
+      ],
+      "size": [
+        190,
+        60
+      ]
+    },
+    {
+      "id": "payments-service",
+      "type": "backend",
+      "label": "payments-service",
+      "sublabel": "team-payments \u2022 run",
+      "tag": "Tier-0",
+      "pos": [
+        340,
+        420
+      ],
+      "size": [
+        190,
+        60
+      ]
+    },
+    {
+      "id": "billing-db",
+      "type": "database",
+      "label": "billing-db",
+      "sublabel": "team-data-platform \u2022 run",
+      "tag": "Tier-0",
+      "pos": [
+        60,
+        600
+      ],
+      "size": [
+        190,
+        60
+      ]
+    },
+    {
+      "id": "payments-ledger-db",
+      "type": "database",
+      "label": "payments-ledger-db",
+      "sublabel": "team-payments \u2022 run",
+      "tag": "Tier-0",
+      "pos": [
+        340,
+        600
+      ],
+      "size": [
+        190,
+        60
+      ]
+    },
+    {
+      "id": "customer-pii-stream",
+      "type": "cloud",
+      "label": "customer-pii-stream",
+      "sublabel": "team-data-platform \u2022 run",
+      "tag": "Tier-1",
+      "pos": [
+        60,
+        780
+      ],
+      "size": [
+        190,
+        60
+      ]
+    },
+    {
+      "id": "stripe-gateway",
+      "type": "external",
+      "label": "stripe-gateway",
+      "sublabel": "team-payments \u2022 run",
+      "tag": "Tier-0",
+      "pos": [
+        60,
+        960
+      ],
+      "size": [
+        190,
+        60
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Ingress & Edge Applications",
+      "wraps": [
+        "web-storefront"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Core Enterprise Microservices",
+      "wraps": [
+        "auth-gateway",
+        "auth-service",
+        "checkout-service",
+        "payments-api",
+        "payments-service"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Governed Datastores & Cloud Telemetry",
+      "wraps": [
+        "billing-db",
+        "payments-ledger-db",
+        "customer-pii-stream",
+        "stripe-gateway"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn_0_web-storefront_checkout-service",
+      "from": "web-storefront",
+      "to": "checkout-service",
+      "variant": "default"
+    },
+    {
+      "id": "conn_1_checkout-service_auth-service",
+      "from": "checkout-service",
+      "to": "auth-service",
+      "variant": "emphasis"
+    },
+    {
+      "id": "conn_2_checkout-service_payments-api",
+      "from": "checkout-service",
+      "to": "payments-api",
+      "variant": "emphasis"
+    },
+    {
+      "id": "conn_3_payments-api_stripe-gateway",
+      "from": "payments-api",
+      "to": "stripe-gateway",
+      "variant": "default"
+    },
+    {
+      "id": "conn_4_payments-api_customer-pii-stream",
+      "from": "payments-api",
+      "to": "customer-pii-stream",
+      "variant": "security"
+    },
+    {
+      "id": "conn_5_payments-api_billing-db",
+      "from": "payments-api",
+      "to": "billing-db",
+      "variant": "security"
+    },
+    {
+      "id": "conn_6_payments-service_payments-ledger-db",
+      "from": "payments-service",
+      "to": "payments-ledger-db",
+      "variant": "security"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Unity Catalog Metamodel Status",
+      "items": [
+        "Active PAM Nodes: 10",
+        "ArchiMate Relations: 7",
+        "Schema: ea.metamodel conformed"
+      ]
+    }
+  ]
+}

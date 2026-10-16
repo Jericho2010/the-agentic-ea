@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "architecture",
+  "quality": "standard",
+  "startedAt": "2026-10-16T03:50:48.399Z",
+  "specification": {
+    "path": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-165030-835656/candidate.json",
+    "sha256": "4631bd20478ef9320a042ff9e6ebf4630d303a4e4af49e3afea9b07535813659",
+    "bytes": 5512
+  },
+  "artifact": {
+    "path": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-165030-835656/test_out.html"
+  },
+  "stages": {
+    "validate": {
+      "status": "fail",
+      "exitCode": 1,
+      "durationMs": null,
+      "command": [
+        "/home/shaun/.nvm/versions/node/v22.22.0/bin/node",
+        "/home/shaun/.agents/skills/archify/bin/archify.mjs",
+        "deliver",
+        "architecture",
+        "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-165030-835656/candidate.json",
+        "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-165030-835656/test_out.html",
+        "--quality",
+        "standard",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "deliver",
+        "receiptId": "36186a47-5d4d-4a98-a667-8f92bd12302f",
+        "stage": "render",
+        "type": "architecture",
+        "input": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-165030-835656/candidate.json",
+        "output": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-165030-835656/test_out.html",
+        "error": "Architecture layout validation failed:\n- Label \"accesses (gRPC/mTLS)\" has only 90px between \"checkout-service\" and \"auth-service\"; it needs at least 122px to stay beside its route — increase that clear gap or place the connected nodes on another readable row, preserving the label.",
+        "diagnostics": [
+          {
+            "code": "composition/label-gap",
+            "severity": "error",
+            "message": "Label \"accesses (gRPC/mTLS)\" has only 90px between \"checkout-service\" and \"auth-service\"; it needs at least 122px to stay beside its route — increase that clear gap or place the connected nodes on another readable row, preserving the label.",
+            "subject": {
+              "diagramType": "architecture",
+              "collection": "connections",
+              "id": "conn_1_checkout-service_auth-service",
+              "from": "checkout-service",
+              "to": "auth-service"
+            },
+            "evidence": {
+              "clearGapPx": 90,
+              "minimumGapPx": 122,
+              "labelWidthPx": 106,
+              "obstacles": [
+                "auth-service",
+                "checkout-service"
+              ]
+            },
+            "supportedFixes": [
+              "increase the clear gap between the connected nodes to at least 122px",
+              "reposition the connected nodes together while preserving the full relationship label"
+            ]
+          }
+        ],
+        "provenance": "absent",
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      },
+      "execution": "embedded-in-deliver"
+    },
+    "deliver": {
+      "status": "not-run",
+      "execution": "blocked-by-validate"
+    }
+  },
+  "diagnostics": [
+    {
+      "code": "composition/label-gap",
+      "severity": "error",
+      "message": "Label \"accesses (gRPC/mTLS)\" has only 90px between \"checkout-service\" and \"auth-service\"; it needs at least 122px to stay beside its route — increase that clear gap or place the connected nodes on another readable row, preserving the label.",
+      "subject": {
+        "diagramType": "architecture",
+        "collection": "connections",
+        "id": "conn_1_checkout-service_auth-service",
+        "from": "checkout-service",
+        "to": "auth-service"
+      },
+      "evidence": {
+        "clearGapPx": 90,
+        "minimumGapPx": 122,
+        "labelWidthPx": 106,
+        "obstacles": [
+          "auth-service",
+          "checkout-service"
+        ]
+      },
+      "supportedFixes": [
+        "increase the clear gap between the connected nodes to at least 122px",
+        "reposition the connected nodes together while preserving the full relationship label"
+      ]
+    }
+  ],
+  "evidence": {
+    "receipt": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-165030-835656/test_out.finalize.json",
+    "summaryReceipt": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-165030-835656/test_out.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "failedStage": "validate",
+  "finishedAt": "2026-10-16T03:50:48.903Z",
+  "durationMs": 504,
+  "update": {
+    "status": "update_available",
+    "installedVersion": "3.0.1",
+    "availableVersion": "3.1.0",
+    "releaseNotes": "https://github.com/tt-a1i/archify/releases/tag/v3.1.0",
+    "severity": "normal",
+    "checkedAt": "2026-10-16T01:45:45.614Z",
+    "source": "cache",
+    "noticeRequired": true,
+    "noticeText": "Archify update: 3.0.1 → 3.1.0. A previous check at 2026-10-16T01:45:45.614Z found a newer release. Release notes: https://github.com/tt-a1i/archify/releases/tag/v3.1.0. The installed Skill has not changed; ask to snooze or ignore this reminder.",
+    "eventKey": "archify@sha256:ffedc53390c9da6e859f41e432c5d2d0615a23cf00a503181f07efbba88a7ce8"
+  }
+}

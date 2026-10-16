@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-165030-835656/candidate.json",
+    "sha256": "4631bd20478ef9320a042ff9e6ebf4630d303a4e4af49e3afea9b07535813659",
+    "bytes": 5512
+  },
+  "artifact": {
+    "path": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-165030-835656/rendered.html"
+  },
+  "gates": {
+    "validate": "fail",
+    "deliver": "not-run",
+    "check": "not-run",
+    "browser-check": "not-run"
+  },
+  "failedStage": "validate",
+  "diagnostics": [
+    {
+      "code": "composition/label-route-clearance",
+      "severity": "error",
+      "message": "[composition/label-route-clearance] showcase architecture label \"accesses (gRPC/mTLS)\" on connections[1] id \"conn_1_checkout-service_auth-service\" \"checkout-service\" -> \"auth-service\" label \"accesses (gRPC/mTLS)\" is 0px from connections[0] id \"conn_0_web-storefront_checkout-service\" \"web-storefront\" -> \"checkout-service\" label \"flows_to (HTTPS/REST)\" segment 1 [596, 90] -> [596, 256] (label rect [522, 250, 106, 14]; minimum 4px) — adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.",
+      "subject": {
+        "diagramType": "architecture",
+        "collection": "connections",
+        "index": 1,
+        "id": "conn_1_checkout-service_auth-service",
+        "from": "checkout-service",
+        "to": "auth-service"
+      },
+      "evidence": {
+        "label": "accesses (gRPC/mTLS)",
+        "otherRelationship": {
+          "diagramType": "architecture",
+          "collection": "connections",
+          "index": 0,
+          "id": "conn_0_web-storefront_checkout-service",
+          "from": "web-storefront",
+          "to": "checkout-service"
+        },
+        "segmentIndex": 1,
+        "clearancePx": 0,
+        "minimumPx": 4,
+        "labelRect": {
+          "relation": {
+            "id": "conn_1_checkout-service_auth-service",
+            "from": "checkout-service",
+            "to": "auth-service",
+            "label": "accesses (gRPC/mTLS)",
+            "variant": "security"
+          },
+          "relationIndex": 1,
+          "label": "accesses (gRPC/mTLS)",
+          "x": 522,
+          "y": 250,
+          "width": 106,
+          "height": 14,
+          "lx": 575,
+          "ly": 260
+        },
+        "from": [
+          596,
+          90
+        ],
+        "to": [
+          596,
+          256
+        ]
+      },
+      "supportedFixes": [
+        "adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel"
+      ]
+    },
+    {
+      "code": "composition/label-gap",
+      "severity": "error",
+      "message": "Label \"accesses (gRPC/mTLS)\" has only 90px between \"checkout-service\" and \"auth-service\"; it needs at least 122px to stay beside its route — increase that clear gap or place the connected nodes on another readable row, preserving the label.",
+      "subject": {
+        "diagramType": "architecture",
+        "collection": "connections",
+        "id": "conn_1_checkout-service_auth-service",
+        "from": "checkout-service",
+        "to": "auth-service"
+      },
+      "evidence": {
+        "clearGapPx": 90,
+        "minimumGapPx": 122,
+        "labelWidthPx": 106,
+        "obstacles": [
+          "auth-service",
+          "checkout-service"
+        ]
+      },
+      "supportedFixes": [
+        "increase the clear gap between the connected nodes to at least 122px",
+        "reposition the connected nodes together while preserving the full relationship label"
+      ]
+    }
+  ],
+  "diagnosticSummary": {
+    "total": 2,
+    "shown": 2,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-165030-835656/rendered.finalize.json",
+    "summaryReceipt": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-165030-835656/rendered.finalize-summary.json"
+  },
+  "update": {
+    "status": "update_available",
+    "installedVersion": "3.0.1",
+    "availableVersion": "3.1.0",
+    "releaseNotes": "https://github.com/tt-a1i/archify/releases/tag/v3.1.0",
+    "severity": "normal",
+    "checkedAt": "2026-10-16T01:45:45.614Z",
+    "source": "cache",
+    "noticeRequired": true,
+    "noticeText": "Archify update: 3.0.1 → 3.1.0. A previous check at 2026-10-16T01:45:45.614Z found a newer release. Release notes: https://github.com/tt-a1i/archify/releases/tag/v3.1.0. The installed Skill has not changed; ask to snooze or ignore this reminder.",
+    "eventKey": "archify@sha256:ffedc53390c9da6e859f41e432c5d2d0615a23cf00a503181f07efbba88a7ce8"
+  },
+  "visualReview": "not-requested",
+  "durationMs": 508,
+  "nextAction": {
+    "action": "edit-in-place",
+    "candidate": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-165030-835656/candidate.json",
+    "constraint": "Preserve all semantics and user-fixed geometry. Use references/architecture-layout-repair.md to choose a local repair or connected-scene reflow; edit the existing candidate.",
+    "then": "finalize-once"
+  }
+}

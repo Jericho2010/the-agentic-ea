@@ -1,0 +1,44 @@
+diff --git a/infra/terraform/modules/customer_storage/main.tf b/infra/terraform/modules/customer_storage/main.tf
+new file mode 100644
+index 0000000..8a91b2c
+--- /dev/null
++++ b/infra/terraform/modules/customer_storage/main.tf
+@@ -0,0 +1,38 @@
++# Provision Customer Data Store
++resource "aws_cassandra_table" "customer_audit_log" {
++  keyspace_name = "customer_audit"
++  table_name    = "customer_events"
++  
++  # VIOLATION: EA-POL-001 (Deprecated/Unapproved Datastore: Cassandra 3.11 in 'Eliminate' status)
++  engine_version = "3.11.10"
++
++  partition_key_columns {
++    name = "customer_id"
++    type = "uuid"
++  }
++
++  clustering_key_columns {
++    name = "timestamp"
++    type = "timestamp"
++    order = "DESC"
++  }
++
++  # VIOLATION: EA-POL-002 (Unencrypted PII Storage: ContainsPII = true with Encrypted = false)
++  point_in_time_recovery {
++    status = "DISABLED"
++  }
++
++  encryption_specification {
++    type = "NONE" # Unencrypted customer data
++  }
++
++  # VIOLATION: EA-POL-003 (Missing mandatory OwnerTeam and Tier tags)
++  tags = {
++    Environment = "production"
++    ContainsPII = "true"
++    # Missing OwnerTeam: e.g. "team-customer-success"
++    # Missing Tier: e.g. "Tier-1"
++    ManagedBy   = "Terraform"
++  }
++}
++

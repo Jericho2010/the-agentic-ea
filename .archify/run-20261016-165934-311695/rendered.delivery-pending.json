@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "command": "deliver",
+  "status": "pending",
+  "receiptId": "cb1f1558-ae52-4a45-827a-c75291df5f5e",
+  "input": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-165934-311695/candidate.json",
+  "output": "/home/shaun/Projects/the-agentic-ea/.archify/run-20261016-165934-311695/rendered.html"
+}

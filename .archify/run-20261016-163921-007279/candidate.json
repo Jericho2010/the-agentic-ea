@@ -1,0 +1,90 @@
+{
+  "schema_version": 2,
+  "meta": {
+    "title": "Enterprise Architecture Living Map",
+    "subtitle": "Unity Catalog Conformed Metamodel Topology",
+    "category": "architecture",
+    "output": ".archify/run-20261016-163921-007279/rendered.html",
+    "quality": "showcase",
+    "reader_profile": "developer",
+    "review": {
+      "summary": "PAM topology extracted from Databricks Unity Catalog conformed tables.",
+      "confidence": 0.98
+    }
+  },
+  "components": [
+    {
+      "id": "web-storefront",
+      "label": "web-storefront",
+      "type": "frontend",
+      "status": "healthy",
+      "sub": "Tier-1 \u00b7 team-frontend",
+      "pos": [
+        60,
+        60
+      ]
+    },
+    {
+      "id": "checkout-service",
+      "label": "checkout-service",
+      "type": "backend",
+      "status": "healthy",
+      "sub": "Tier-1 \u00b7 team-checkout",
+      "pos": [
+        60,
+        240
+      ]
+    },
+    {
+      "id": "billing-db",
+      "label": "billing-db",
+      "type": "database",
+      "status": "warning",
+      "sub": "\u26a0\ufe0f POLICY FLAG / IMPACTED",
+      "pos": [
+        60,
+        420
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "from": "web-storefront",
+      "to": "checkout-service",
+      "label": "flows_to (HTTPS)"
+    },
+    {
+      "from": "checkout-service",
+      "to": "billing-db",
+      "label": "accesses (TLS) [PII]",
+      "style": "dashed",
+      "flow": "active"
+    }
+  ],
+  "boundaries": [
+    {
+      "id": "b-ingress",
+      "label": "Ingress & Edge Applications",
+      "type": "region",
+      "wrap": [
+        "web-storefront"
+      ]
+    },
+    {
+      "id": "b-services",
+      "label": "Core Enterprise Microservices",
+      "type": "region",
+      "wrap": [
+        "checkout-service"
+      ]
+    },
+    {
+      "id": "b-data",
+      "label": "Governed Datastores & Cloud Telemetry",
+      "type": "region",
+      "wrap": [
+        "billing-db"
+      ]
+    }
+  ]
+}

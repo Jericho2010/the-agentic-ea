@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "The Agentic EA \u2014 Enterprise Architecture Living Map",
+    "subtitle": "Databricks Unity Catalog Conformed Metamodel Topology",
+    "output": ".archify/run-20261016-165934-311695/rendered.html",
+    "quality_profile": "standard"
+  },
+  "components": [],
+  "boundaries": [],
+  "connections": [],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Unity Catalog Metamodel Status",
+      "items": [
+        "Active PAM Nodes: 0",
+        "ArchiMate Relations: 0",
+        "Schema: ea.metamodel conformed"
+      ]
+    }
+  ]
+}
