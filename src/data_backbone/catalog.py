@@ -41,6 +41,8 @@ DDL_STATEMENTS = {
         relation STRING NOT NULL COMMENT 'ArchiMate relation (serves, accesses, flows_to, deploys_to, realizes, depends_on)',
         protocol STRING COMMENT 'Communication transport protocol (e.g. HTTPS/JSON, gRPC/mTLS, PostgreSQL/TLS)',
         contains_pii BOOLEAN DEFAULT false COMMENT 'True if personal identifiable or sensitive data flows across edge',
+        transit_encryption STRING COMMENT 'In-transit encryption: tls_1_3, tls_1_2, plaintext',
+        transferred_classification STRING COMMENT 'Data classification in flight: PII:High, PII:Medium, Internal, Public',
         last_updated TIMESTAMP NOT NULL COMMENT 'Timestamp of last reconciliation'
     )
     USING DELTA
@@ -190,6 +192,24 @@ DDL_STATEMENTS = {
     )
     USING DELTA
     COMMENT 'M&A Day-One Portfolio Synergy & Overlap Analysis Mart';
+    """,
+    "gold_compliance_lineage": f"""
+    CREATE TABLE IF NOT EXISTS {SCHEMA_GOLD}.compliance_lineage (
+        flow_id STRING NOT NULL COMMENT 'Unique privacy dataflow lineage UUID',
+        source_urn STRING NOT NULL COMMENT 'Originating system/component PAM URN',
+        target_urn STRING NOT NULL COMMENT 'Destination datastore/component PAM URN',
+        data_classification STRING NOT NULL COMMENT 'Data classification: PII:High, PII:Medium, Internal, Public',
+        jurisdiction_source STRING NOT NULL COMMENT 'Geographic jurisdiction of source (e.g. EU-West-1, US-East-1)',
+        jurisdiction_target STRING NOT NULL COMMENT 'Geographic jurisdiction of target (e.g. EU-West-1, US-East-1)',
+        is_cross_border BOOLEAN NOT NULL COMMENT 'True if flow crosses jurisdictional boundaries (e.g. EU to US)',
+        transit_encryption STRING NOT NULL COMMENT 'Encryption in transit protocol: tls_1_3, plaintext',
+        rest_encryption STRING NOT NULL COMMENT 'Encryption at rest at target: kms, none',
+        gdpr_status STRING NOT NULL COMMENT 'COMPLIANT, ART32_VIOLATION, ART44_VIOLATION',
+        dora_status STRING NOT NULL COMMENT 'RESILIENT, SPOF_RISK, UNREPLICATED_CRITICAL_DATASTORE',
+        risk_level STRING NOT NULL COMMENT 'CRITICAL, HIGH, MEDIUM, LOW'
+    )
+    USING DELTA
+    COMMENT 'Regulatory Compliance & Privacy Data Lineage (GDPR Article 32/44 & DORA ICT Resilience) Mart';
     """,
 }
 

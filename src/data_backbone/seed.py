@@ -24,6 +24,9 @@ SEED_NODES = [
             "framework": "Next.js 14 / React",
             "domain": "store.enterprise.com",
             "ingress": "Cloudflare Edge",
+            "data_classification": "Public",
+            "jurisdiction": "EU-West-1",
+            "encryption": "kms",
         },
     },
     {
@@ -37,6 +40,9 @@ SEED_NODES = [
             "runtime": "Java 21 / Spring Boot 3",
             "container": "distroless",
             "repo": "https://github.com/enterprise/checkout-service",
+            "data_classification": "PII:Medium",
+            "jurisdiction": "EU-West-1",
+            "encryption": "kms",
         },
     },
     {
@@ -50,6 +56,9 @@ SEED_NODES = [
             "runtime": "Go 1.22 / Gin",
             "pci_dss_scope": True,
             "repo": "https://github.com/enterprise/payments-api",
+            "data_classification": "PII:High",
+            "jurisdiction": "EU-West-1",
+            "encryption": "kms",
         },
     },
     {
@@ -62,6 +71,9 @@ SEED_NODES = [
         "metadata": {
             "runtime": "Go 1.22",
             "ledger_sync": True,
+            "data_classification": "PII:High",
+            "jurisdiction": "EU-West-1",
+            "encryption": "kms",
         },
     },
     {
@@ -74,6 +86,9 @@ SEED_NODES = [
         "metadata": {
             "proxy": "Envoy 1.29",
             "protocol": "mTLS / OAuth2",
+            "data_classification": "PII:Medium",
+            "jurisdiction": "EU-West-1",
+            "encryption": "kms",
         },
     },
     {
@@ -88,6 +103,9 @@ SEED_NODES = [
             "status": "legacy-auth",
             "migration_target": "Auth0 / Okta",
             "eol_date": "2027-04-15",
+            "data_classification": "PII:Medium",
+            "jurisdiction": "EU-West-1",
+            "encryption": "kms",
         },
     },
     {
@@ -101,6 +119,8 @@ SEED_NODES = [
             "engine": "PostgreSQL 16 RDS",
             "encryption": "AES-256-GCM (AWS KMS)",
             "backup_retention_days": 35,
+            "data_classification": "PII:High",
+            "jurisdiction": "EU-West-1",
         },
     },
     {
@@ -114,6 +134,8 @@ SEED_NODES = [
             "engine": "PostgreSQL 16 RDS",
             "encryption": "KMS-Customer-Managed",
             "immutability": True,
+            "data_classification": "PII:High",
+            "jurisdiction": "EU-West-1",
         },
     },
     {
@@ -129,6 +151,8 @@ SEED_NODES = [
             "encryption": "KMS-Customer-Managed",
             "retention_hours": 72,
             "eol_date": "2026-12-31",
+            "data_classification": "PII:High",
+            "jurisdiction": "US-East-1",
         },
     },
     {
@@ -142,6 +166,9 @@ SEED_NODES = [
             "type": "External-SaaS",
             "protocol": "HTTPS/TLS-1.3",
             "provider": "Stripe Payments Europe",
+            "data_classification": "PII:High",
+            "jurisdiction": "EU-West-1",
+            "encryption": "kms",
         },
     },
     {
@@ -153,10 +180,12 @@ SEED_NODES = [
         "criticality": "Tier-2",
         "metadata": {
             "engine": "Apache Cassandra 3.11",
-            "encryption": "None",
+            "encryption": "none",
             "backup_retention_days": 7,
             "eol_date": "2025-12-31",
             "disposition": "Eliminate",
+            "data_classification": "PII:High",
+            "jurisdiction": "EU-West-1",
         },
     },
     # --------------------------------------------------------------------------
@@ -294,6 +323,8 @@ SEED_EDGES = [
         "relation": "flows_to",
         "protocol": "HTTPS/REST",
         "contains_pii": False,
+        "transit_encryption": "tls_1_3",
+        "transferred_classification": "Public",
     },
     {
         "source_urn": "urn:ea:microservice:checkout-service",
@@ -301,6 +332,8 @@ SEED_EDGES = [
         "relation": "accesses",
         "protocol": "gRPC/mTLS",
         "contains_pii": False,
+        "transit_encryption": "tls_1_3",
+        "transferred_classification": "Internal",
     },
     {
         "source_urn": "urn:ea:microservice:checkout-service",
@@ -308,6 +341,8 @@ SEED_EDGES = [
         "relation": "serves",
         "protocol": "HTTPS/JSON",
         "contains_pii": False,
+        "transit_encryption": "tls_1_3",
+        "transferred_classification": "PII:High",
     },
     {
         "source_urn": "urn:ea:microservice:payments-api",
@@ -315,6 +350,8 @@ SEED_EDGES = [
         "relation": "flows_to",
         "protocol": "HTTPS/REST",
         "contains_pii": False,
+        "transit_encryption": "tls_1_3",
+        "transferred_classification": "PII:High",
     },
     {
         "source_urn": "urn:ea:microservice:payments-api",
@@ -322,6 +359,8 @@ SEED_EDGES = [
         "relation": "flows_to",
         "protocol": "Kinesis-SDK",
         "contains_pii": True,
+        "transit_encryption": "tls_1_3",
+        "transferred_classification": "PII:High",
     },
     {
         "source_urn": "urn:ea:microservice:payments-api",
@@ -329,6 +368,8 @@ SEED_EDGES = [
         "relation": "accesses",
         "protocol": "PostgreSQL/TLS",
         "contains_pii": True,
+        "transit_encryption": "tls_1_3",
+        "transferred_classification": "PII:High",
     },
     {
         "source_urn": "urn:ea:microservice:payments-service",
@@ -336,6 +377,8 @@ SEED_EDGES = [
         "relation": "accesses",
         "protocol": "PostgreSQL/TLS",
         "contains_pii": True,
+        "transit_encryption": "tls_1_3",
+        "transferred_classification": "PII:High",
     },
     {
         "source_urn": "urn:ea:microservice:payments-api",
@@ -343,6 +386,8 @@ SEED_EDGES = [
         "relation": "flows_to",
         "protocol": "gRPC/mTLS",
         "contains_pii": True,
+        "transit_encryption": "tls_1_3",
+        "transferred_classification": "PII:High",
     },
     {
         "source_urn": "urn:ea:microservice:payments-service",
@@ -350,6 +395,8 @@ SEED_EDGES = [
         "relation": "accesses",
         "protocol": "CQL/TCP",
         "contains_pii": True,
+        "transit_encryption": "plaintext",
+        "transferred_classification": "PII:High",
     },
     # --------------------------------------------------------------------------
     # Capability Hierarchy Edges (Level-1 aggregates Level-2)
@@ -1151,6 +1198,108 @@ SEED_MA_SYNERGIES = [
 ]
 
 
+SEED_COMPLIANCE_LINEAGE = [
+    {
+        "flow_id": "FLOW-001-WEB-CHECKOUT",
+        "source_urn": "urn:ea:application:web-storefront",
+        "target_urn": "urn:ea:microservice:checkout-service",
+        "data_classification": "Public",
+        "jurisdiction_source": "EU-West-1",
+        "jurisdiction_target": "EU-West-1",
+        "is_cross_border": False,
+        "transit_encryption": "tls_1_3",
+        "rest_encryption": "kms",
+        "gdpr_status": "COMPLIANT",
+        "dora_status": "RESILIENT",
+        "risk_level": "LOW",
+    },
+    {
+        "flow_id": "FLOW-002-CHECKOUT-PAYMENTS",
+        "source_urn": "urn:ea:microservice:checkout-service",
+        "target_urn": "urn:ea:microservice:payments-api",
+        "data_classification": "PII:High",
+        "jurisdiction_source": "EU-West-1",
+        "jurisdiction_target": "EU-West-1",
+        "is_cross_border": False,
+        "transit_encryption": "tls_1_3",
+        "rest_encryption": "kms",
+        "gdpr_status": "COMPLIANT",
+        "dora_status": "RESILIENT",
+        "risk_level": "LOW",
+    },
+    {
+        "flow_id": "FLOW-003-PAYMENTS-BILLING",
+        "source_urn": "urn:ea:microservice:payments-api",
+        "target_urn": "urn:ea:database:billing-db",
+        "data_classification": "PII:High",
+        "jurisdiction_source": "EU-West-1",
+        "jurisdiction_target": "EU-West-1",
+        "is_cross_border": False,
+        "transit_encryption": "tls_1_3",
+        "rest_encryption": "kms",
+        "gdpr_status": "COMPLIANT",
+        "dora_status": "RESILIENT",
+        "risk_level": "LOW",
+    },
+    {
+        "flow_id": "FLOW-004-PAYMENTS-STRIPE",
+        "source_urn": "urn:ea:microservice:payments-api",
+        "target_urn": "urn:ea:apiinterface:stripe-gateway",
+        "data_classification": "PII:High",
+        "jurisdiction_source": "EU-West-1",
+        "jurisdiction_target": "EU-West-1",
+        "is_cross_border": False,
+        "transit_encryption": "tls_1_3",
+        "rest_encryption": "kms",
+        "gdpr_status": "COMPLIANT",
+        "dora_status": "RESILIENT",
+        "risk_level": "LOW",
+    },
+    {
+        "flow_id": "FLOW-005-PAYMENTS-LEDGER",
+        "source_urn": "urn:ea:microservice:payments-service",
+        "target_urn": "urn:ea:database:payments-ledger-db",
+        "data_classification": "PII:High",
+        "jurisdiction_source": "EU-West-1",
+        "jurisdiction_target": "EU-West-1",
+        "is_cross_border": False,
+        "transit_encryption": "tls_1_3",
+        "rest_encryption": "kms",
+        "gdpr_status": "COMPLIANT",
+        "dora_status": "RESILIENT",
+        "risk_level": "LOW",
+    },
+    {
+        "flow_id": "FLOW-006-PII-STREAM-EGRESS",
+        "source_urn": "urn:ea:microservice:payments-api",
+        "target_urn": "urn:ea:cloudresource:customer-pii-stream",
+        "data_classification": "PII:High",
+        "jurisdiction_source": "EU-West-1",
+        "jurisdiction_target": "US-East-1",
+        "is_cross_border": True,
+        "transit_encryption": "tls_1_3",
+        "rest_encryption": "kms",
+        "gdpr_status": "ART44_VIOLATION",
+        "dora_status": "RESILIENT",
+        "risk_level": "HIGH",
+    },
+    {
+        "flow_id": "FLOW-007-LEGACY-CASSANDRA-SYNC",
+        "source_urn": "urn:ea:microservice:payments-service",
+        "target_urn": "urn:ea:database:cassandra-legacy-cluster",
+        "data_classification": "PII:High",
+        "jurisdiction_source": "EU-West-1",
+        "jurisdiction_target": "EU-West-1",
+        "is_cross_border": False,
+        "transit_encryption": "plaintext",
+        "rest_encryption": "none",
+        "gdpr_status": "ART32_VIOLATION",
+        "dora_status": "SPOF_RISK",
+        "risk_level": "CRITICAL",
+    },
+]
+
+
 def seed_database() -> Dict[str, int]:
     """Seed the Unity Catalog conformed tables."""
     client = get_unity_catalog_client()
@@ -1162,6 +1311,7 @@ def seed_database() -> Dict[str, int]:
     c_count = client.save_capability_realizations(SEED_CAPABILITY_REALIZATIONS)
     a_count = sum(1 for rec in SEED_ARB_AUDIT_LEDGER if client.record_arb_audit(rec))
     syn_count = client.save_ma_synergies(SEED_MA_SYNERGIES)
+    c_lineage_count = client.save_compliance_lineage(SEED_COMPLIANCE_LINEAGE)
     return {
         "nodes": n_count,
         "edges": e_count,
@@ -1171,11 +1321,13 @@ def seed_database() -> Dict[str, int]:
         "capability_realizations": c_count,
         "arb_audit_ledger": a_count,
         "ma_synergies": syn_count,
+        "compliance_lineage": c_lineage_count,
     }
 
 
 if __name__ == "__main__":
     res = seed_database()
     print(f"✓ Seeded Databricks Unity Catalog conformed tables: {res}")
+
 
 

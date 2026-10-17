@@ -145,7 +145,12 @@ class GitHubOrgIngestor:
                             "kind": "Microservice",
                             "owner_team": "team-checkout",
                             "criticality": "Tier-1",
-                            "metadata": {"runtime": "Java 21 / Spring Boot 3"},
+                            "metadata": {
+                                "runtime": "Java 21 / Spring Boot 3",
+                                "data_classification": "PII:Medium",
+                                "jurisdiction": "EU-West-1",
+                                "encryption": "kms",
+                            },
                         }
                     ],
                     "edges": [
@@ -174,7 +179,13 @@ class GitHubOrgIngestor:
                             "kind": "Microservice",
                             "owner_team": "team-payments",
                             "criticality": "Tier-0",
-                            "metadata": {"runtime": "Go 1.22 / Gin", "pci_scope": True},
+                            "metadata": {
+                                "runtime": "Go 1.22 / Gin",
+                                "pci_scope": True,
+                                "data_classification": "PII:High",
+                                "jurisdiction": "EU-West-1",
+                                "encryption": "kms",
+                            },
                         }
                     ],
                     "edges": [
@@ -211,7 +222,12 @@ class GitHubOrgIngestor:
                             "kind": "Application",
                             "owner_team": "team-frontend",
                             "criticality": "Tier-1",
-                            "metadata": {"framework": "Next.js 14"},
+                            "metadata": {
+                                "framework": "Next.js 14",
+                                "data_classification": "Public",
+                                "jurisdiction": "EU-West-1",
+                                "encryption": "kms",
+                            },
                         }
                     ],
                     "edges": [

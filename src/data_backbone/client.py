@@ -86,10 +86,21 @@ class UnityCatalogClient:
             relation TEXT NOT NULL,
             protocol TEXT,
             contains_pii INTEGER DEFAULT 0,
+            transit_encryption TEXT DEFAULT 'tls_1_3',
+            transferred_classification TEXT DEFAULT 'Internal',
             last_updated TEXT NOT NULL,
             PRIMARY KEY (source_urn, target_urn, relation)
         );
         """)
+
+        try:
+            cur.execute("ALTER TABLE metamodel_edges ADD COLUMN transit_encryption TEXT DEFAULT 'tls_1_3';")
+        except Exception:
+            pass
+        try:
+            cur.execute("ALTER TABLE metamodel_edges ADD COLUMN transferred_classification TEXT DEFAULT 'Internal';")
+        except Exception:
+            pass
 
         cur.execute("""
         CREATE TABLE IF NOT EXISTS metamodel_evidence (
@@ -231,6 +242,23 @@ class UnityCatalogClient:
         );
         """)
 
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS gold_compliance_lineage (
+            flow_id TEXT PRIMARY KEY,
+            source_urn TEXT NOT NULL,
+            target_urn TEXT NOT NULL,
+            data_classification TEXT NOT NULL,
+            jurisdiction_source TEXT NOT NULL,
+            jurisdiction_target TEXT NOT NULL,
+            is_cross_border INTEGER NOT NULL DEFAULT 0,
+            transit_encryption TEXT NOT NULL,
+            rest_encryption TEXT NOT NULL,
+            gdpr_status TEXT NOT NULL,
+            dora_status TEXT NOT NULL,
+            risk_level TEXT NOT NULL
+        );
+        """)
+
         conn.commit()
         conn.close()
 
@@ -262,6 +290,8 @@ class UnityCatalogClient:
         for r in rows:
             d = dict(r)
             d["contains_pii"] = bool(d.get("contains_pii"))
+            d["transit_encryption"] = d.get("transit_encryption") or "tls_1_3"
+            d["transferred_classification"] = d.get("transferred_classification") or ("PII:High" if d["contains_pii"] else "Internal")
             result.append(d)
         conn.close()
         return result
@@ -436,6 +466,19 @@ class UnityCatalogClient:
         conn.close()
         return rows
 
+    def get_compliance_lineage(self) -> List[Dict[str, Any]]:
+        """Retrieve all regulatory compliance and privacy dataflow lineage records."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM gold_compliance_lineage ORDER BY CASE risk_level WHEN 'CRITICAL' THEN 1 WHEN 'HIGH' THEN 2 WHEN 'MEDIUM' THEN 3 ELSE 4 END, flow_id ASC;")
+        rows = []
+        for r in cur.fetchall():
+            d = dict(r)
+            d["is_cross_border"] = bool(d.get("is_cross_border"))
+            rows.append(d)
+        conn.close()
+        return rows
+
 
 
     def merge_nodes(self, nodes: List[Dict[str, Any]]) -> int:
@@ -446,7 +489,24 @@ class UnityCatalogClient:
         count = 0
 
         for n in nodes:
-            meta_json = json.dumps(n.get("metadata", {})) if isinstance(n.get("metadata"), dict) else str(n.get("metadata", "{}"))
+            cur.execute("SELECT metadata FROM metamodel_nodes WHERE urn = ?;", (n["urn"],))
+            existing_row = cur.fetchone()
+            incoming_meta = n.get("metadata") or {}
+            if isinstance(incoming_meta, str):
+                try:
+                    incoming_meta = json.loads(incoming_meta)
+                except Exception:
+                    incoming_meta = {}
+            if existing_row and existing_row["metadata"]:
+                try:
+                    existing_meta = json.loads(existing_row["metadata"]) if isinstance(existing_row["metadata"], str) else existing_row["metadata"]
+                    merged_meta = {**existing_meta, **incoming_meta}
+                except Exception:
+                    merged_meta = incoming_meta
+            else:
+                merged_meta = incoming_meta
+            meta_json = json.dumps(merged_meta)
+
             cur.execute("""
             INSERT INTO metamodel_nodes (urn, name, kind, owner_team, lifecycle_status, criticality, metadata, last_updated)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -482,12 +542,16 @@ class UnityCatalogClient:
         count = 0
 
         for e in edges:
+            transit_enc = e.get("transit_encryption") or ("plaintext" if "CQL" in str(e.get("protocol")) or "3306" in str(e.get("protocol")) else "tls_1_3")
+            trans_class = e.get("transferred_classification") or ("PII:High" if e.get("contains_pii") else "Internal")
             cur.execute("""
-            INSERT INTO metamodel_edges (source_urn, target_urn, relation, protocol, contains_pii, last_updated)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO metamodel_edges (source_urn, target_urn, relation, protocol, contains_pii, transit_encryption, transferred_classification, last_updated)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(source_urn, target_urn, relation) DO UPDATE SET
                 protocol = excluded.protocol,
                 contains_pii = excluded.contains_pii,
+                transit_encryption = excluded.transit_encryption,
+                transferred_classification = excluded.transferred_classification,
                 last_updated = excluded.last_updated;
             """, (
                 e["source_urn"],
@@ -495,6 +559,8 @@ class UnityCatalogClient:
                 e["relation"],
                 e.get("protocol"),
                 1 if e.get("contains_pii") else 0,
+                transit_enc,
+                trans_class,
                 now_str,
             ))
             count += 1
@@ -810,6 +876,50 @@ class UnityCatalogClient:
         conn.close()
         return count
 
+    def save_compliance_lineage(self, records: List[Dict[str, Any]]) -> int:
+        """Upsert compliance lineage records into ea.gold.compliance_lineage."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        count = 0
+        for r in records:
+            cur.execute("""
+            INSERT INTO gold_compliance_lineage (
+                flow_id, source_urn, target_urn, data_classification,
+                jurisdiction_source, jurisdiction_target, is_cross_border,
+                transit_encryption, rest_encryption, gdpr_status, dora_status, risk_level
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(flow_id) DO UPDATE SET
+                source_urn = excluded.source_urn,
+                target_urn = excluded.target_urn,
+                data_classification = excluded.data_classification,
+                jurisdiction_source = excluded.jurisdiction_source,
+                jurisdiction_target = excluded.jurisdiction_target,
+                is_cross_border = excluded.is_cross_border,
+                transit_encryption = excluded.transit_encryption,
+                rest_encryption = excluded.rest_encryption,
+                gdpr_status = excluded.gdpr_status,
+                dora_status = excluded.dora_status,
+                risk_level = excluded.risk_level;
+            """, (
+                r["flow_id"],
+                r["source_urn"],
+                r["target_urn"],
+                r["data_classification"],
+                r["jurisdiction_source"],
+                r["jurisdiction_target"],
+                1 if r.get("is_cross_border") else 0,
+                r["transit_encryption"],
+                r["rest_encryption"],
+                r["gdpr_status"],
+                r["dora_status"],
+                r["risk_level"],
+            ))
+            count += 1
+        conn.commit()
+        conn.close()
+        return count
+
     def _normalize_sql(self, sql: str) -> str:
         """Translates Databricks Unity Catalog 3-level namespaces (ea.<schema>.<table>) to local table names."""
         replacements = [
@@ -824,6 +934,7 @@ class UnityCatalogClient:
             ("ea.gold.capability_realization", "gold_capability_realization"),
             ("ea.gold.arb_audit_ledger", "gold_arb_audit_ledger"),
             ("ea.gold.ma_synergies", "gold_ma_synergies"),
+            ("ea.gold.compliance_lineage", "gold_compliance_lineage"),
         ]
         res = sql
         for uc, local in replacements:

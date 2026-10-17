@@ -104,7 +104,7 @@ with col_h2:
     """, unsafe_allow_html=True)
 
 # Navigation Tabs
-tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time, tab_migration, tab_capabilities, tab_cmdb, tab_ma = st.tabs([
+tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time, tab_migration, tab_capabilities, tab_cmdb, tab_ma, tab_compliance = st.tabs([
     "🏛️ Estate Catalog",
     "🗺️ Living Architecture Maps",
     "🧭 EA Navigator Cockpit",
@@ -114,6 +114,7 @@ tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time, tab_migration, tab
     "🎯 Business Capabilities & Investment",
     "🔄 CMDB Baseline Hygiene & Drift",
     "🏢 M&A Day-One Landscape Discovery",
+    "⚖️ Regulatory Compliance & Privacy Lineage (GDPR / DORA)",
 ])
 
 
@@ -727,5 +728,81 @@ with tab_ma:
         st.components.v1.html(html_code, height=650, scrolling=True)
     else:
         st.warning("Diagram could not be loaded.")
+
+
+# ==============================================================================
+# TAB 10: REGULATORY COMPLIANCE & PRIVACY LINEAGE (GDPR / DORA)
+# ==============================================================================
+with tab_compliance:
+    st.subheader("⚖️ Regulatory Compliance & Privacy Lineage (GDPR / DORA)")
+    st.caption("Continuous regulatory impact mapping, customer PII dataflow lineage traversal, cross-border third-country transfer detection (GDPR Art. 44), encryption in transit/rest posture (GDPR Art. 32), and DORA ICT resilience auditing.")
+
+    compliance_metrics = navigator.analyze_compliance_lineage()
+    lineage_records = client.get_compliance_lineage() or compliance_metrics["lineage_records"]
+
+    # 4 Top KPI Metric Cards
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Governed Lineage Flows", f"{compliance_metrics['total_lineage_flows_count']}", f"{compliance_metrics['compliant_flows_count']} Compliant Flows")
+    c2.metric("PII Datastores in Scope", f"{compliance_metrics['pii_datastores_count']}", "billing-db, payments-ledger, cassandra")
+    c3.metric("Unencrypted Flows (Art. 32)", f"{compliance_metrics['unencrypted_flows_count']}", "Plaintext Transit / None at Rest", delta_color="inverse")
+    c4.metric("Third Country Egress (Art. 44)", f"{compliance_metrics['cross_border_egress_count']}", "EU-West-1 ➔ US-East-1", delta_color="inverse")
+
+    st.markdown("---")
+    st.markdown("#### 📋 Conformed Regulatory Compliance Lineage Mart (`ea.gold.compliance_lineage`)")
+    st.caption("Authoritative dataflow lineage records tracking jurisdiction boundaries, classification tiers, cryptographic posture, and regulatory violation classifications.")
+
+    if lineage_records:
+        df_comp = pd.DataFrame(lineage_records)[[
+            "flow_id", "source_urn", "target_urn", "data_classification",
+            "jurisdiction_source", "jurisdiction_target", "is_cross_border",
+            "transit_encryption", "rest_encryption", "gdpr_status", "dora_status", "risk_level"
+        ]]
+        st.dataframe(df_comp, use_container_width=True)
+        st.download_button(
+            label="📥 Download Compliance Lineage (CSV)",
+            data=df_comp.to_csv(index=False),
+            file_name="ea_gold_compliance_lineage.csv",
+            mime="text/csv",
+        )
+
+    st.markdown("---")
+    st.markdown("#### 🚨 Regulatory Violations & Remediations")
+    st.caption("Actionable remediation guidance for identified GDPR and DORA compliance discrepancies.")
+
+    v_cols = st.columns(3)
+    for idx, v in enumerate(compliance_metrics["violations"]):
+        col = v_cols[idx % 3]
+        with col:
+            v_color = "#ef4444" if v.get("severity") == "CRITICAL" else "#f59e0b"
+            st.markdown(f"""
+            <div style="background: #0f172a; border-left: 4px solid {v_color}; border-radius: 8px; padding: 14px; margin-bottom: 12px; border: 1px solid #1e293b; min-height: 200px;">
+                <div style="font-weight: 700; color: #f8fafc; font-size: 15px;">{v['article']} <span style="font-size: 11px; color: {v_color}; background: #1e293b; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">{v.get('severity', 'HIGH')}</span></div>
+                <div style="margin-top: 6px; font-size: 13px; color: #94a3b8;">
+                    <strong>Flagged Asset:</strong> <code style="color: #fda4af;">{v['component']}</code><br/>
+                    <strong>Flow:</strong> <code style="color: #6ee7b7;">{v['flow']}</code>
+                </div>
+                <div style="margin-top: 8px; font-size: 12px; color: #cbd5e1;">
+                    {v['details']}
+                </div>
+                <div style="margin-top: 8px; font-size: 12px; color: #38bdf8;">
+                    💡 <em>Remediation: {v['remediation']}</em>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.markdown("#### 🗺️ Living Architecture Map: GDPR Sovereign Jurisdiction & Dataflow Lineage")
+    st.caption("Interactive Archify vector living map isolating EEA Sovereign Jurisdiction (EU-West-1) from Third Country Egress (US-East-1), highlighting encryption failures and SPOFs.")
+
+    comp_diag_path = ROOT_DIR / "data" / "diagrams" / "gdpr_dora_lineage.html"
+    if not comp_diag_path.exists():
+        navigator.compile_compliance_lineage_diagram()
+
+    if comp_diag_path.exists():
+        html_code = comp_diag_path.read_text(encoding="utf-8")
+        st.components.v1.html(html_code, height=650, scrolling=True)
+    else:
+        st.warning("Compliance lineage diagram could not be loaded.")
+
 
 

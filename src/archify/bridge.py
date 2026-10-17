@@ -42,6 +42,7 @@ def build_archify_spec(
     subtitle: str = "Databricks Unity Catalog Conformed Metamodel Topology",
     output_html_rel: str = "architecture-view.html",
     highlight_urns: Optional[List[str]] = None,
+    boundary_mode: str = "layer",
 ) -> Dict[str, Any]:
     """Compile PAM nodes and edges into strict Archify architecture specification."""
     highlight_set = set(highlight_urns or [])
@@ -94,7 +95,13 @@ def build_archify_spec(
                 tag = "VIOLATION"
 
             comp_type = KIND_TO_ARCHIFY_TYPE.get(kind, "backend")
-            sublabel = f"{node.get('owner_team', 'unassigned')} • {node.get('lifecycle_status', 'run')}"
+            meta = node.get("metadata", {}) or {}
+            if boundary_mode == "jurisdiction":
+                cls = meta.get("data_classification", "Internal")
+                jur = meta.get("jurisdiction", "EU-West-1")
+                sublabel = f"{cls} • {jur}"
+            else:
+                sublabel = f"{node.get('owner_team', 'unassigned')} • {node.get('lifecycle_status', 'run')}"
 
             comp = {
                 "id": cid,
@@ -118,24 +125,50 @@ def build_archify_spec(
         rows_consumed = ((len(layer_nodes) - 1) // max_cols_per_row) + 1
         current_layer_row += rows_consumed
 
-    if app_wraps:
-        boundaries.append({
-            "kind": "region",
-            "label": "Ingress & Edge Applications",
-            "wraps": app_wraps,
-        })
-    if service_wraps:
-        boundaries.append({
-            "kind": "region",
-            "label": "Core Enterprise Microservices",
-            "wraps": service_wraps,
-        })
-    if data_wraps:
-        boundaries.append({
-            "kind": "region",
-            "label": "Governed Datastores & Cloud Telemetry",
-            "wraps": data_wraps,
-        })
+    if boundary_mode == "jurisdiction":
+        eu_wraps = []
+        us_wraps = []
+        for n in nodes:
+            cid = node_id_map.get(n["urn"])
+            if not cid:
+                continue
+            meta = n.get("metadata", {}) or {}
+            jur = meta.get("jurisdiction", "")
+            if jur == "US-East-1" or "customer-pii-stream" in cid or "customer-pii-stream" in n.get("urn", ""):
+                us_wraps.append(cid)
+            else:
+                eu_wraps.append(cid)
+        if eu_wraps:
+            boundaries.append({
+                "kind": "region",
+                "label": "EEA Sovereign Jurisdiction (EU-West-1 — GDPR Art. 32 / DORA Scope)",
+                "wraps": eu_wraps,
+            })
+        if us_wraps:
+            boundaries.append({
+                "kind": "region",
+                "label": "Third Country Egress Jurisdiction (US-East-1 — GDPR Art. 44 Scope)",
+                "wraps": us_wraps,
+            })
+    else:
+        if app_wraps:
+            boundaries.append({
+                "kind": "region",
+                "label": "Ingress & Edge Applications",
+                "wraps": app_wraps,
+            })
+        if service_wraps:
+            boundaries.append({
+                "kind": "region",
+                "label": "Core Enterprise Microservices",
+                "wraps": service_wraps,
+            })
+        if data_wraps:
+            boundaries.append({
+                "kind": "region",
+                "label": "Governed Datastores & Cloud Telemetry",
+                "wraps": data_wraps,
+            })
 
     # Connections
     for idx, e in enumerate(edges):
@@ -163,29 +196,50 @@ def build_archify_spec(
             "variant": variant,
         })
 
-
-    cards = [
-        {
-            "dot": "emerald",
-            "title": "Unity Catalog Metamodel Status",
-            "items": [
-                f"Active PAM Nodes: {len(components)}",
-                f"ArchiMate Relations: {len(connections)}",
-                "Schema: ea.metamodel conformed",
-            ],
-        }
-    ]
-
-    if highlight_set:
-        cards.append({
-            "dot": "rose",
-            "title": "EA Sentinel Policy Alert",
-            "items": [
-                f"Flagged Components: {len(highlight_set)}",
-                "Violations: Policy Failure / Unencrypted PII",
-                "Status: Gate Blocked",
-            ],
-        })
+    if boundary_mode == "jurisdiction":
+        cards = [
+            {
+                "dot": "emerald",
+                "title": "GDPR / DORA Regulatory Scope",
+                "items": [
+                    f"EU Sovereign Assets: {len(eu_wraps)}",
+                    f"Third Country Egress: {len(us_wraps)}",
+                    "Governed Lineage: ea.gold.compliance_lineage",
+                ],
+            }
+        ]
+        if highlight_set:
+            cards.append({
+                "dot": "rose",
+                "title": "Compliance Violations Detected",
+                "items": [
+                    f"Flagged Assets: {len(highlight_set)}",
+                    "GDPR Art 32 / 44 Violations",
+                    "DORA ICT SPOF Identified",
+                ],
+            })
+    else:
+        cards = [
+            {
+                "dot": "emerald",
+                "title": "Unity Catalog Metamodel Status",
+                "items": [
+                    f"Active PAM Nodes: {len(components)}",
+                    f"ArchiMate Relations: {len(connections)}",
+                    "Schema: ea.metamodel conformed",
+                ],
+            }
+        ]
+        if highlight_set:
+            cards.append({
+                "dot": "rose",
+                "title": "EA Sentinel Policy Alert",
+                "items": [
+                    f"Flagged Components: {len(highlight_set)}",
+                    "Violations: Policy Failure / Unencrypted PII",
+                    "Status: Gate Blocked",
+                ],
+            })
 
     spec = {
         "schema_version": 1,
@@ -196,7 +250,6 @@ def build_archify_spec(
             "output": output_html_rel,
             "quality_profile": "standard",
         },
-
         "components": components,
         "boundaries": boundaries,
         "connections": connections,
@@ -280,6 +333,7 @@ def compile_archify_diagram(
     title: str = "Enterprise Architecture Living Map",
     subtitle: str = "Databricks Unity Catalog Conformed Metamodel Topology",
     highlight_urns: Optional[List[str]] = None,
+    boundary_mode: str = "layer",
 ) -> Tuple[Path, Path]:
     """
     Compiles PAM nodes and edges into BOTH interactive HTML and styled vector SVG.
@@ -307,6 +361,7 @@ def compile_archify_diagram(
         subtitle=subtitle,
         output_html_rel=rel_html,
         highlight_urns=highlight_urns,
+        boundary_mode=boundary_mode,
     )
 
     with open(temp_json, "w", encoding="utf-8") as f:
@@ -323,7 +378,6 @@ def compile_archify_diagram(
         "--quality",
         "standard",
         "--json",
-
     ]
     res = subprocess.run(cmd, cwd=str(ROOT_DIR), capture_output=True, text=True)
     if res.returncode != 0:
@@ -368,6 +422,7 @@ class ArchifyBridge:
         highlight_urns: Optional[List[str]] = None,
         title: str = "The Agentic EA — Enterprise Architecture Living Map",
         subtitle: str = "Databricks Unity Catalog Conformed Metamodel Topology",
+        boundary_mode: str = "layer",
     ) -> Tuple[Path, Path]:
         """Compiles conformed PAM graph from Unity Catalog into interactive HTML and styled SVG."""
         if nodes is None:
@@ -383,6 +438,7 @@ class ArchifyBridge:
             title=title,
             subtitle=subtitle,
             highlight_urns=highlight_urns,
+            boundary_mode=boundary_mode,
         )
 
 

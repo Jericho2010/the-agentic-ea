@@ -21,7 +21,15 @@
       ]
     },
     "protocol": { "type": "string" },
-    "contains_pii": { "type": "boolean", "default": false }
+    "contains_pii": { "type": "boolean", "default": false },
+    "transit_encryption": {
+      "type": "string",
+      "enum": ["tls_1_3", "tls_1_2", "plaintext"]
+    },
+    "transferred_classification": {
+      "type": "string",
+      "enum": ["PII:High", "PII:Medium", "Internal", "Public"]
+    }
   },
   "additionalProperties": false
 }
