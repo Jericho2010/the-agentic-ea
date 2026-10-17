@@ -259,6 +259,38 @@ class UnityCatalogClient:
         );
         """)
 
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS bronze_api_gateway_logs (
+            log_id TEXT PRIMARY KEY,
+            endpoint TEXT NOT NULL,
+            method TEXT NOT NULL,
+            protocol TEXT NOT NULL,
+            auth_mechanism TEXT NOT NULL,
+            consumer_service TEXT NOT NULL,
+            provider_service TEXT NOT NULL,
+            requests_last_30d INTEGER NOT NULL,
+            avg_latency_ms REAL NOT NULL,
+            error_rate REAL NOT NULL,
+            last_seen_timestamp TEXT NOT NULL
+        );
+        """)
+
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS gold_interface_rationalization (
+            interface_id TEXT PRIMARY KEY,
+            endpoint TEXT NOT NULL,
+            method TEXT NOT NULL,
+            protocol TEXT NOT NULL,
+            provider_service TEXT NOT NULL,
+            consumer_service TEXT NOT NULL,
+            is_declared INTEGER NOT NULL DEFAULT 0,
+            is_active_runtime INTEGER NOT NULL DEFAULT 0,
+            discrepancy_type TEXT NOT NULL,
+            rationalization_action TEXT NOT NULL,
+            last_active_timestamp TEXT NOT NULL
+        );
+        """)
+
         conn.commit()
         conn.close()
 
@@ -475,6 +507,29 @@ class UnityCatalogClient:
         for r in cur.fetchall():
             d = dict(r)
             d["is_cross_border"] = bool(d.get("is_cross_border"))
+            rows.append(d)
+        conn.close()
+        return rows
+
+    def get_api_gateway_logs(self) -> List[Dict[str, Any]]:
+        """Retrieve all ingested runtime API gateway access logs."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM bronze_api_gateway_logs ORDER BY requests_last_30d DESC, endpoint ASC;")
+        rows = [dict(r) for r in cur.fetchall()]
+        conn.close()
+        return rows
+
+    def get_interface_rationalization(self) -> List[Dict[str, Any]]:
+        """Retrieve all conformed interface rationalization records."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM gold_interface_rationalization ORDER BY CASE discrepancy_type WHEN 'ZOMBIE_SHADOW' THEN 1 WHEN 'DEAD_ORPHAN' THEN 2 WHEN 'PROTOCOL_SPRAWL' THEN 3 ELSE 4 END, interface_id ASC;")
+        rows = []
+        for r in cur.fetchall():
+            d = dict(r)
+            d["is_declared"] = bool(d.get("is_declared"))
+            d["is_active_runtime"] = bool(d.get("is_active_runtime"))
             rows.append(d)
         conn.close()
         return rows
@@ -920,6 +975,91 @@ class UnityCatalogClient:
         conn.close()
         return count
 
+    def save_api_gateway_logs(self, records: List[Dict[str, Any]]) -> int:
+        """Upsert API gateway access logs into ea.bronze.api_gateway_logs."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        count = 0
+        for r in records:
+            cur.execute("""
+            INSERT INTO bronze_api_gateway_logs (
+                log_id, endpoint, method, protocol, auth_mechanism,
+                consumer_service, provider_service, requests_last_30d,
+                avg_latency_ms, error_rate, last_seen_timestamp
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(log_id) DO UPDATE SET
+                endpoint = excluded.endpoint,
+                method = excluded.method,
+                protocol = excluded.protocol,
+                auth_mechanism = excluded.auth_mechanism,
+                consumer_service = excluded.consumer_service,
+                provider_service = excluded.provider_service,
+                requests_last_30d = excluded.requests_last_30d,
+                avg_latency_ms = excluded.avg_latency_ms,
+                error_rate = excluded.error_rate,
+                last_seen_timestamp = excluded.last_seen_timestamp;
+            """, (
+                r["log_id"],
+                r["endpoint"],
+                r["method"],
+                r["protocol"],
+                r.get("auth_mechanism", "None"),
+                r["consumer_service"],
+                r["provider_service"],
+                int(r.get("requests_last_30d", 0)),
+                float(r.get("avg_latency_ms", 0.0)),
+                float(r.get("error_rate", 0.0)),
+                r.get("last_seen_timestamp", datetime.now(timezone.utc).isoformat()),
+            ))
+            count += 1
+        conn.commit()
+        conn.close()
+        return count
+
+    def save_interface_rationalization(self, records: List[Dict[str, Any]]) -> int:
+        """Upsert interface rationalization records into ea.gold.interface_rationalization."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        count = 0
+        for r in records:
+            cur.execute("""
+            INSERT INTO gold_interface_rationalization (
+                interface_id, endpoint, method, protocol,
+                provider_service, consumer_service, is_declared,
+                is_active_runtime, discrepancy_type, rationalization_action,
+                last_active_timestamp
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(interface_id) DO UPDATE SET
+                endpoint = excluded.endpoint,
+                method = excluded.method,
+                protocol = excluded.protocol,
+                provider_service = excluded.provider_service,
+                consumer_service = excluded.consumer_service,
+                is_declared = excluded.is_declared,
+                is_active_runtime = excluded.is_active_runtime,
+                discrepancy_type = excluded.discrepancy_type,
+                rationalization_action = excluded.rationalization_action,
+                last_active_timestamp = excluded.last_active_timestamp;
+            """, (
+                r["interface_id"],
+                r["endpoint"],
+                r["method"],
+                r["protocol"],
+                r["provider_service"],
+                r["consumer_service"],
+                1 if r.get("is_declared") else 0,
+                1 if r.get("is_active_runtime") else 0,
+                r.get("discrepancy_type", "COMPLIANT"),
+                r.get("rationalization_action", "RETAIN"),
+                r.get("last_active_timestamp", datetime.now(timezone.utc).isoformat()),
+            ))
+            count += 1
+        conn.commit()
+        conn.close()
+        return count
+
     def _normalize_sql(self, sql: str) -> str:
         """Translates Databricks Unity Catalog 3-level namespaces (ea.<schema>.<table>) to local table names."""
         replacements = [
@@ -929,12 +1069,14 @@ class UnityCatalogClient:
             ("ea.bronze.git_repos", "bronze_git_repos"),
             ("ea.bronze.cloud_resources", "bronze_cloud_resources"),
             ("ea.bronze.cmdb_ci", "bronze_cmdb_ci"),
+            ("ea.bronze.api_gateway_logs", "bronze_api_gateway_logs"),
             ("ea.gold.time_matrix", "gold_time_matrix"),
             ("ea.gold.drift_reconciled", "gold_drift_reconciled"),
             ("ea.gold.capability_realization", "gold_capability_realization"),
             ("ea.gold.arb_audit_ledger", "gold_arb_audit_ledger"),
             ("ea.gold.ma_synergies", "gold_ma_synergies"),
             ("ea.gold.compliance_lineage", "gold_compliance_lineage"),
+            ("ea.gold.interface_rationalization", "gold_interface_rationalization"),
         ]
         res = sql
         for uc, local in replacements:

@@ -150,6 +150,29 @@ def build_archify_spec(
                 "label": "Third Country Egress Jurisdiction (US-East-1 — GDPR Art. 44 Scope)",
                 "wraps": us_wraps,
             })
+    elif boundary_mode == "interfaces":
+        comp_wraps = []
+        disc_wraps = []
+        for n in nodes:
+            cid = node_id_map.get(n["urn"])
+            if not cid:
+                continue
+            if cid in highlight_set or n["urn"] in highlight_set or any(d in cid for d in ["scanner", "batch", "crm"]):
+                disc_wraps.append(cid)
+            else:
+                comp_wraps.append(cid)
+        if comp_wraps:
+            boundaries.append({
+                "kind": "region",
+                "label": "Governed & Compliant Enterprise Interfaces (HTTPS / gRPC / mTLS)",
+                "wraps": comp_wraps,
+            })
+        if disc_wraps:
+            boundaries.append({
+                "kind": "region",
+                "label": "Flagged Interface Discrepancies (Zombie / Dead / Protocol Sprawl)",
+                "wraps": disc_wraps,
+            })
     else:
         if app_wraps:
             boundaries.append({
@@ -218,6 +241,36 @@ def build_archify_spec(
                     "DORA ICT SPOF Identified",
                 ],
             })
+    elif boundary_mode == "interfaces":
+        cards = [
+            {
+                "dot": "emerald",
+                "title": "Conformed Interface Mart (`ea.gold.interface_rationalization`)",
+                "items": [
+                    f"Active Inter-Service Endpoints: {len(components)}",
+                    "Declared Contracts: 7 OpenAPI & gRPC endpoints",
+                    "Authoritative Catalog: ea.gold.interface_rationalization",
+                ],
+            },
+            {
+                "dot": "rose",
+                "title": "Integration Discrepancies Flagged",
+                "items": [
+                    "Zombie / Shadow API: /v1/internal/debug-dump (Undocumented)",
+                    "Dead / Orphan API: /v1/legacy-inventory-sync (0 req / 90d)",
+                    "Protocol Sprawl: /soap/v1/customer (HTTP-Basic / Insecure)",
+                ],
+            },
+            {
+                "dot": "orange",
+                "title": "Rationalization Action Plan",
+                "items": [
+                    "DOCUMENT_AND_SECURE: Shadow debug dump endpoint",
+                    "DECOMMISSION: Dead inventory batch integration",
+                    "STANDARDIZE_MTLS: Legacy SOAP CRM integration",
+                ],
+            },
+        ]
     else:
         cards = [
             {
@@ -406,6 +459,195 @@ def compile_archify_diagram(
     return target_html, target_svg
 
 
+def build_archify_sequence_spec(
+    participants: Optional[List[Dict[str, Any]]] = None,
+    messages: Optional[List[Dict[str, Any]]] = None,
+    activations: Optional[List[Dict[str, Any]]] = None,
+    segments: Optional[List[Dict[str, Any]]] = None,
+    cards: Optional[List[Dict[str, Any]]] = None,
+    title: str = "Checkout & Payment Sequence Flow",
+    subtitle: str = "Enterprise API Gateway & Inter-Service Transaction Trace",
+    output_html_rel: str = "interface-sequence.html",
+) -> Dict[str, Any]:
+    """Compile sequence flow specification into strict Archify sequence schema."""
+    if participants is None:
+        participants = [
+            {"id": "user", "type": "external", "label": "Customer", "sublabel": "Browser / Mobile App"},
+            {"id": "storefront", "type": "frontend", "label": "Web Storefront", "sublabel": "Next.js Storefront"},
+            {"id": "checkout", "type": "backend", "label": "Checkout Service", "sublabel": "Go Microservice"},
+            {"id": "auth", "type": "security", "label": "Auth Service", "sublabel": "Identity & Token Verifier"},
+            {"id": "payments-api", "type": "backend", "label": "Payments API", "sublabel": "API Gateway / Ingress"},
+            {"id": "stripe", "type": "external", "label": "Stripe Gateway", "sublabel": "SaaS Payment Provider"},
+            {"id": "payments-service", "type": "backend", "label": "Payments Service", "sublabel": "Core Ledger Service"},
+        ]
+
+    if segments is None:
+        segments = [
+            {"from": 150, "to": 258, "label": "Authentication & Order Intake"},
+            {"from": 265, "to": 345, "label": "Payment Authorization"},
+            {"from": 352, "to": 490, "label": "Ledger Sync & Confirmation"},
+        ]
+
+    if messages is None:
+        messages = [
+            {"id": "open-checkout", "from": "user", "to": "storefront", "y": 160, "label": "POST /cart/checkout", "variant": "emphasis"},
+            {"id": "checkout-req", "from": "storefront", "to": "checkout", "y": 189, "label": "POST /api/v1/checkout", "variant": "emphasis"},
+            {"id": "verify-auth", "from": "checkout", "to": "auth", "y": 218, "label": "POST /v1/auth/verify (mTLS)", "variant": "security"},
+            {"id": "auth-ok", "from": "auth", "to": "checkout", "y": 247, "label": "200 Claims Valid", "variant": "return"},
+            {"id": "pay-auth", "from": "checkout", "to": "payments-api", "y": 276, "label": "POST /v1/payments/authorize (mTLS)", "variant": "emphasis"},
+            {"id": "stripe-charge", "from": "payments-api", "to": "stripe", "y": 305, "label": "POST /v1/charges (Bearer Token)", "variant": "security"},
+            {"id": "stripe-ok", "from": "stripe", "to": "payments-api", "y": 334, "label": "200 Charge Captured", "variant": "return"},
+            {"id": "ledger-sync", "from": "payments-api", "to": "payments-service", "y": 363, "label": "RPC LedgerSync/Record (gRPC)", "variant": "dashed"},
+            {"id": "ledger-ack", "from": "payments-service", "to": "payments-api", "y": 392, "label": "Ack Recorded", "variant": "return"},
+            {"id": "pay-ok", "from": "payments-api", "to": "checkout", "y": 421, "label": "200 Payment Authorized", "variant": "return"},
+            {"id": "order-ok", "from": "checkout", "to": "storefront", "y": 450, "label": "201 Order Created", "variant": "return"},
+            {"id": "order-confirm", "from": "storefront", "to": "user", "y": 479, "label": "Order Confirmation View", "variant": "return"},
+        ]
+
+    if activations is None:
+        activations = [
+            {"participant": "storefront", "from": 155, "to": 485, "type": "frontend"},
+            {"participant": "checkout", "from": 180, "to": 455, "type": "backend"},
+            {"participant": "auth", "from": 210, "to": 252, "type": "security"},
+            {"participant": "payments-api", "from": 270, "to": 425, "type": "backend"},
+            {"participant": "stripe", "from": 300, "to": 340, "type": "external"},
+            {"participant": "payments-service", "from": 358, "to": 400, "type": "backend"},
+        ]
+
+    if cards is None:
+        cards = [
+            {
+                "dot": "emerald",
+                "title": "Conformed Inter-Service Contracts",
+                "items": [
+                    "Endpoints validated against OpenAPI & gRPC specifications",
+                    "Zero unauthenticated traffic across critical payment transaction path",
+                    "Audit trail and telemetry streamed to Unity Catalog",
+                ],
+            },
+            {
+                "dot": "rose",
+                "title": "Security Boundary & Protocols",
+                "items": [
+                    "OAuth2 / mTLS enforced between checkout-service & payments-api",
+                    "gRPC / mTLS for immutable ledger sync (payments-service)",
+                    "PCI-DSS egress strictly scoped to Stripe Gateway",
+                ],
+            },
+            {
+                "dot": "orange",
+                "title": "Interface Rationalization Impact",
+                "items": [
+                    "Zombie endpoints (/v1/internal/debug-dump) isolated & secured",
+                    "SOAP legacy protocol decommission candidate (/soap/v1/customer)",
+                    "100% active traffic mapped to conformed PAM nodes",
+                ],
+            },
+        ]
+
+    spec = {
+        "schema_version": 1,
+        "diagram_type": "sequence",
+        "meta": {
+            "title": title,
+            "subtitle": subtitle,
+            "output": output_html_rel,
+            "viewBox": [1080, 580],
+            "column_fit": "spread",
+            "animation": "trace",
+            "quality_profile": "standard",
+        },
+        "participants": participants,
+        "segments": segments,
+        "messages": messages,
+        "activations": activations,
+        "cards": cards,
+    }
+    return spec
+
+
+def compile_archify_sequence_diagram(
+    output_path: Path,
+    participants: Optional[List[Dict[str, Any]]] = None,
+    messages: Optional[List[Dict[str, Any]]] = None,
+    activations: Optional[List[Dict[str, Any]]] = None,
+    segments: Optional[List[Dict[str, Any]]] = None,
+    cards: Optional[List[Dict[str, Any]]] = None,
+    title: str = "Checkout & Payment Sequence Flow",
+    subtitle: str = "Enterprise API Gateway & Inter-Service Transaction Trace",
+) -> Tuple[Path, Path]:
+    """
+    Compiles Archify sequence flow into BOTH interactive HTML and styled vector SVG.
+    Returns (html_path, svg_path).
+    """
+    out_file = Path(output_path).resolve()
+    out_file.parent.mkdir(parents=True, exist_ok=True)
+
+    target_html = out_file.with_suffix(".html")
+    target_svg = out_file.with_suffix(".svg")
+
+    from datetime import datetime
+    run_id = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+    work_dir = ROOT_DIR / ".archify" / f"run-seq-{run_id}"
+    work_dir.mkdir(parents=True, exist_ok=True)
+
+    temp_json = work_dir / "candidate_sequence.json"
+    temp_html = work_dir / "rendered_sequence.html"
+    rel_html = str(temp_html.relative_to(ROOT_DIR))
+
+    spec = build_archify_sequence_spec(
+        participants=participants,
+        messages=messages,
+        activations=activations,
+        segments=segments,
+        cards=cards,
+        title=title,
+        subtitle=subtitle,
+        output_html_rel=rel_html,
+    )
+
+    with open(temp_json, "w", encoding="utf-8") as f:
+        json.dump(spec, f, indent=2)
+
+    # Invoke Archify CLI for sequence
+    cmd = [
+        "node",
+        str(ARCHIFY_CLI),
+        "finalize",
+        "sequence",
+        str(temp_json),
+        str(temp_html),
+        "--quality",
+        "standard",
+        "--json",
+    ]
+    res = subprocess.run(cmd, cwd=str(ROOT_DIR), capture_output=True, text=True)
+    if res.returncode != 0:
+        print(f"[Archify Bridge] Warning: Archify CLI sequence exited with {res.returncode}:\n{res.stderr or res.stdout}", file=sys.stderr)
+        if not temp_html.exists():
+            raise RuntimeError(f"Archify CLI failed to generate sequence HTML: {res.stderr or res.stdout}")
+
+    # Copy HTML
+    html_content = temp_html.read_text(encoding="utf-8")
+    target_html.write_text(html_content, encoding="utf-8")
+
+    # Extract styled SVG
+    svg_content = extract_svg_from_html(temp_html)
+    if svg_content:
+        target_svg.write_text(svg_content, encoding="utf-8")
+    else:
+        target_svg.write_text(
+            f'<svg xmlns="http://www.w3.org/2000/svg" width="600" height="200">'
+            f'<rect width="100%" height="100%" fill="#080c16"/>'
+            f'<text x="20" y="50" fill="#38bdf8" font-family="sans-serif" font-size="16">{title}</text>'
+            f'<text x="20" y="80" fill="#94a3b8" font-family="sans-serif" font-size="12">{subtitle}</text>'
+            f'</svg>',
+            encoding="utf-8",
+        )
+
+    return target_html, target_svg
+
+
 class ArchifyBridge:
     """High-level Archify compilation bridge for PAM estate graphs."""
 
@@ -439,6 +681,20 @@ class ArchifyBridge:
             subtitle=subtitle,
             highlight_urns=highlight_urns,
             boundary_mode=boundary_mode,
+        )
+
+    def compile_sequence_diagram(
+        self,
+        output_html_path: Optional[Path] = None,
+        title: str = "Checkout & Payment Sequence Flow",
+        subtitle: str = "Enterprise API Gateway & Inter-Service Transaction Trace",
+    ) -> Tuple[Path, Path]:
+        """Compiles sequence diagram into interactive HTML and styled SVG."""
+        out_base = output_html_path or (ROOT_DIR / "data" / "diagrams" / "interface_sequence.html")
+        return compile_archify_sequence_diagram(
+            output_path=Path(out_base),
+            title=title,
+            subtitle=subtitle,
         )
 
 

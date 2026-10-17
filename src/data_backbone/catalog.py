@@ -211,6 +211,40 @@ DDL_STATEMENTS = {
     USING DELTA
     COMMENT 'Regulatory Compliance & Privacy Data Lineage (GDPR Article 32/44 & DORA ICT Resilience) Mart';
     """,
+    "bronze_api_gateway_logs": f"""
+    CREATE TABLE IF NOT EXISTS {SCHEMA_BRONZE}.api_gateway_logs (
+        log_id STRING NOT NULL COMMENT 'Unique API Gateway access log event UUID',
+        endpoint STRING NOT NULL COMMENT 'Request path/URI (e.g. /v1/payments/authorize)',
+        method STRING NOT NULL COMMENT 'HTTP/RPC method (GET, POST, PUT, DELETE, RPC)',
+        protocol STRING NOT NULL COMMENT 'Transport/application protocol (HTTPS/REST, gRPC/mTLS, SOAP/XML)',
+        auth_mechanism STRING NOT NULL COMMENT 'Authentication mechanism (OAuth2, mTLS, BearerToken, APIKey, None)',
+        consumer_service STRING NOT NULL COMMENT 'Calling client or microservice identifier',
+        provider_service STRING NOT NULL COMMENT 'Providing microservice or gateway name',
+        requests_last_30d BIGINT NOT NULL COMMENT 'Aggregated request invocation count in the last 30 days',
+        avg_latency_ms DOUBLE NOT NULL COMMENT 'Average response latency in milliseconds',
+        error_rate DOUBLE NOT NULL COMMENT 'HTTP 4xx/5xx or RPC error rate (0.0 to 1.0)',
+        last_seen_timestamp TIMESTAMP NOT NULL COMMENT 'Timestamp of most recent runtime invocation'
+    )
+    USING DELTA
+    COMMENT 'Raw Ingested API Gateway Runtime Traffic Logs';
+    """,
+    "gold_interface_rationalization": f"""
+    CREATE TABLE IF NOT EXISTS {SCHEMA_GOLD}.interface_rationalization (
+        interface_id STRING NOT NULL COMMENT 'Unique interface integration identifier (e.g. INT-001)',
+        endpoint STRING NOT NULL COMMENT 'API endpoint path or RPC method',
+        method STRING NOT NULL COMMENT 'HTTP or RPC method (GET, POST, PUT, DELETE, RPC)',
+        protocol STRING NOT NULL COMMENT 'Protocol (HTTPS/REST, gRPC/mTLS, SOAP/XML)',
+        provider_service STRING NOT NULL COMMENT 'Providing microservice or application URN/name',
+        consumer_service STRING NOT NULL COMMENT 'Calling consumer microservice or application URN/name',
+        is_declared BOOLEAN NOT NULL COMMENT 'True if documented in OpenAPI/PAM metamodel',
+        is_active_runtime BOOLEAN NOT NULL COMMENT 'True if active in runtime API gateway traffic logs',
+        discrepancy_type STRING NOT NULL COMMENT 'ZOMBIE_SHADOW, DEAD_ORPHAN, PROTOCOL_SPRAWL, COMPLIANT',
+        rationalization_action STRING NOT NULL COMMENT 'DECOMMISSION, DOCUMENT_AND_SECURE, STANDARDIZE_MTLS, RETAIN',
+        last_active_timestamp TIMESTAMP NOT NULL COMMENT 'Timestamp of last active invocation or registration'
+    )
+    USING DELTA
+    COMMENT 'Conformed Interface and API Integration Landscape Rationalization Mart';
+    """,
 }
 
 

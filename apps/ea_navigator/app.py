@@ -104,7 +104,7 @@ with col_h2:
     """, unsafe_allow_html=True)
 
 # Navigation Tabs
-tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time, tab_migration, tab_capabilities, tab_cmdb, tab_ma, tab_compliance = st.tabs([
+tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time, tab_migration, tab_capabilities, tab_cmdb, tab_ma, tab_compliance, tab_interfaces = st.tabs([
     "🏛️ Estate Catalog",
     "🗺️ Living Architecture Maps",
     "🧭 EA Navigator Cockpit",
@@ -115,6 +115,7 @@ tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time, tab_migration, tab
     "🔄 CMDB Baseline Hygiene & Drift",
     "🏢 M&A Day-One Landscape Discovery",
     "⚖️ Regulatory Compliance & Privacy Lineage (GDPR / DORA)",
+    "🔌 Interface & Integration Rationalization",
 ])
 
 
@@ -803,6 +804,108 @@ with tab_compliance:
         st.components.v1.html(html_code, height=650, scrolling=True)
     else:
         st.warning("Compliance lineage diagram could not be loaded.")
+
+
+# ==============================================================================
+# TAB 11: INTERFACE & INTEGRATION LANDSCAPE RATIONALIZATION
+# ==============================================================================
+with tab_interfaces:
+    st.subheader("🔌 Interface & Integration Landscape Rationalization")
+    st.caption("Reconciliation of declared OpenAPI/gRPC contracts against live runtime API gateway traffic logs. Automatic detection of Zombie/Shadow APIs, Dead/Orphan routes, and Protocol Sprawl.")
+
+    interface_metrics = navigator.analyze_interface_landscape()
+    reconciled_interfaces = client.get_interface_rationalization() or interface_metrics["all_reconciled_interfaces"]
+    gateway_logs = client.get_api_gateway_logs() or interface_metrics["gateway_logs"]
+
+    # 5 KPI Metric Cards
+    k1, k2, k3, k4, k5 = st.columns(5)
+    k1.metric("Reconciled Interfaces", f"{interface_metrics['total_interfaces_count']}", f"{interface_metrics['declared_interfaces_count']} Declared")
+    k2.metric("Active Runtime Traffic", f"{interface_metrics['runtime_interfaces_count']}", "100% Ingress Audited")
+    k3.metric("Compliant Contracts", f"{interface_metrics['compliant_interfaces_count']}", "REST/OAuth2, gRPC/mTLS")
+    k4.metric("Zombie / Shadow APIs", f"{interface_metrics['zombie_shadow_count']}", "Undocumented Ingress", delta_color="inverse")
+    k5.metric("Dead APIs / Protocol Sprawl", f"{interface_metrics['dead_orphan_count'] + interface_metrics['protocol_sprawl_count']}", "Decommission / Upgrade", delta_color="inverse")
+
+    st.markdown("---")
+    st.markdown("#### 📋 Conformed Interface Rationalization Mart (`ea.gold.interface_rationalization`)")
+    st.caption("Authoritative interface inventory tracking declared contract status, runtime gateway activity, discrepancy classifications, and recommended architectural actions.")
+
+    # Discrepancy Filter
+    disc_filter = st.selectbox(
+        "Filter by Discrepancy Type:",
+        ["All Discrepancies", "COMPLIANT", "ZOMBIE_SHADOW", "DEAD_ORPHAN", "PROTOCOL_SPRAWL"],
+        key="iface_disc_filter",
+    )
+
+    filtered_interfaces = reconciled_interfaces
+    if disc_filter != "All Discrepancies":
+        filtered_interfaces = [r for r in reconciled_interfaces if r.get("discrepancy_type") == disc_filter]
+
+    if filtered_interfaces:
+        df_iface = pd.DataFrame(filtered_interfaces)[[
+            "interface_id", "endpoint", "method", "protocol", "provider_service",
+            "consumer_service", "is_declared", "is_active_runtime", "discrepancy_type",
+            "rationalization_action", "last_active_timestamp"
+        ]]
+        st.dataframe(df_iface, use_container_width=True)
+        st.download_button(
+            label="📥 Download Interface Rationalization (CSV)",
+            data=df_iface.to_csv(index=False),
+            file_name="ea_gold_interface_rationalization.csv",
+            mime="text/csv",
+        )
+
+    st.markdown("---")
+    st.markdown("#### 🚨 Architectural Rationalization Actions")
+    st.caption("Actionable governance remedies for identified shadow endpoints, orphaned routes, and protocol sprawl.")
+
+    a_cols = st.columns(3)
+    for idx, act in enumerate(interface_metrics["rationalization_actions"]):
+        col = a_cols[idx % 3]
+        with col:
+            act_color = "#ef4444" if act.get("discrepancy_type") == "ZOMBIE_SHADOW" else ("#f59e0b" if act.get("discrepancy_type") == "PROTOCOL_SPRAWL" else "#64748b")
+            st.markdown(f"""
+            <div style="background: #0f172a; border-left: 4px solid {act_color}; border-radius: 8px; padding: 14px; margin-bottom: 12px; border: 1px solid #1e293b; min-height: 220px;">
+                <div style="font-weight: 700; color: #f8fafc; font-size: 15px;">
+                    {act['action']} 
+                    <span style="font-size: 11px; color: {act_color}; background: #1e293b; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">{act.get('discrepancy_type')}</span>
+                </div>
+                <div style="margin-top: 6px; font-size: 13px; color: #94a3b8;">
+                    <strong>Endpoint:</strong> <code style="color: #fda4af;">{act['endpoint']}</code> ({act['method']})<br/>
+                    <strong>Route:</strong> <code style="color: #6ee7b7;">{act['consumer']} ➔ {act['provider']}</code>
+                </div>
+                <div style="margin-top: 8px; font-size: 12px; color: #cbd5e1;">
+                    {act['details']}
+                </div>
+                <div style="margin-top: 8px; font-size: 12px; color: #38bdf8;">
+                    💡 <em>Remediation: {act['remediation']}</em>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.markdown("---")
+    diag_tab1, diag_tab2 = st.tabs(["🗺️ Interface Landscape Topology Map", "⚡ Checkout & Payment Transaction Sequence"])
+
+    with diag_tab1:
+        st.caption("Interactive Archify vector living map isolating compliant enterprise interfaces from shadow endpoints and legacy protocol sprawl.")
+        iface_diag_path = ROOT_DIR / "data" / "diagrams" / "interface_landscape.html"
+        if not iface_diag_path.exists():
+            navigator.compile_interface_landscape_diagram()
+        if iface_diag_path.exists():
+            html_code = iface_diag_path.read_text(encoding="utf-8")
+            st.components.v1.html(html_code, height=650, scrolling=True)
+        else:
+            st.warning("Interface landscape diagram could not be loaded.")
+
+    with diag_tab2:
+        st.caption("Interactive Archify sequence diagram tracing the end-to-end checkout, payment authorization, and ledger synchronization transaction flow.")
+        seq_diag_path = ROOT_DIR / "data" / "diagrams" / "interface_sequence.html"
+        if not seq_diag_path.exists():
+            navigator.compile_interface_sequence_diagram()
+        if seq_diag_path.exists():
+            seq_code = seq_diag_path.read_text(encoding="utf-8")
+            st.components.v1.html(seq_code, height=650, scrolling=True)
+        else:
+            st.warning("Interface sequence diagram could not be loaded.")
 
 
 

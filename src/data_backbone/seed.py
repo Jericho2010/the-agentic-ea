@@ -1300,6 +1300,208 @@ SEED_COMPLIANCE_LINEAGE = [
 ]
 
 
+SEED_API_GATEWAY_LOGS = [
+    {
+        "log_id": "LOG-001-CHECKOUT-API",
+        "endpoint": "/api/v1/checkout",
+        "method": "POST",
+        "protocol": "HTTPS/REST",
+        "auth_mechanism": "OAuth2",
+        "consumer_service": "web-storefront",
+        "provider_service": "checkout-service",
+        "requests_last_30d": 1450000,
+        "avg_latency_ms": 42.5,
+        "error_rate": 0.002,
+        "last_seen_timestamp": "2026-10-17T20:00:00Z",
+    },
+    {
+        "log_id": "LOG-002-PAYMENTS-AUTHORIZE",
+        "endpoint": "/v1/payments/authorize",
+        "method": "POST",
+        "protocol": "HTTPS/REST",
+        "auth_mechanism": "mTLS",
+        "consumer_service": "checkout-service",
+        "provider_service": "payments-api",
+        "requests_last_30d": 980000,
+        "avg_latency_ms": 18.2,
+        "error_rate": 0.001,
+        "last_seen_timestamp": "2026-10-17T20:00:00Z",
+    },
+    {
+        "log_id": "LOG-003-PAYMENTS-LEDGER-SYNC",
+        "endpoint": "/rpc/payments.v1.LedgerSync/Record",
+        "method": "RPC",
+        "protocol": "gRPC/mTLS",
+        "auth_mechanism": "mTLS",
+        "consumer_service": "payments-api",
+        "provider_service": "payments-service",
+        "requests_last_30d": 850000,
+        "avg_latency_ms": 8.4,
+        "error_rate": 0.0005,
+        "last_seen_timestamp": "2026-10-17T20:00:00Z",
+    },
+    {
+        "log_id": "LOG-004-ZOMBIE-DEBUG-DUMP",
+        "endpoint": "/v1/internal/debug-dump",
+        "method": "GET",
+        "protocol": "HTTP/JSON",
+        "auth_mechanism": "None",
+        "consumer_service": "external-scanner",
+        "provider_service": "payments-api",
+        "requests_last_30d": 14200,
+        "avg_latency_ms": 120.0,
+        "error_rate": 0.045,
+        "last_seen_timestamp": "2026-10-17T20:00:00Z",
+    },
+    {
+        "log_id": "LOG-005-SPRAWL-SOAP-CUSTOMER",
+        "endpoint": "/soap/v1/customer",
+        "method": "POST",
+        "protocol": "SOAP/XML",
+        "auth_mechanism": "HTTP-Basic",
+        "consumer_service": "legacy-crm",
+        "provider_service": "payments-service",
+        "requests_last_30d": 52000,
+        "avg_latency_ms": 210.0,
+        "error_rate": 0.012,
+        "last_seen_timestamp": "2026-10-17T20:00:00Z",
+    },
+    {
+        "log_id": "LOG-006-PAYMENTS-STRIPE",
+        "endpoint": "/v1/charges",
+        "method": "POST",
+        "protocol": "HTTPS/REST",
+        "auth_mechanism": "BearerToken",
+        "consumer_service": "payments-api",
+        "provider_service": "stripe-gateway",
+        "requests_last_30d": 420000,
+        "avg_latency_ms": 95.0,
+        "error_rate": 0.003,
+        "last_seen_timestamp": "2026-10-17T20:00:00Z",
+    },
+    {
+        "log_id": "LOG-007-AUTH-VERIFY",
+        "endpoint": "/v1/auth/verify",
+        "method": "POST",
+        "protocol": "HTTPS/REST",
+        "auth_mechanism": "mTLS",
+        "consumer_service": "checkout-service",
+        "provider_service": "auth-service",
+        "requests_last_30d": 1200000,
+        "avg_latency_ms": 12.1,
+        "error_rate": 0.0008,
+        "last_seen_timestamp": "2026-10-17T20:00:00Z",
+    },
+]
+
+SEED_INTERFACE_RATIONALIZATION = [
+    {
+        "interface_id": "INT-001-STOREFRONT-CHECKOUT",
+        "endpoint": "/api/v1/checkout",
+        "method": "POST",
+        "protocol": "HTTPS/REST",
+        "provider_service": "checkout-service",
+        "consumer_service": "web-storefront",
+        "is_declared": True,
+        "is_active_runtime": True,
+        "discrepancy_type": "COMPLIANT",
+        "rationalization_action": "RETAIN",
+        "last_active_timestamp": "2026-10-17T20:00:00Z",
+    },
+    {
+        "interface_id": "INT-002-CHECKOUT-PAYMENTS",
+        "endpoint": "/v1/payments/authorize",
+        "method": "POST",
+        "protocol": "HTTPS/REST",
+        "provider_service": "payments-api",
+        "consumer_service": "checkout-service",
+        "is_declared": True,
+        "is_active_runtime": True,
+        "discrepancy_type": "COMPLIANT",
+        "rationalization_action": "RETAIN",
+        "last_active_timestamp": "2026-10-17T20:00:00Z",
+    },
+    {
+        "interface_id": "INT-003-PAYMENTS-LEDGER",
+        "endpoint": "/rpc/payments.v1.LedgerSync/Record",
+        "method": "RPC",
+        "protocol": "gRPC/mTLS",
+        "provider_service": "payments-service",
+        "consumer_service": "payments-api",
+        "is_declared": True,
+        "is_active_runtime": True,
+        "discrepancy_type": "COMPLIANT",
+        "rationalization_action": "RETAIN",
+        "last_active_timestamp": "2026-10-17T20:00:00Z",
+    },
+    {
+        "interface_id": "INT-004-ZOMBIE-DEBUG-DUMP",
+        "endpoint": "/v1/internal/debug-dump",
+        "method": "GET",
+        "protocol": "HTTP/JSON",
+        "provider_service": "payments-api",
+        "consumer_service": "external-scanner",
+        "is_declared": False,
+        "is_active_runtime": True,
+        "discrepancy_type": "ZOMBIE_SHADOW",
+        "rationalization_action": "DOCUMENT_AND_SECURE",
+        "last_active_timestamp": "2026-10-17T20:00:00Z",
+    },
+    {
+        "interface_id": "INT-005-DEAD-INVENTORY-SYNC",
+        "endpoint": "/v1/legacy-inventory-sync",
+        "method": "POST",
+        "protocol": "HTTPS/REST",
+        "provider_service": "checkout-service",
+        "consumer_service": "inventory-batch",
+        "is_declared": True,
+        "is_active_runtime": False,
+        "discrepancy_type": "DEAD_ORPHAN",
+        "rationalization_action": "DECOMMISSION",
+        "last_active_timestamp": "2026-07-01T00:00:00Z",
+    },
+    {
+        "interface_id": "INT-006-SPRAWL-SOAP-CUSTOMER",
+        "endpoint": "/soap/v1/customer",
+        "method": "POST",
+        "protocol": "SOAP/XML",
+        "provider_service": "payments-service",
+        "consumer_service": "legacy-crm",
+        "is_declared": True,
+        "is_active_runtime": True,
+        "discrepancy_type": "PROTOCOL_SPRAWL",
+        "rationalization_action": "STANDARDIZE_MTLS",
+        "last_active_timestamp": "2026-10-17T20:00:00Z",
+    },
+    {
+        "interface_id": "INT-007-PAYMENTS-STRIPE",
+        "endpoint": "/v1/charges",
+        "method": "POST",
+        "protocol": "HTTPS/REST",
+        "provider_service": "stripe-gateway",
+        "consumer_service": "payments-api",
+        "is_declared": True,
+        "is_active_runtime": True,
+        "discrepancy_type": "COMPLIANT",
+        "rationalization_action": "RETAIN",
+        "last_active_timestamp": "2026-10-17T20:00:00Z",
+    },
+    {
+        "interface_id": "INT-008-AUTH-VERIFY",
+        "endpoint": "/v1/auth/verify",
+        "method": "POST",
+        "protocol": "HTTPS/REST",
+        "provider_service": "auth-service",
+        "consumer_service": "checkout-service",
+        "is_declared": True,
+        "is_active_runtime": True,
+        "discrepancy_type": "COMPLIANT",
+        "rationalization_action": "RETAIN",
+        "last_active_timestamp": "2026-10-17T20:00:00Z",
+    },
+]
+
+
 def seed_database() -> Dict[str, int]:
     """Seed the Unity Catalog conformed tables."""
     client = get_unity_catalog_client()
@@ -1312,6 +1514,8 @@ def seed_database() -> Dict[str, int]:
     a_count = sum(1 for rec in SEED_ARB_AUDIT_LEDGER if client.record_arb_audit(rec))
     syn_count = client.save_ma_synergies(SEED_MA_SYNERGIES)
     c_lineage_count = client.save_compliance_lineage(SEED_COMPLIANCE_LINEAGE)
+    gw_count = client.save_api_gateway_logs(SEED_API_GATEWAY_LOGS)
+    ir_count = client.save_interface_rationalization(SEED_INTERFACE_RATIONALIZATION)
     return {
         "nodes": n_count,
         "edges": e_count,
@@ -1322,12 +1526,15 @@ def seed_database() -> Dict[str, int]:
         "arb_audit_ledger": a_count,
         "ma_synergies": syn_count,
         "compliance_lineage": c_lineage_count,
+        "api_gateway_logs": gw_count,
+        "interface_rationalization": ir_count,
     }
 
 
 if __name__ == "__main__":
     res = seed_database()
     print(f"✓ Seeded Databricks Unity Catalog conformed tables: {res}")
+
 
 
 
