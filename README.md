@@ -57,6 +57,7 @@ the-agentic-ea/
   - `ea.bronze.cloud_resources`: Cloud provider CUR billing telemetry and tags.
   - `ea.bronze.cmdb_ci`: Raw ServiceNow CMDB configuration items.
   - `ea.bronze.api_gateway_logs`: Runtime API gateway access logs, protocols, and latency metrics.
+  - `ea.bronze.process_event_logs`: Runtime process execution trace spans, step durations, and execution status.
 - **Gold Scenario Marts:**
   - `ea.gold.time_matrix`: Gartner TIME classification (Invest, Tolerate, Migrate, Eliminate) and annual run costs.
   - `ea.gold.drift_reconciled`: Tracked discrepancies between declared architecture and live telemetry.
@@ -65,14 +66,16 @@ the-agentic-ea/
   - `ea.gold.ma_synergies`: M&A capability overlap, technology stack divergence, and synergy savings.
   - `ea.gold.compliance_lineage`: Regulatory compliance dataflow lineage, jurisdiction boundaries, and encryption posture.
   - `ea.gold.interface_rationalization`: Reconciled interface catalog tracking declared vs active runtime routes, discrepancy types (Zombie/Shadow, Dead/Orphan, Protocol Sprawl), and rationalization actions.
+  - `ea.gold.process_optimization`: Conformed business process mining metrics (p50, p95, p99 latency, SLA targets, error rates, bottleneck flags, and modernization actions).
 
 ### B. EA Navigator (Estate Intelligence Engine)
 - **Graph Traversal:** Breadth-first search (BFS) discovering direct and transitive upstream callers and downstream sinks.
 - **Financial Risk:** Quantifies annual dollar exposure at risk from `ea.gold.time_matrix`.
 - **Customer PII Lineage:** Identifies GDPR Art. 32 / DORA regulatory exposure paths.
+- **Process Mining & Latency Attribution:** Reconciles runtime execution trace spans against enterprise SLAs to pinpoint latency bottlenecks and quantify cycle time bloat.
 - **Living Maps:** Compiles dynamic Archify interactive maps with highlighted blast radius (`--highlight <urns>`).
 - **MADR Generator:** Formats standards-compliant Markdown Architecture Decision Records (MADR v3.0).
-- **Co-Driving Actions:** Contextual one-click scenario chips (`[Simulate Outage]`, `[Draft Migration ADR]`, `[Audit PII Lineage]`, `[Interface Rationalization]`).
+- **Co-Driving Actions:** Contextual one-click scenario chips (`[Simulate Outage]`, `[Draft Migration ADR]`, `[Audit PII Lineage]`, `[Interface Rationalization]`, `[Process Mining & Bottlenecks]`).
 
 ### C. EA Sentinel (Autonomous Governance Gate)
 - **Pre-Merge PR Gate:** Evaluates unified diffs against core architectural policies:
@@ -86,7 +89,7 @@ the-agentic-ea/
 - **Visual Delta Diff:** Generates dual Archify `diagram_delta.html` and `.svg` highlighting non-compliant resources in rose red.
 
 ### D. Databricks App UI Cockpit (`apps/ea_navigator/app.py`)
-- Deployable inside Databricks Apps with 11 interactive tabs:
+- Deployable inside Databricks Apps with 12 interactive tabs:
   1. **Estate Catalog:** Filterable table of all conformed PAM entities and ArchiMate relations.
   2. **Living Architecture Maps:** Embedded interactive Archify HTML maps with pan, zoom, and tooltips.
   3. **EA Navigator Cockpit:** Conversational interface with live blast-radius calculations and MADR exporter.
@@ -98,6 +101,7 @@ the-agentic-ea/
   9. **M&A Day-One Landscape Discovery:** Rapid zero-footprint ingestion of acquired entity IT estate, capability overlap mapping, technology stack divergence, FinOps synergy rationalization ($84,000.00/yr savings), and merged Archify vector living maps.
   10. **Regulatory Compliance & Privacy Lineage (GDPR / DORA):** Continuous data privacy impact mapping, customer PII dataflow lineage traversal, cross-border third-country transfer detection (GDPR Art. 44: EU-West-1 ➔ US-East-1), encryption in transit/rest posture (GDPR Art. 32), DORA ICT resilience auditing (unreplicated legacy SPOF past EOL), and jurisdiction-isolated Archify living maps.
   11. **Interface & Integration Rationalization:** Reconciliation of declared OpenAPI/gRPC interface definitions against live runtime API gateway traffic logs, identifying Zombie/Shadow APIs (`/v1/internal/debug-dump`), Dead/Orphan APIs (`/v1/legacy-inventory-sync`), Protocol Sprawl (`/soap/v1/customer`), action plans, and dual Archify interface landscape maps and transaction sequence flows.
+  12. **Business Process Optimization & Customer Journey:** End-to-end Order-to-Cash journey cycle times, stage-by-stage latency/SLA matrix (`ea.gold.process_optimization`), critical path bottleneck attribution (Cassandra 880ms p95 / 58.8% latency share), modernization roadmap (-720ms saving via Databricks Lakehouse replatforming), and interactive Archify workflow diagram.
 
 ---
 
@@ -129,6 +133,7 @@ streamlit run apps/ea_navigator/app.py
 - **2026-10-17 - Scenario S07 Verified (M&A Day-One IT Landscape Discovery & Overlap Analysis)** - Implemented M&A Estate modular ingestion connector (`src/ingestion/ingest_ma_estate.py`) simulating zero-footprint ingestion of an acquired entity (`acquired-target-org`, tenant `acq-target-corp`, AWS account `998877665544`) into Bronze Delta tables (`ea.bronze.git_repos`, `ea.bronze.cloud_resources`). Conformed acquired assets into PAM graph (`urn:ea:acquired:*`) with domain realization edges. Implemented M&A landscape analysis in `src/navigator/engine.py` identifying duplicate capabilities (`Payment Processing`, `Identity & Access Management`), tech stack divergence (PHP 8.1, Node.js 16, MySQL 5.7 past EOL 2024-10-31, AWS Redshift vs enterprise Go 1.22, Java 21, Unity Catalog / Postgres), and debt disparity (acquired avg 72.5 vs core 35.4). Calculated Day-One combined run cost ($431,799.76/yr = $307,799.76 core + $124,000.00 acquired), identified rationalization synergies ($84,000.00/yr savings; target run cost: $347,799.76/yr), and populated `ea.gold.ma_synergies`. Compiled merged Archify living architecture map (`data/diagrams/ma_landscape_view.html` / `.svg`) and integrated Tab 9 into Databricks App Cockpit (`apps/ea_navigator/app.py`). Dedicated test suite `tests/scenarios/test_s07_ma_discovery.py` passing 7/7 tests, master test suite 60/60 tests passing (100%), and `./demo.sh` passing end-to-end with exit code 0.
 - **2026-10-17 - Scenario S08 Verified (Regulatory Compliance & Data Privacy Impact Mapping GDPR / DORA)** - Enriched PAM metamodel nodes and relationship edges with data classification tiers (PII:High, PII:Medium, Internal, Public), sovereign jurisdictions (EU-West-1, US-East-1), and cryptographic transport/rest specifications (tls_1_3, plaintext, kms, none). Created and populated conformed gold compliance mart `ea.gold.compliance_lineage` via Databricks Unity Catalog client across 7 canonical flows. Implemented `analyze_compliance_lineage()` in `src/navigator/engine.py` performing BFS graph traversal to trace customer PII flows from ingress gateways (`web-storefront`, `payments-api`) to datastores and egress points, identifying GDPR Article 32 violations (unencrypted plaintext CQL transit & rest none on `cassandra-legacy-cluster`), GDPR Article 44-49 violations (unauthorized cross-border EU➔US egress to `customer-pii-stream`), and DORA ICT resilience vulnerabilities (unreplicated SPOF past EOL). Implemented `compile_compliance_lineage_diagram()` generating jurisdiction-isolated Archify living maps (`gdpr_dora_lineage.html` / `.svg`) with zero black box defects. Integrated Tab 10 into Databricks App UI Cockpit (`apps/ea_navigator/app.py`). Dedicated scenario test suite `tests/scenarios/test_s08_gdpr_dora.py` passing 7/7 tests, master automated test suite expanded to 67/67 passing tests (100%), and `./demo.sh` passing end-to-end with exit code 0.
 - **2026-10-17 - Scenario S09 Verified (Interface & Integration Landscape Rationalization)** - Ingested runtime API gateway traffic logs into conformed Bronze table `ea.bronze.api_gateway_logs`. Defined and populated conformed gold mart `ea.gold.interface_rationalization` via Databricks Unity Catalog client across 8 canonical interfaces. Implemented `analyze_interface_landscape()` in `src/navigator/engine.py` reconciling declared OpenAPI contracts against runtime traffic to detect Zombie/Shadow APIs (`/v1/internal/debug-dump`), Dead/Orphan APIs (`/v1/legacy-inventory-sync`), and Protocol Sprawl (`/soap/v1/customer` over HTTP-Basic auth). Extended Archify bridge to compile both interactive checkout/payment transaction sequence flows (`interface_sequence.html` / `.svg`) and interface landscape topology maps (`interface_landscape.html` / `.svg`) with zero black box defects. Integrated Tab 11 into Databricks App Cockpit (`apps/ea_navigator/app.py`). Dedicated scenario test suite `tests/scenarios/test_s09_interfaces.py` passing 7/7 tests, master automated test suite expanded to 74/74 passing tests (100%), and `./demo.sh` passing end-to-end with exit code 0.
+- **2026-10-18 - Scenario S10 Verified (Business Process Optimization & Customer Journey Traceability)** - Defined and conformed `ea.bronze.process_event_logs` (15 execution trace spans across 3 trace instances) and `ea.gold.process_optimization` (5 sequential Order-to-Cash journey stages) in Databricks Unity Catalog client. Implemented `analyze_business_processes()` in `src/navigator/engine.py` calculating journey cycle times (p50: 1,190ms, p95: 1,495ms, p99: 2,025ms), detecting SLA breach (+495ms over 1,000ms SLA), and isolating Step 2 (`Customer Profile & Loyalty Lookup` on `cassandra-legacy-cluster`) as the primary bottleneck driving 58.86% of total journey latency (880ms vs 250ms target). Formulated target-state Lakehouse replatforming roadmap reducing Step 2 latency to 160ms (-720ms / -48%) and bringing journey p95 to 775ms (225ms SLA headroom). Extended Archify bridge with schema v2 workflow compilation (`customer_journey_workflow.html` / `.svg`) preserving `<defs><style>` styling. Integrated Tab 12 into Databricks App UI Cockpit (`apps/ea_navigator/app.py`). Dedicated scenario test suite `tests/scenarios/test_s10_process_mining.py` passing 7/7 tests, master automated test suite expanded to 81/81 passing tests (100%), and `./demo.sh` passing end-to-end with exit code 0.
 
 
 

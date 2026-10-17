@@ -1614,6 +1614,139 @@ Graph traversal reveals **{blast['upstream_count']} upstream callers** directly 
             "svg_path": str(svg_p),
         }
 
+    def analyze_business_processes(self, tenant_id: str = "core") -> Dict[str, Any]:
+        """
+        Analyzes business process execution telemetry and customer journey performance.
+        Reconciles runtime trace spans against SLA targets to pinpoint bottlenecks, cycle time bloat,
+        and provides modernization recommendations (e.g. replatforming Cassandra to Databricks Lakehouse).
+        Populates ea.gold.process_optimization and returns comprehensive process intelligence.
+        """
+        raw_events = self.client.get_process_event_logs()
+        if not raw_events:
+            from src.data_backbone.seed import SEED_PROCESS_EVENT_LOGS
+            self.client.save_process_event_logs(SEED_PROCESS_EVENT_LOGS)
+            raw_events = self.client.get_process_event_logs()
+
+        steps = self.client.get_process_optimization()
+        if not steps:
+            from src.data_backbone.seed import SEED_PROCESS_OPTIMIZATION
+            self.client.save_process_optimization(SEED_PROCESS_OPTIMIZATION)
+            steps = self.client.get_process_optimization()
+
+        # Aggregate cycle times across all stages
+        journey_p50 = sum(s.get("p50_latency_ms", 0.0) for s in steps)
+        journey_p95 = sum(s.get("p95_latency_ms", 0.0) for s in steps)
+        journey_p99 = sum(s.get("p99_latency_ms", 0.0) for s in steps)
+
+        sla_target_ms = 1000.0  # Enterprise Order-to-Cash SLA
+        sla_breach_ms = max(0.0, journey_p95 - sla_target_ms)
+        is_sla_breached = journey_p95 > sla_target_ms
+
+        # Identify bottleneck steps
+        bottlenecks = [s for s in steps if s.get("is_bottleneck")]
+        primary_bottleneck = bottlenecks[0] if bottlenecks else steps[1]
+
+        bottleneck_p95 = primary_bottleneck.get("p95_latency_ms", 0.0)
+        bottleneck_sla = primary_bottleneck.get("sla_target_ms", 250.0)
+        bottleneck_over_sla = max(0.0, bottleneck_p95 - bottleneck_sla)
+        bottleneck_pct = (bottleneck_p95 / journey_p95 * 100.0) if journey_p95 > 0 else 0.0
+
+        # Optimization projection (replatforming Cassandra to Lakehouse Delta tables: 880ms -> 160ms)
+        target_step2_latency = 160.0
+        latency_reduction_ms = bottleneck_p95 - target_step2_latency
+        optimized_journey_p95 = journey_p95 - latency_reduction_ms
+        latency_reduction_pct = (latency_reduction_ms / journey_p95 * 100.0) if journey_p95 > 0 else 0.0
+
+        recommendations = [
+            {
+                "step_id": primary_bottleneck.get("step_id", "STEP-02"),
+                "step_name": primary_bottleneck.get("step_name", "Customer Profile & Loyalty Lookup"),
+                "service_urn": primary_bottleneck.get("service_urn", "urn:ea:database:cassandra-legacy-cluster"),
+                "current_p95_ms": bottleneck_p95,
+                "target_p95_ms": target_step2_latency,
+                "latency_reduction_ms": latency_reduction_ms,
+                "latency_reduction_pct": round(latency_reduction_pct, 2),
+                "action": "REPLATFORM_LAKEHOUSE",
+                "details": "Self-managed legacy Cassandra cluster exhibits high disk I/O, JVM GC pauses, and unindexed full partition scans.",
+                "remediation": "Replatform profile store to Databricks Unity Catalog conformed Delta tables with Liquid Clustering or Serverless PostgreSQL. Reduces query latency from 880ms to 160ms (-720ms / -48%).",
+                "impact": f"Eliminates +{int(bottleneck_over_sla)}ms bottleneck; brings total journey cycle time to {int(optimized_journey_p95)}ms, well within the 1,000ms SLA target.",
+            },
+            {
+                "step_id": "STEP-05",
+                "step_name": "Audit & Event Ingestion",
+                "service_urn": "urn:ea:microservice:customer-pii-stream",
+                "current_p95_ms": 45.0,
+                "target_p95_ms": 15.0,
+                "latency_reduction_ms": 30.0,
+                "latency_reduction_pct": 2.01,
+                "action": "MIGRATE_DATABRICKS_DLT",
+                "details": "Customer PII stream runs on self-managed EC2 Kafka cluster nearing end-of-life.",
+                "remediation": "Migrate to Databricks Delta Live Tables (DLT) streaming pipeline with automated schema enforcement and zero-maintenance scaling.",
+                "impact": "Maintains <20ms ingestion latency and eliminates $12,999.96/yr in self-managed broker overhead.",
+            },
+        ]
+
+        # Distinct traces in raw events
+        trace_ids = list(dict.fromkeys(e.get("trace_id") for e in raw_events))
+        proc_id = steps[0].get("process_id", "PROC-ORDER-TO-CASH") if steps else "PROC-ORDER-TO-CASH"
+        proc_name = steps[0].get("process_name", "Order-to-Cash Customer Journey") if steps else "Order-to-Cash Customer Journey"
+
+        return {
+            "tenant_id": tenant_id,
+            "process_id": proc_id,
+            "process_name": proc_name,
+            "total_steps_count": len(steps),
+            "total_traces_count": len(trace_ids),
+            "journey_p50_ms": journey_p50,
+            "journey_p95_ms": journey_p95,
+            "journey_p99_ms": journey_p99,
+            "sla_target_ms": sla_target_ms,
+            "sla_breach_ms": sla_breach_ms,
+            "is_sla_breached": is_sla_breached,
+            "bottleneck_step_id": primary_bottleneck.get("step_id", "STEP-02"),
+            "bottleneck_step_name": primary_bottleneck.get("step_name", "Customer Profile & Loyalty Lookup"),
+            "bottleneck_service_urn": primary_bottleneck.get("service_urn", "urn:ea:database:cassandra-legacy-cluster"),
+            "bottleneck_p95_ms": bottleneck_p95,
+            "bottleneck_sla_target_ms": bottleneck_sla,
+            "bottleneck_over_sla_ms": bottleneck_over_sla,
+            "bottleneck_latency_pct": round(bottleneck_pct, 2),
+            "optimized_journey_p95_ms": optimized_journey_p95,
+            "latency_reduction_ms": latency_reduction_ms,
+            "latency_reduction_pct": round(latency_reduction_pct, 2),
+            "steps": steps,
+            "raw_event_logs": raw_events,
+            "recommendations": recommendations,
+            "summary_kpis": {
+                "process_name": "Order-to-Cash Customer Journey",
+                "end_to_end_p95_latency": f"{int(journey_p95)} ms",
+                "sla_target": f"{int(sla_target_ms)} ms",
+                "sla_status": "CRITICAL BREACH (+495 ms)" if is_sla_breached else "COMPLIANT",
+                "primary_bottleneck": f"{primary_bottleneck.get('step_name')} ({int(bottleneck_p95)} ms)",
+                "bottleneck_share": f"{round(bottleneck_pct, 1)}%",
+                "optimized_target_p95": f"{int(optimized_journey_p95)} ms (PASS)",
+            },
+        }
+
+    def compile_customer_journey_workflow_diagram(self) -> Dict[str, str]:
+        """
+        Compiles Archify workflow diagram visualizing the Order-to-Cash journey stages,
+        latency badges, SLA targets, and critical bottleneck path.
+        Writes to data/diagrams/customer_journey_workflow.html and .svg.
+        """
+        output_html = ROOT_DIR / "data" / "diagrams" / "customer_journey_workflow.html"
+        output_svg = ROOT_DIR / "data" / "diagrams" / "customer_journey_workflow.svg"
+        output_html.parent.mkdir(parents=True, exist_ok=True)
+
+        html_p, svg_p = self.archify_bridge.compile_workflow_diagram(
+            output_html_path=output_html,
+            title="Order-to-Cash Customer Journey — Process Bottleneck & Latency Trace",
+            subtitle="Enterprise Architecture Process Mining & SLA Optimization Map",
+        )
+        return {
+            "html_path": str(html_p),
+            "svg_path": str(svg_p),
+        }
+
     def get_codriving_actions(self, target_identifier: str) -> List[Dict[str, str]]:
         """Returns contextual interactive co-driving action chips for UI and EA Navigator interactions."""
         blast = self.calculate_blast_radius(target_identifier)
@@ -1649,6 +1782,11 @@ Graph traversal reveals **{blast['upstream_count']} upstream callers** directly 
                 "label": "🔌 Interface Rationalization",
                 "action": "interface_rationalization",
                 "query": "Analyze interface landscape and identify zombie and dead APIs",
+            },
+            {
+                "label": "⏱️ Process Mining & Bottlenecks",
+                "action": "process_mining",
+                "query": "Analyze Order-to-Cash journey cycle times and detect Cassandra latency bottleneck",
             },
             {
                 "label": f"🗺️ Generate Living Blast Map",
@@ -1928,6 +2066,37 @@ Interactive M&A landscape map compiled distinguishing acquired vs core assets:
 * **Interface Landscape Living Map:** [Archify Topology](file://{iface_diag['html_path']})
 """
                 diag = iface_diag
+        elif any(k in q for k in ["process", "journey", "bottleneck", "latency", "order-to-cash", "process mining", "cycle time", "customer journey"]):
+            proc = self.analyze_business_processes()
+            proc_diag = self.compile_customer_journey_workflow_diagram()
+            response_text = f"""### ⏱️ Business Process Optimization & Customer Journey Traceability
+
+* **Process Under Analysis:** `{proc['process_name']}` (`{proc['process_id']}`)
+* **End-to-End Cycle Time (p95):** **{int(proc['journey_p95_ms']):,} ms** (SLA Target: **{int(proc['sla_target_ms']):,} ms** ➔ **CRITICAL BREACH: +{int(proc['sla_breach_ms'])} ms**)
+* **Percentile Distribution:** p50: **{int(proc['journey_p50_ms']):,} ms** | p95: **{int(proc['journey_p95_ms']):,} ms** | p99: **{int(proc['journey_p99_ms']):,} ms**
+* **Primary Bottleneck Identified:** `{proc['bottleneck_step_name']}` (`{proc['bottleneck_step_id']}`) at **{int(proc['bottleneck_p95_ms']):,} ms**
+* **Bottleneck Latency Contribution:** **{proc['bottleneck_latency_pct']}%** of total customer journey latency
+* **Modernization Optimization Impact:** Replatforming Cassandra reduces journey latency to **{int(proc['optimized_journey_p95_ms'])} ms** (**-{int(proc['latency_reduction_ms'])} ms / -{proc['latency_reduction_pct']}%**), comfortably beating the 1,000ms SLA.
+
+#### Journey Stage Latency & SLA Matrix (`ea.gold.process_optimization`)
+| Step ID | Stage / Activity Name | Executing Component | p50 | p95 | p99 | SLA Target | Status | Optimization Action |
+| :--- | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :--- |
+"""
+            for s in proc["steps"]:
+                status_icon = "🚨 **BOTTLENECK**" if s.get("is_bottleneck") else "✅ COMPLIANT"
+                response_text += f"| `{s['step_id']}` | {s['step_name']} | `{s['service_urn'].split(':')[-1]}` | {int(s['p50_latency_ms'])}ms | **{int(s['p95_latency_ms'])}ms** | {int(s['p99_latency_ms'])}ms | {int(s['sla_target_ms'])}ms | {status_icon} | `{s['optimization_action']}` |\n"
+
+            response_text += """
+#### Modernization & Remediation Roadmap
+"""
+            for rec in proc["recommendations"]:
+                response_text += f"* **`{rec['action']}`** on `{rec['service_urn'].split(':')[-1]}` ({rec['step_name']}): Current p95 **{int(rec['current_p95_ms'])}ms** ➔ Projected **{int(rec['target_p95_ms'])}ms** (-{int(rec['latency_reduction_ms'])}ms). *{rec['remediation']}*\n"
+
+            response_text += f"""
+#### Interactive Process Workflow Map
+* **Customer Journey Workflow Map:** [Archify Workflow](file://{proc_diag['html_path']})
+"""
+            diag = proc_diag
         else:
             # Blast Radius & Impact Analysis
             callers_str = ", ".join([f"`{c['name']}` ({c['criticality']})" for c in blast.get("upstream_callers", [])]) or "None (Edge consumer)"

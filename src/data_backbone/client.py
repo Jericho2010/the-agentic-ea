@@ -291,6 +291,37 @@ class UnityCatalogClient:
         );
         """)
 
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS bronze_process_event_logs (
+            trace_id TEXT NOT NULL,
+            process_id TEXT NOT NULL,
+            step_id TEXT NOT NULL,
+            step_name TEXT NOT NULL,
+            service_urn TEXT NOT NULL,
+            duration_ms REAL NOT NULL,
+            status TEXT NOT NULL,
+            timestamp TEXT NOT NULL
+        );
+        """)
+
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS gold_process_optimization (
+            process_id TEXT NOT NULL,
+            process_name TEXT NOT NULL,
+            step_id TEXT NOT NULL,
+            step_name TEXT NOT NULL,
+            service_urn TEXT NOT NULL,
+            p50_latency_ms REAL NOT NULL,
+            p95_latency_ms REAL NOT NULL,
+            p99_latency_ms REAL NOT NULL,
+            sla_target_ms REAL NOT NULL,
+            error_rate_pct REAL NOT NULL,
+            is_bottleneck INTEGER NOT NULL DEFAULT 0,
+            optimization_action TEXT NOT NULL,
+            PRIMARY KEY (process_id, step_id)
+        );
+        """)
+
         conn.commit()
         conn.close()
 
@@ -530,6 +561,34 @@ class UnityCatalogClient:
             d = dict(r)
             d["is_declared"] = bool(d.get("is_declared"))
             d["is_active_runtime"] = bool(d.get("is_active_runtime"))
+            rows.append(d)
+        conn.close()
+        return rows
+
+    def get_process_event_logs(self, process_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Retrieve all ingested process execution event logs."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        if process_id:
+            cur.execute("SELECT * FROM bronze_process_event_logs WHERE process_id = ? ORDER BY timestamp ASC, step_id ASC;", (process_id,))
+        else:
+            cur.execute("SELECT * FROM bronze_process_event_logs ORDER BY timestamp ASC, step_id ASC;")
+        rows = [dict(r) for r in cur.fetchall()]
+        conn.close()
+        return rows
+
+    def get_process_optimization(self, process_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Retrieve conformed process optimization & SLA metrics."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        if process_id:
+            cur.execute("SELECT * FROM gold_process_optimization WHERE process_id = ? ORDER BY step_id ASC;", (process_id,))
+        else:
+            cur.execute("SELECT * FROM gold_process_optimization ORDER BY process_id ASC, step_id ASC;")
+        rows = []
+        for r in cur.fetchall():
+            d = dict(r)
+            d["is_bottleneck"] = bool(d.get("is_bottleneck"))
             rows.append(d)
         conn.close()
         return rows
@@ -1060,6 +1119,76 @@ class UnityCatalogClient:
         conn.close()
         return count
 
+    def save_process_event_logs(self, records: List[Dict[str, Any]]) -> int:
+        """Insert execution trace spans into ea.bronze.process_event_logs."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        count = 0
+        for r in records:
+            cur.execute("""
+            INSERT INTO bronze_process_event_logs (
+                trace_id, process_id, step_id, step_name, service_urn,
+                duration_ms, status, timestamp
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+            """, (
+                r["trace_id"],
+                r["process_id"],
+                r["step_id"],
+                r["step_name"],
+                r["service_urn"],
+                float(r["duration_ms"]),
+                r.get("status", "SUCCESS"),
+                r.get("timestamp", datetime.now(timezone.utc).isoformat()),
+            ))
+            count += 1
+        conn.commit()
+        conn.close()
+        return count
+
+    def save_process_optimization(self, records: List[Dict[str, Any]]) -> int:
+        """Upsert process optimization records into ea.gold.process_optimization."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        count = 0
+        for r in records:
+            cur.execute("""
+            INSERT INTO gold_process_optimization (
+                process_id, process_name, step_id, step_name, service_urn,
+                p50_latency_ms, p95_latency_ms, p99_latency_ms, sla_target_ms,
+                error_rate_pct, is_bottleneck, optimization_action
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(process_id, step_id) DO UPDATE SET
+                process_name = excluded.process_name,
+                step_name = excluded.step_name,
+                service_urn = excluded.service_urn,
+                p50_latency_ms = excluded.p50_latency_ms,
+                p95_latency_ms = excluded.p95_latency_ms,
+                p99_latency_ms = excluded.p99_latency_ms,
+                sla_target_ms = excluded.sla_target_ms,
+                error_rate_pct = excluded.error_rate_pct,
+                is_bottleneck = excluded.is_bottleneck,
+                optimization_action = excluded.optimization_action;
+            """, (
+                r["process_id"],
+                r["process_name"],
+                r["step_id"],
+                r["step_name"],
+                r["service_urn"],
+                float(r["p50_latency_ms"]),
+                float(r["p95_latency_ms"]),
+                float(r["p99_latency_ms"]),
+                float(r["sla_target_ms"]),
+                float(r["error_rate_pct"]),
+                1 if r.get("is_bottleneck") else 0,
+                r.get("optimization_action", "RETAIN_CURRENT_SLA"),
+            ))
+            count += 1
+        conn.commit()
+        conn.close()
+        return count
+
     def _normalize_sql(self, sql: str) -> str:
         """Translates Databricks Unity Catalog 3-level namespaces (ea.<schema>.<table>) to local table names."""
         replacements = [
@@ -1070,6 +1199,7 @@ class UnityCatalogClient:
             ("ea.bronze.cloud_resources", "bronze_cloud_resources"),
             ("ea.bronze.cmdb_ci", "bronze_cmdb_ci"),
             ("ea.bronze.api_gateway_logs", "bronze_api_gateway_logs"),
+            ("ea.bronze.process_event_logs", "bronze_process_event_logs"),
             ("ea.gold.time_matrix", "gold_time_matrix"),
             ("ea.gold.drift_reconciled", "gold_drift_reconciled"),
             ("ea.gold.capability_realization", "gold_capability_realization"),
@@ -1077,6 +1207,7 @@ class UnityCatalogClient:
             ("ea.gold.ma_synergies", "gold_ma_synergies"),
             ("ea.gold.compliance_lineage", "gold_compliance_lineage"),
             ("ea.gold.interface_rationalization", "gold_interface_rationalization"),
+            ("ea.gold.process_optimization", "gold_process_optimization"),
         ]
         res = sql
         for uc, local in replacements:

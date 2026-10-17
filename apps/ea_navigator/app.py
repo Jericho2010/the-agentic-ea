@@ -104,7 +104,7 @@ with col_h2:
     """, unsafe_allow_html=True)
 
 # Navigation Tabs
-tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time, tab_migration, tab_capabilities, tab_cmdb, tab_ma, tab_compliance, tab_interfaces = st.tabs([
+tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time, tab_migration, tab_capabilities, tab_cmdb, tab_ma, tab_compliance, tab_interfaces, tab_process = st.tabs([
     "🏛️ Estate Catalog",
     "🗺️ Living Architecture Maps",
     "🧭 EA Navigator Cockpit",
@@ -116,6 +116,7 @@ tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time, tab_migration, tab
     "🏢 M&A Day-One Landscape Discovery",
     "⚖️ Regulatory Compliance & Privacy Lineage (GDPR / DORA)",
     "🔌 Interface & Integration Rationalization",
+    "⏱️ Business Process Optimization & Customer Journey",
 ])
 
 
@@ -906,6 +907,99 @@ with tab_interfaces:
             st.components.v1.html(seq_code, height=650, scrolling=True)
         else:
             st.warning("Interface sequence diagram could not be loaded.")
+
+
+# ==============================================================================
+# TAB 12: BUSINESS PROCESS OPTIMIZATION & CUSTOMER JOURNEY
+# ==============================================================================
+with tab_process:
+    st.markdown("### ⏱️ Business Process Optimization & Customer Journey Traceability")
+    st.caption("Reconciles runtime execution trace spans (`ea.bronze.process_event_logs`) against enterprise SLAs (`ea.gold.process_optimization`) to pinpoint latency bottlenecks, compute journey cycle times, and recommend modernization paths.")
+
+    proc_data = navigator.analyze_business_processes()
+
+    # 5 KPI Metric Cards
+    col_p1, col_p2, col_p3, col_p4, col_p5 = st.columns(5)
+    col_p1.metric("End-to-End Latency", f"{int(proc_data['journey_p95_ms'])} ms", "p95 Cycle Time")
+    col_p2.metric("Journey SLA Target", f"{int(proc_data['sla_target_ms'])} ms", "1,000 ms SLA")
+    col_p3.metric("SLA Status", "🚨 CRITICAL BREACH", f"+{int(proc_data['sla_breach_ms'])} ms", delta_color="inverse")
+    col_p4.metric("Primary Bottleneck", "Cassandra Query", f"{int(proc_data['bottleneck_p95_ms'])} ms ({proc_data['bottleneck_latency_pct']}%)", delta_color="inverse")
+    col_p5.metric("Optimized Target", f"{int(proc_data['optimized_journey_p95_ms'])} ms", f"-{int(proc_data['latency_reduction_ms'])} ms (-{proc_data['latency_reduction_pct']}%)")
+
+    st.markdown("---")
+    st.markdown("#### 📊 Order-to-Cash Customer Journey Stage Matrix (`ea.gold.process_optimization`)")
+
+    steps_df = pd.DataFrame(proc_data["steps"])
+    if not steps_df.empty:
+        steps_display = steps_df[[
+            "step_id", "step_name", "service_urn", "p50_latency_ms",
+            "p95_latency_ms", "p99_latency_ms", "sla_target_ms",
+            "error_rate_pct", "is_bottleneck", "optimization_action"
+        ]].copy()
+        steps_display["service"] = steps_display["service_urn"].apply(lambda u: u.split(":")[-1])
+        steps_display["p50"] = steps_display["p50_latency_ms"].apply(lambda v: f"{int(v)} ms")
+        steps_display["p95"] = steps_display["p95_latency_ms"].apply(lambda v: f"{int(v)} ms")
+        steps_display["p99"] = steps_display["p99_latency_ms"].apply(lambda v: f"{int(v)} ms")
+        steps_display["sla"] = steps_display["sla_target_ms"].apply(lambda v: f"{int(v)} ms")
+        steps_display["error_rate"] = steps_display["error_rate_pct"].apply(lambda v: f"{v:.2f}%")
+        steps_display["status"] = steps_display["is_bottleneck"].apply(lambda b: "🚨 BOTTLENECK" if b else "✅ COMPLIANT")
+
+        st.dataframe(
+            steps_display[["step_id", "step_name", "service", "p50", "p95", "p99", "sla", "error_rate", "status", "optimization_action"]],
+            use_container_width=True,
+        )
+
+        st.download_button(
+            label="📥 Export Process Optimization Matrix (CSV)",
+            data=steps_df.to_csv(index=False),
+            file_name="ea_gold_process_optimization.csv",
+            mime="text/csv",
+        )
+
+    st.markdown("---")
+    st.markdown("#### 🚀 Target-State Modernization & Latency Optimization Roadmap")
+    rec_col1, rec_col2 = st.columns(2)
+
+    for idx, rec in enumerate(proc_data["recommendations"]):
+        target_col = rec_col1 if idx % 2 == 0 else rec_col2
+        with target_col:
+            st.markdown(f"""
+            <div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 700; color: #f8fafc; font-size: 15px;">{rec['step_name']} ({rec['step_id']})</span>
+                    <span style="background: #1e293b; color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;">{rec['action']}</span>
+                </div>
+                <div style="margin-top: 8px; font-size: 13px; color: #94a3b8;">
+                    <strong>Service:</strong> <code>{rec['service_urn'].split(':')[-1]}</code> | 
+                    <strong>Current p95:</strong> <span style="color: #f43f5e; font-weight: bold;">{int(rec['current_p95_ms'])} ms</span> ➔ 
+                    <strong>Target p95:</strong> <span style="color: #10b981; font-weight: bold;">{int(rec['target_p95_ms'])} ms</span>
+                    (<span style="color: #38bdf8;">-{int(rec['latency_reduction_ms'])} ms / -{rec['latency_reduction_pct']}%</span>)
+                </div>
+                <div style="margin-top: 8px; font-size: 12px; color: #cbd5e1;">
+                    {rec['details']}
+                </div>
+                <div style="margin-top: 8px; font-size: 12px; color: #38bdf8;">
+                    💡 <em>Remediation: {rec['remediation']}</em>
+                </div>
+                <div style="margin-top: 6px; font-size: 12px; color: #10b981;">
+                    🎯 <em>Impact: {rec['impact']}</em>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.markdown("#### 🗺️ Order-to-Cash Interactive Process Workflow Diagram")
+    st.caption("Interactive Archify vector workflow diagram tracing Order-to-Cash journey stages, latency badges, SLA breach path, and Lakehouse target-state.")
+
+    wf_diag_path = ROOT_DIR / "data" / "diagrams" / "customer_journey_workflow.html"
+    if not wf_diag_path.exists():
+        navigator.compile_customer_journey_workflow_diagram()
+    if wf_diag_path.exists():
+        html_code = wf_diag_path.read_text(encoding="utf-8")
+        st.components.v1.html(html_code, height=650, scrolling=True)
+    else:
+        st.warning("Customer journey workflow diagram could not be loaded.")
+
 
 
 

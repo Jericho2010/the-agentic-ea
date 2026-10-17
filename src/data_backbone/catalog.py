@@ -245,6 +245,38 @@ DDL_STATEMENTS = {
     USING DELTA
     COMMENT 'Conformed Interface and API Integration Landscape Rationalization Mart';
     """,
+    "bronze_process_event_logs": f"""
+    CREATE TABLE IF NOT EXISTS {SCHEMA_BRONZE}.process_event_logs (
+        trace_id STRING NOT NULL COMMENT 'Distributed trace identifier UUID',
+        process_id STRING NOT NULL COMMENT 'Business process identifier (e.g. PROC-ORDER-TO-CASH)',
+        step_id STRING NOT NULL COMMENT 'Sequential step identifier (e.g. STEP-01)',
+        step_name STRING NOT NULL COMMENT 'Human-readable step name',
+        service_urn STRING NOT NULL COMMENT 'Executing service or datastore PAM URN',
+        duration_ms DOUBLE NOT NULL COMMENT 'Execution span duration in milliseconds',
+        status STRING NOT NULL COMMENT 'Span execution status (SUCCESS, FAILED, SLA_BREACH)',
+        timestamp TIMESTAMP NOT NULL COMMENT 'Event execution timestamp'
+    )
+    USING DELTA
+    COMMENT 'Raw Ingested Distributed Process Execution Event Logs';
+    """,
+    "gold_process_optimization": f"""
+    CREATE TABLE IF NOT EXISTS {SCHEMA_GOLD}.process_optimization (
+        process_id STRING NOT NULL COMMENT 'Business process identifier (e.g. PROC-ORDER-TO-CASH)',
+        process_name STRING NOT NULL COMMENT 'Business process name (e.g. Order-to-Cash Customer Journey)',
+        step_id STRING NOT NULL COMMENT 'Sequential step identifier (e.g. STEP-01)',
+        step_name STRING NOT NULL COMMENT 'Step name',
+        service_urn STRING NOT NULL COMMENT 'Executing service or datastore PAM URN',
+        p50_latency_ms DOUBLE NOT NULL COMMENT '50th percentile latency in milliseconds',
+        p95_latency_ms DOUBLE NOT NULL COMMENT '95th percentile latency in milliseconds',
+        p99_latency_ms DOUBLE NOT NULL COMMENT '99th percentile latency in milliseconds',
+        sla_target_ms DOUBLE NOT NULL COMMENT 'Agreed SLA target latency in milliseconds',
+        error_rate_pct DOUBLE NOT NULL COMMENT 'Step error percentage (0.0 to 100.0)',
+        is_bottleneck BOOLEAN NOT NULL COMMENT 'True if step is identified as a critical journey bottleneck',
+        optimization_action STRING NOT NULL COMMENT 'Recommended architectural optimization remedy'
+    )
+    USING DELTA
+    COMMENT 'Conformed Business Process Mining & Optimization Mart';
+    """,
 }
 
 

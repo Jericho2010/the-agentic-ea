@@ -1501,6 +1501,97 @@ SEED_INTERFACE_RATIONALIZATION = [
     },
 ]
 
+SEED_PROCESS_OPTIMIZATION: List[Dict[str, Any]] = [
+    {
+        "process_id": "PROC-ORDER-TO-CASH",
+        "process_name": "Order-to-Cash Customer Journey",
+        "step_id": "STEP-01",
+        "step_name": "Cart Checkout Submission",
+        "service_urn": "urn:ea:application:web-storefront",
+        "p50_latency_ms": 95.0,
+        "p95_latency_ms": 120.0,
+        "p99_latency_ms": 155.0,
+        "sla_target_ms": 150.0,
+        "error_rate_pct": 0.05,
+        "is_bottleneck": False,
+        "optimization_action": "RETAIN_CURRENT_SLA",
+    },
+    {
+        "process_id": "PROC-ORDER-TO-CASH",
+        "process_name": "Order-to-Cash Customer Journey",
+        "step_id": "STEP-02",
+        "step_name": "Customer Profile & Loyalty Lookup",
+        "service_urn": "urn:ea:database:cassandra-legacy-cluster",
+        "p50_latency_ms": 710.0,
+        "p95_latency_ms": 880.0,
+        "p99_latency_ms": 1240.0,
+        "sla_target_ms": 250.0,
+        "error_rate_pct": 3.80,
+        "is_bottleneck": True,
+        "optimization_action": "REPLATFORM_LAKEHOUSE",
+    },
+    {
+        "process_id": "PROC-ORDER-TO-CASH",
+        "process_name": "Order-to-Cash Customer Journey",
+        "step_id": "STEP-03",
+        "step_name": "Payment Authorization & Fraud Scoring",
+        "service_urn": "urn:ea:microservice:payments-service",
+        "p50_latency_ms": 240.0,
+        "p95_latency_ms": 310.0,
+        "p99_latency_ms": 390.0,
+        "sla_target_ms": 350.0,
+        "error_rate_pct": 0.12,
+        "is_bottleneck": False,
+        "optimization_action": "RETAIN_CURRENT_SLA",
+    },
+    {
+        "process_id": "PROC-ORDER-TO-CASH",
+        "process_name": "Order-to-Cash Customer Journey",
+        "step_id": "STEP-04",
+        "step_name": "Ledger Posting & Invoice Generation",
+        "service_urn": "urn:ea:database:billing-db",
+        "p50_latency_ms": 110.0,
+        "p95_latency_ms": 140.0,
+        "p99_latency_ms": 180.0,
+        "sla_target_ms": 200.0,
+        "error_rate_pct": 0.02,
+        "is_bottleneck": False,
+        "optimization_action": "RETAIN_CURRENT_SLA",
+    },
+    {
+        "process_id": "PROC-ORDER-TO-CASH",
+        "process_name": "Order-to-Cash Customer Journey",
+        "step_id": "STEP-05",
+        "step_name": "Audit & Event Ingestion",
+        "service_urn": "urn:ea:cloudresource:customer-pii-stream",
+        "p50_latency_ms": 35.0,
+        "p95_latency_ms": 45.0,
+        "p99_latency_ms": 60.0,
+        "sla_target_ms": 50.0,
+        "error_rate_pct": 0.01,
+        "is_bottleneck": False,
+        "optimization_action": "RETAIN_CURRENT_SLA",
+    },
+]
+
+SEED_PROCESS_EVENT_LOGS: List[Dict[str, Any]] = [
+    {"trace_id": "TRC-2026-OTC-001", "process_id": "PROC-ORDER-TO-CASH", "step_id": "STEP-01", "step_name": "Cart Checkout Submission", "service_urn": "urn:ea:application:web-storefront", "duration_ms": 118.4, "status": "SUCCESS", "timestamp": "2026-10-18T00:00:00Z"},
+    {"trace_id": "TRC-2026-OTC-001", "process_id": "PROC-ORDER-TO-CASH", "step_id": "STEP-02", "step_name": "Customer Profile & Loyalty Lookup", "service_urn": "urn:ea:database:cassandra-legacy-cluster", "duration_ms": 878.6, "status": "SLA_BREACH", "timestamp": "2026-10-18T00:00:01Z"},
+    {"trace_id": "TRC-2026-OTC-001", "process_id": "PROC-ORDER-TO-CASH", "step_id": "STEP-03", "step_name": "Payment Authorization & Fraud Scoring", "service_urn": "urn:ea:microservice:payments-service", "duration_ms": 308.2, "status": "SUCCESS", "timestamp": "2026-10-18T00:00:02Z"},
+    {"trace_id": "TRC-2026-OTC-001", "process_id": "PROC-ORDER-TO-CASH", "step_id": "STEP-04", "step_name": "Ledger Posting & Invoice Generation", "service_urn": "urn:ea:database:billing-db", "duration_ms": 139.1, "status": "SUCCESS", "timestamp": "2026-10-18T00:00:03Z"},
+    {"trace_id": "TRC-2026-OTC-001", "process_id": "PROC-ORDER-TO-CASH", "step_id": "STEP-05", "step_name": "Audit & Event Ingestion", "service_urn": "urn:ea:cloudresource:customer-pii-stream", "duration_ms": 44.8, "status": "SUCCESS", "timestamp": "2026-10-18T00:00:04Z"},
+    {"trace_id": "TRC-2026-OTC-002", "process_id": "PROC-ORDER-TO-CASH", "step_id": "STEP-01", "step_name": "Cart Checkout Submission", "service_urn": "urn:ea:application:web-storefront", "duration_ms": 122.1, "status": "SUCCESS", "timestamp": "2026-10-18T01:00:00Z"},
+    {"trace_id": "TRC-2026-OTC-002", "process_id": "PROC-ORDER-TO-CASH", "step_id": "STEP-02", "step_name": "Customer Profile & Loyalty Lookup", "service_urn": "urn:ea:database:cassandra-legacy-cluster", "duration_ms": 884.2, "status": "SLA_BREACH", "timestamp": "2026-10-18T01:00:01Z"},
+    {"trace_id": "TRC-2026-OTC-002", "process_id": "PROC-ORDER-TO-CASH", "step_id": "STEP-03", "step_name": "Payment Authorization & Fraud Scoring", "service_urn": "urn:ea:microservice:payments-service", "duration_ms": 312.0, "status": "SUCCESS", "timestamp": "2026-10-18T01:00:02Z"},
+    {"trace_id": "TRC-2026-OTC-002", "process_id": "PROC-ORDER-TO-CASH", "step_id": "STEP-04", "step_name": "Ledger Posting & Invoice Generation", "service_urn": "urn:ea:database:billing-db", "duration_ms": 141.5, "status": "SUCCESS", "timestamp": "2026-10-18T01:00:03Z"},
+    {"trace_id": "TRC-2026-OTC-002", "process_id": "PROC-ORDER-TO-CASH", "step_id": "STEP-05", "step_name": "Audit & Event Ingestion", "service_urn": "urn:ea:cloudresource:customer-pii-stream", "duration_ms": 45.2, "status": "SUCCESS", "timestamp": "2026-10-18T01:00:04Z"},
+    {"trace_id": "TRC-2026-OTC-003", "process_id": "PROC-ORDER-TO-CASH", "step_id": "STEP-01", "step_name": "Cart Checkout Submission", "service_urn": "urn:ea:application:web-storefront", "duration_ms": 119.5, "status": "SUCCESS", "timestamp": "2026-10-18T02:00:00Z"},
+    {"trace_id": "TRC-2026-OTC-003", "process_id": "PROC-ORDER-TO-CASH", "step_id": "STEP-02", "step_name": "Customer Profile & Loyalty Lookup", "service_urn": "urn:ea:database:cassandra-legacy-cluster", "duration_ms": 879.3, "status": "SLA_BREACH", "timestamp": "2026-10-18T02:00:01Z"},
+    {"trace_id": "TRC-2026-OTC-003", "process_id": "PROC-ORDER-TO-CASH", "step_id": "STEP-03", "step_name": "Payment Authorization & Fraud Scoring", "service_urn": "urn:ea:microservice:payments-service", "duration_ms": 309.8, "status": "SUCCESS", "timestamp": "2026-10-18T02:00:02Z"},
+    {"trace_id": "TRC-2026-OTC-003", "process_id": "PROC-ORDER-TO-CASH", "step_id": "STEP-04", "step_name": "Ledger Posting & Invoice Generation", "service_urn": "urn:ea:database:billing-db", "duration_ms": 138.9, "status": "SUCCESS", "timestamp": "2026-10-18T02:00:03Z"},
+    {"trace_id": "TRC-2026-OTC-003", "process_id": "PROC-ORDER-TO-CASH", "step_id": "STEP-05", "step_name": "Audit & Event Ingestion", "service_urn": "urn:ea:cloudresource:customer-pii-stream", "duration_ms": 44.1, "status": "SUCCESS", "timestamp": "2026-10-18T02:00:04Z"},
+]
+
 
 def seed_database() -> Dict[str, int]:
     """Seed the Unity Catalog conformed tables."""
@@ -1516,6 +1607,8 @@ def seed_database() -> Dict[str, int]:
     c_lineage_count = client.save_compliance_lineage(SEED_COMPLIANCE_LINEAGE)
     gw_count = client.save_api_gateway_logs(SEED_API_GATEWAY_LOGS)
     ir_count = client.save_interface_rationalization(SEED_INTERFACE_RATIONALIZATION)
+    p_opt_count = client.save_process_optimization(SEED_PROCESS_OPTIMIZATION)
+    p_evt_count = client.save_process_event_logs(SEED_PROCESS_EVENT_LOGS)
     return {
         "nodes": n_count,
         "edges": e_count,
@@ -1528,6 +1621,8 @@ def seed_database() -> Dict[str, int]:
         "compliance_lineage": c_lineage_count,
         "api_gateway_logs": gw_count,
         "interface_rationalization": ir_count,
+        "process_optimization": p_opt_count,
+        "process_event_logs": p_evt_count,
     }
 
 
