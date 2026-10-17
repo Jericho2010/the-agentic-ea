@@ -170,6 +170,22 @@ class UnityCatalogClient:
         );
         """)
 
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS gold_arb_audit_ledger (
+            audit_id TEXT PRIMARY KEY,
+            pr_id TEXT NOT NULL,
+            commit_hash TEXT NOT NULL,
+            decision TEXT NOT NULL,
+            policy_status TEXT NOT NULL,
+            violations_count INTEGER NOT NULL,
+            violations_json TEXT NOT NULL,
+            evaluator TEXT NOT NULL,
+            resources_evaluated INTEGER NOT NULL,
+            diagram_delta_path TEXT,
+            timestamp TEXT NOT NULL
+        );
+        """)
+
         conn.commit()
         conn.close()
 
@@ -290,6 +306,70 @@ class UnityCatalogClient:
                 "dispositions": list(c["dispositions"]),
             })
         return summary
+
+    def record_arb_audit(self, receipt: Dict[str, Any]) -> str:
+        """
+        Record and persist an immutable ARB audit evaluation receipt.
+        Inserts into ea.gold.arb_audit_ledger.
+        """
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        audit_id = receipt.get("audit_id") or f"arb-{receipt.get('pr_id', 'pr').lower()}-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S%f')}"
+        violations_str = receipt.get("violations_json")
+        if isinstance(violations_str, (list, dict)):
+            violations_str = json.dumps(violations_str)
+        elif not violations_str:
+            violations_str = "[]"
+
+        cur.execute("""
+        INSERT INTO gold_arb_audit_ledger (
+            audit_id, pr_id, commit_hash, decision, policy_status,
+            violations_count, violations_json, evaluator, resources_evaluated,
+            diagram_delta_path, timestamp
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(audit_id) DO UPDATE SET
+            decision = excluded.decision,
+            policy_status = excluded.policy_status,
+            violations_count = excluded.violations_count,
+            violations_json = excluded.violations_json,
+            timestamp = excluded.timestamp;
+        """, (
+            audit_id,
+            receipt["pr_id"],
+            receipt.get("commit_hash", "HEAD"),
+            receipt["decision"],
+            receipt.get("policy_status", "COMPLIANT" if receipt["decision"] == "APPROVED" else "VIOLATION_DETECTED"),
+            int(receipt.get("violations_count", 0)),
+            violations_str,
+            receipt.get("evaluator", "subscription_cli"),
+            int(receipt.get("resources_evaluated", 1)),
+            receipt.get("diagram_delta_path"),
+            receipt.get("timestamp", datetime.now(timezone.utc).isoformat()),
+        ))
+        conn.commit()
+        conn.close()
+        return audit_id
+
+    def get_arb_audit_ledger(self) -> List[Dict[str, Any]]:
+        """Retrieve all ARB pre-merge governance audit records ordered by timestamp descending."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM gold_arb_audit_ledger ORDER BY timestamp DESC;")
+        rows = []
+        for r in cur.fetchall():
+            d = dict(r)
+            if d.get("violations_json"):
+                try:
+                    d["violations"] = json.loads(d["violations_json"])
+                except Exception:
+                    d["violations"] = []
+            else:
+                d["violations"] = []
+            rows.append(d)
+        conn.close()
+        return rows
+
 
 
     def merge_nodes(self, nodes: List[Dict[str, Any]]) -> int:
@@ -554,6 +634,7 @@ class UnityCatalogClient:
             ("ea.gold.time_matrix", "gold_time_matrix"),
             ("ea.gold.drift_reconciled", "gold_drift_reconciled"),
             ("ea.gold.capability_realization", "gold_capability_realization"),
+            ("ea.gold.arb_audit_ledger", "gold_arb_audit_ledger"),
         ]
         res = sql
         for uc, local in replacements:

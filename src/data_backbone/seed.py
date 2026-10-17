@@ -638,6 +638,61 @@ SEED_CAPABILITY_REALIZATIONS = [
 ]
 
 
+SEED_ARB_AUDIT_LEDGER = [
+    {
+        "audit_id": "arb-pr-104-historical",
+        "pr_id": "PR-104",
+        "commit_hash": "8a91b2c",
+        "decision": "BLOCKED",
+        "policy_status": "VIOLATION_DETECTED",
+        "violations_count": 3,
+        "violations_json": [
+            {
+                "policy_id": "EA-POL-001",
+                "resource": "aws_cassandra_table.customer_audit_log",
+                "severity": "CRITICAL",
+                "title": "Unapproved / Deprecated Datastore Enforcement",
+                "detail": "Resource provisions or binds to unapproved / legacy datastore (Cassandra 3.11.10), which is unapproved or past End-of-Life and classified as 'Eliminate' in Gartner TIME matrix. Approved alternative: Databricks Unity Catalog Delta Lake or managed PostgreSQL.",
+                "remediation": "Replace `aws_cassandra_table` with `databricks_table` (catalog_name = 'ea', schema_name = 'silver', format = 'DELTA') or eliminate dependency on unapproved Cassandra cluster."
+            },
+            {
+                "policy_id": "EA-POL-002",
+                "resource": "aws_cassandra_table.customer_audit_log",
+                "severity": "CRITICAL",
+                "title": "Mandatory Customer PII Storage Encryption (GDPR Art. 32)",
+                "detail": "Resource handles customer PII (ContainsPII = true) but has encryption disabled or missing (type = 'NONE'). Violates GDPR Article 32 and enterprise data protection standards.",
+                "remediation": "Configure KMS Customer Managed Key encryption: `encryption_specification { type = 'CUSTOMER_MANAGED_KMS_KEY', kms_key_identifier = '...' }` or enable server-side KMS encryption."
+            },
+            {
+                "policy_id": "EA-POL-003",
+                "resource": "aws_cassandra_table.customer_audit_log",
+                "severity": "HIGH",
+                "title": "Mandatory Architectural Tagging (Ownership & Tier Criticality)",
+                "detail": "Resource lacks mandatory enterprise architectural governance tags: OwnerTeam, Tier. Required for automatic catalog registration and ownership attribution.",
+                "remediation": "Add required governance tags: `tags = { OwnerTeam = \"team-...\", Tier = \"Tier-1\" }`."
+            }
+        ],
+        "evaluator": "subscription_cli",
+        "resources_evaluated": 1,
+        "diagram_delta_path": str(ROOT_DIR / "data" / "diagrams" / "diagram_delta.html"),
+        "timestamp": "2026-10-16T12:00:00Z",
+    },
+    {
+        "audit_id": "arb-pr-105-historical",
+        "pr_id": "PR-105",
+        "commit_hash": "9c43d1a",
+        "decision": "APPROVED",
+        "policy_status": "COMPLIANT",
+        "violations_count": 0,
+        "violations_json": [],
+        "evaluator": "subscription_cli",
+        "resources_evaluated": 1,
+        "diagram_delta_path": str(ROOT_DIR / "data" / "diagrams" / "diagram_delta.html"),
+        "timestamp": "2026-10-16T14:30:00Z",
+    },
+]
+
+
 def seed_database() -> Dict[str, int]:
     """Seed the Unity Catalog conformed tables."""
     client = get_unity_catalog_client()
@@ -646,16 +701,19 @@ def seed_database() -> Dict[str, int]:
     t_count = client.save_time_matrix(SEED_TIME_MATRIX)
     d_count = client.save_drift_records(SEED_DRIFT)
     c_count = client.save_capability_realizations(SEED_CAPABILITY_REALIZATIONS)
+    a_count = sum(1 for rec in SEED_ARB_AUDIT_LEDGER if client.record_arb_audit(rec))
     return {
         "nodes": n_count,
         "edges": e_count,
         "time_matrix": t_count,
         "drift": d_count,
         "capability_realizations": c_count,
+        "arb_audit_ledger": a_count,
     }
 
 
 if __name__ == "__main__":
     res = seed_database()
     print(f"✓ Seeded Databricks Unity Catalog conformed tables: {res}")
+
 

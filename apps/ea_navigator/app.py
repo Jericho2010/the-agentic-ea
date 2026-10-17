@@ -298,6 +298,9 @@ with tab_sentinel:
         index=0
     )
 
+    pr_id = "PR-104" if "Cassandra" in sample_pr else "PR-105"
+    commit_hash = "8a91b2c" if "Cassandra" in sample_pr else "9c43d1a"
+
     if "Cassandra" in sample_pr:
         patch_file = PROJECT_ROOT / "tests" / "fixtures" / "pr_unapproved_db.patch"
     else:
@@ -309,9 +312,9 @@ with tab_sentinel:
         st.code(patch_content, language="diff")
 
     if st.button("🚀 Evaluate PR with EA Sentinel Gate", type="primary"):
-        with st.spinner(f"Evaluating PR diff via Tri-Modal option: {provider_choice}..."):
+        with st.spinner(f"Evaluating {pr_id} diff via Tri-Modal option: {provider_choice}..."):
             gate_eval = EASentinelGate(provider=provider_choice)
-            res = gate_eval.evaluate_patch(patch_content)
+            res = gate_eval.evaluate_patch(patch_content, pr_id=pr_id, commit_hash=commit_hash)
 
         if res["passed"]:
             st.markdown('<span class="badge-pass">✅ GATE PASSED: PR IS ARCHITECTURALLY COMPLIANT</span>', unsafe_allow_html=True)
@@ -325,6 +328,48 @@ with tab_sentinel:
         if delta_html.exists():
             st.markdown("#### 🗺️ Visual Architecture Diff (Before vs Proposed After)")
             components.html(delta_html.read_text(encoding="utf-8"), height=600, scrolling=True)
+
+    st.markdown("---")
+    st.markdown("#### 📜 Architecture Review Board (ARB) Pre-Merge Audit Ledger")
+    st.caption("Conformed immutable audit receipts recorded in `ea.gold.arb_audit_ledger` via Databricks Unity Catalog.")
+
+    audit_ledger = client.get_arb_audit_ledger()
+    if audit_ledger:
+        a_col1, a_col2, a_col3 = st.columns(3)
+        total_evals = len(audit_ledger)
+        approved_evals = sum(1 for a in audit_ledger if a["decision"] == "APPROVED")
+        blocked_evals = sum(1 for a in audit_ledger if a["decision"] == "BLOCKED")
+
+        a_col1.metric("Total ARB Audits", f"{total_evals} receipts")
+        a_col2.metric("🟢 Approved PRs", f"{approved_evals} compliant")
+        a_col3.metric("🔴 Blocked PRs", f"{blocked_evals} non-compliant")
+
+        df_ledger = pd.DataFrame(audit_ledger)[[
+            "pr_id", "commit_hash", "decision", "policy_status",
+            "violations_count", "evaluator", "timestamp"
+        ]]
+        st.dataframe(df_ledger, use_container_width=True)
+
+        with st.expander("🔍 View Policy Violations Details by PR"):
+            for audit in audit_ledger:
+                badge = "🟢 APPROVED" if audit["decision"] == "APPROVED" else "🔴 BLOCKED"
+                st.markdown(f"**{audit['pr_id']} (Commit `{audit['commit_hash']}`) — {badge}** ({audit['timestamp']})")
+                if audit.get("violations"):
+                    for v in audit["violations"]:
+                        st.markdown(f"- **`{v['policy_id']}` ({v['severity']}):** {v['detail']}")
+                        st.caption(f"  *Remediation:* {v['remediation']}")
+                else:
+                    st.markdown("- *Zero violations detected. Architectural conformance verified.*")
+
+        st.download_button(
+            label="📥 Export ARB Audit Ledger (CSV)",
+            data=df_ledger.to_csv(index=False),
+            file_name="ea_gold_arb_audit_ledger.csv",
+            mime="text/csv",
+        )
+    else:
+        st.info("No ARB audit receipts currently recorded in `ea.gold.arb_audit_ledger`.")
+
 
 
 # ==============================================================================

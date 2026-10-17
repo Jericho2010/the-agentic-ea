@@ -133,5 +133,23 @@ DDL_STATEMENTS = {
     USING DELTA
     COMMENT 'Executive Business Capability Realization and FinOps Investment Alignment Data Mart';
     """,
+    "gold_arb_audit_ledger": f"""
+    CREATE TABLE IF NOT EXISTS {SCHEMA_GOLD}.arb_audit_ledger (
+        audit_id STRING NOT NULL COMMENT 'Unique ARB audit evaluation UUID',
+        pr_id STRING NOT NULL COMMENT 'Pull Request identifier (e.g. PR-104)',
+        commit_hash STRING NOT NULL COMMENT 'Git commit hash evaluated',
+        decision STRING NOT NULL COMMENT 'ARB Governance Decision: APPROVED or BLOCKED',
+        policy_status STRING NOT NULL COMMENT 'COMPLIANT or VIOLATION_DETECTED',
+        violations_count INT NOT NULL COMMENT 'Number of detected architectural policy violations',
+        violations_json STRING NOT NULL COMMENT 'Serialized JSON array of detected violations',
+        evaluator STRING NOT NULL COMMENT 'Evaluation provider (subscription_cli, databricks_mosaic, external_api)',
+        resources_evaluated INT NOT NULL COMMENT 'Number of resources extracted from diff',
+        diagram_delta_path STRING COMMENT 'Path to compiled Archify visual delta artifact',
+        timestamp TIMESTAMP NOT NULL COMMENT 'Timestamp of ARB evaluation receipt'
+    )
+    USING DELTA
+    COMMENT 'Immutable Architecture Review Board (ARB) Pre-Merge Governance Audit Ledger';
+    """,
 }
+
 
