@@ -90,6 +90,23 @@ DDL_STATEMENTS = {
     USING DELTA
     COMMENT 'Raw Cloud CUR billing records and cloud resource configurations';
     """,
+    "bronze_cmdb_ci": f"""
+    CREATE TABLE IF NOT EXISTS {SCHEMA_BRONZE}.cmdb_ci (
+        sys_id STRING NOT NULL COMMENT 'ServiceNow unique sys_id',
+        name STRING NOT NULL COMMENT 'Configuration Item name',
+        ci_class STRING NOT NULL COMMENT 'CMDB CI class (e.g. cmdb_ci_appl, cmdb_ci_database, cmdb_ci_cloud_service)',
+        operational_status STRING NOT NULL COMMENT 'Operational status (Operational, Retired, In Maintenance)',
+        environment STRING COMMENT 'Environment (Production, Staging, Development)',
+        tier STRING COMMENT 'Criticality tier (Tier-0, Tier-1, Tier-2, Tier-3)',
+        owner_team STRING COMMENT 'Assigned support group / owner team',
+        ip_address STRING COMMENT 'Management or ingress IP address',
+        cloud_resource_id STRING COMMENT 'Associated cloud provider ARN or instance ID',
+        raw_attributes STRING COMMENT 'JSON serialized attributes from ServiceNow CMDB',
+        synced_at TIMESTAMP NOT NULL COMMENT 'Timestamp of last ServiceNow CMDB sync'
+    )
+    USING DELTA
+    COMMENT 'Raw ServiceNow CMDB Configuration Items (Applications, Databases, Infrastructure)';
+    """,
     # Gold Scenario Marts
     "gold_time_matrix": f"""
     CREATE TABLE IF NOT EXISTS {SCHEMA_GOLD}.time_matrix (
@@ -105,15 +122,20 @@ DDL_STATEMENTS = {
     """,
     "gold_drift_reconciled": f"""
     CREATE TABLE IF NOT EXISTS {SCHEMA_GOLD}.drift_reconciled (
-        urn STRING NOT NULL COMMENT 'Entity URN',
-        declared_state STRING NOT NULL COMMENT 'State declared in Git/Architecture manifest',
-        runtime_state STRING NOT NULL COMMENT 'Observed runtime cloud/telemetry state',
-        discrepancy_type STRING NOT NULL COMMENT 'e.g. Unapproved Datastore, Unencrypted Storage, Missing Owner',
+        drift_id STRING NOT NULL COMMENT 'Unique drift identifier UUID',
+        urn STRING NOT NULL COMMENT 'Entity URN or identifier',
+        ci_name STRING NOT NULL COMMENT 'Configuration item / entity name',
+        drift_type STRING NOT NULL COMMENT 'ORPHAN_CI, SHADOW_IT, ATTRIBUTE_DRIFT, POLICY_VIOLATION',
         severity STRING NOT NULL COMMENT 'CRITICAL, HIGH, MEDIUM, LOW',
+        declared_state STRING NOT NULL COMMENT 'State declared in Git/Architecture manifest or CMDB',
+        runtime_state STRING NOT NULL COMMENT 'Observed runtime cloud/telemetry state',
+        discrepancy_type STRING NOT NULL COMMENT 'e.g. Orphan CI, Undocumented Asset, Mismatched Tier',
+        remediation_action STRING NOT NULL COMMENT 'RETIRE_CMDB_RECORD, REGISTER_CMDB_CI, SYNC_CMDB_METADATA, REMEDIATE_POLICY',
+        remediation_payload STRING COMMENT 'JSON formatted ServiceNow REST API payload for automated remediation',
         reconciled_at TIMESTAMP NOT NULL COMMENT 'Reconciliation timestamp'
     )
     USING DELTA
-    COMMENT 'Reconciled architecture drift between declared manifests and live estate telemetry';
+    COMMENT 'Reconciled architecture and CMDB drift between declared manifests, CMDB baseline, and live telemetry';
     """,
     "gold_capability_realization": f"""
     CREATE TABLE IF NOT EXISTS {SCHEMA_GOLD}.capability_realization (

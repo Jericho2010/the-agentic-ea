@@ -79,7 +79,7 @@ the-agentic-ea/
 - **Visual Delta Diff:** Generates dual Archify `diagram_delta.html` and `.svg` highlighting non-compliant resources in rose red.
 
 ### D. Databricks App UI Cockpit (`apps/ea_navigator/app.py`)
-- Deployable inside Databricks Apps with 7 interactive tabs:
+- Deployable inside Databricks Apps with 8 interactive tabs:
   1. **Estate Catalog:** Filterable table of all conformed PAM entities and ArchiMate relations.
   2. **Living Architecture Maps:** Embedded interactive Archify HTML maps with pan, zoom, and tooltips.
   3. **EA Navigator Cockpit:** Conversational interface with live blast-radius calculations and MADR exporter.
@@ -87,6 +87,7 @@ the-agentic-ea/
   5. **Executive TIME Matrix:** Portfolio quadrant analysis with FinOps annual run-cost aggregations.
   6. **Target-State Migration Roadmap:** Phased modernization waves, target PAM metamodel topology, and MADR v3.0 decision record exporter.
   7. **Business Capabilities & Investment:** Hierarchical capability tree (L1 Domains & L2 Capabilities) with FinOps cloud run-cost attribution and tech debt heatmaps.
+  8. **CMDB Baseline Hygiene & Drift:** Continuous ServiceNow CMDB reconciliation (Orphan CIs, Shadow IT, Attribute Drift) with automated Table API REST remediation payloads.
 
 ---
 
@@ -114,6 +115,7 @@ streamlit run apps/ea_navigator/app.py
 - **2026-10-17 - Scenario S03 Verified (Target State Architecture & Cloud Migration Roadmapping)** - Implemented plan_target_state_migration, get_target_state_graph, and Tab 6 Migration Roadmap in app.py. Validated 3 phased waves, PAM target-state mapping (orders-delta-table, customer-events-dlt, hosted_on, migrates_to), MADR v3.0 decision record, and $64,999.92/yr spend elimination. Dedicated test suite tests/scenarios/test_s03_target_state_migration.py passing 6/6 tests, master suite 33/33 tests passing, demo.sh exit code 0.
 - **2026-10-17 - Scenario S04 Verified (Business Capability Modeling & Strategic Investment Alignment)** - Conformed hierarchical business capability nodes (Level-1 Strategic Domains & Level-2 Functional Capabilities) in PAM metamodel with realizes and aggregates relationships. Created conformed gold data mart ea.gold.capability_realization via Unity Catalog client attributing exactly $307,799.76/yr estate spend (Customer Experience: $147,999.84, Finance & Billing: $126,999.96, Security & Compliance: $32,799.96) and identifying technical debt concentrations. Integrated Tab 7 into Databricks App Cockpit. Dedicated test suite tests/scenarios/test_s04_capabilities.py passing 6/6 tests, master suite 39/39 tests passing (100%), and demo.sh passing with exit code 0.
 - **2026-10-17 - Scenario S05 Verified (ARB Governance & Pre-Merge Policy Gate)** - Verified EA Sentinel pre-merge gate enforcing EA-POL-001 (unapproved datastores: Cassandra, MongoDB, unapproved engines), EA-POL-002 (mandatory KMS CMK encryption for customer PII storage and transmission), and EA-POL-003 (mandatory OwnerTeam and Tier criticality governance tags). Implemented conformed audit ledger `ea.gold.arb_audit_ledger` in Databricks Unity Catalog client, compiled Archify visual delta diffs (`diagram_delta.html` / `.svg`) with zero black box defects, and integrated ledger view and visual diffs into Tab 4 in `apps/ea_navigator/app.py`. Dedicated test suite `tests/scenarios/test_s05_arb_governance.py` passing 7/7 tests, master suite 46/46 tests passing, and `./demo.sh` passing end-to-end with exit code 0.
+- **2026-10-17 - Scenario S06 Verified (Continuous ServiceNow CMDB Synchronization & Baseline Hygiene)** - Implemented ServiceNow CMDB modular ingestion connector (`src/ingestion/ingest_servicenow_cmdb.py`) populating conformed Bronze table `ea.bronze.cmdb_ci`. Implemented continuous 3-way baseline reconciliation in `dlt_metamodel_pipeline.py` and `src/navigator/engine.py` across CMDB CIs, Git PAM graph, and live runtime cloud resources, identifying Orphan CIs (`recommendations-ai-legacy`, `elastic-search-v6-logging`), Shadow IT (`customer-pii-stream`, `payments-service`), and Attribute/Lifecycle Drift (`checkout-service`, `cassandra-legacy-cluster`). Populated conformed gold mart `ea.gold.drift_reconciled` with complete discrepancy taxonomy and automated ServiceNow Table API REST remediation payloads. Integrated Tab 8 into Databricks App Cockpit in `apps/ea_navigator/app.py`. Dedicated test suite `tests/scenarios/test_s06_cmdb_sync.py` passing 7/7 tests, master suite 53/53 tests passing (100%), and `./demo.sh` passing end-to-end with exit code 0.
 
 
 

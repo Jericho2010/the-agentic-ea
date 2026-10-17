@@ -253,21 +253,204 @@ class StandaloneConformancePipeline:
 
     def reconcile_drift(self) -> int:
         """
-        Identifies discrepancy between declared Git state and live Cloud CUR resources.
+        Executes continuous 3-way drift reconciliation across:
+        1. ServiceNow CMDB configuration items (ea.bronze.cmdb_ci)
+        2. Git-declared architecture metamodel (ea.metamodel.nodes)
+        3. Live runtime cloud resources (ea.bronze.cloud_resources)
         Populates ea.gold.drift_reconciled.
         """
-        logger.info("Detecting estate drift and populating ea.gold.drift_reconciled...")
-        cloud_rows = self.client.execute_query(
-            f"SELECT resource_name, tags, resource_type FROM {SCHEMA_BRONZE}.cloud_resources"
-        )
-        nodes_rows = self.client.execute_query(
-            f"SELECT urn, name, owner_team FROM {SCHEMA_METAMODEL}.nodes"
-        )
-        registered_systems = {n["name"]: n for n in nodes_rows}
-        drift_count = 0
-        now = datetime.now(timezone.utc).isoformat()
+        logger.info("Detecting estate drift & CMDB hygiene discrepancies...")
+        cmdb_rows = self.client.get_cmdb_ci()
+        if not cmdb_rows:
+            from src.ingestion.ingest_servicenow_cmdb import ServiceNowCMDBIngestor
+            ServiceNowCMDBIngestor().ingest()
+            cmdb_rows = self.client.get_cmdb_ci()
 
-        drift_records = []
+        nodes_rows = self.client.get_nodes()
+        cloud_rows = self.client.execute_query(
+            f"SELECT resource_name, tags, resource_type, monthly_cost_usd FROM {SCHEMA_BRONZE}.cloud_resources"
+        )
+        time_rows = self.client.get_time_matrix()
+        time_by_name = {t["name"]: t for t in time_rows}
+
+        now = datetime.now(timezone.utc).isoformat()
+        cmdb_by_name = {c["name"]: c for c in cmdb_rows}
+        nodes_by_name = {n["name"]: n for n in nodes_rows if not n.get("urn", "").startswith("urn:ea:capability:")}
+
+        # Build cloud systems map
+        cloud_systems_map: Dict[str, Dict[str, Any]] = {}
+        for c in cloud_rows:
+            tags = {}
+            if c.get("tags"):
+                try:
+                    tags = json.loads(c["tags"]) if isinstance(c["tags"], str) else c["tags"]
+                except Exception:
+                    pass
+            sys_name = tags.get("System", c["resource_name"].split("-")[0])
+            cloud_systems_map[sys_name] = {
+                "resource_name": c["resource_name"],
+                "resource_type": c.get("resource_type", "CloudResource"),
+                "tags": tags,
+                "monthly_cost": float(c.get("monthly_cost_usd") or 0.0),
+            }
+
+        drift_records: List[Dict[str, Any]] = []
+
+        # ----------------------------------------------------------------------
+        # 1. ORPHAN CIs: In CMDB (Operational), but absent in Cloud & Git
+        # ----------------------------------------------------------------------
+        for ci_name, ci in cmdb_by_name.items():
+            if ci_name not in nodes_by_name and ci_name not in cloud_systems_map:
+                tier = ci.get("tier", "Tier-2")
+                severity = "MEDIUM" if tier in ("Tier-0", "Tier-1", "Tier-2") else "LOW"
+                drift_id = f"drift-orphan-{ci_name}"
+                ci_class = ci.get("ci_class", "cmdb_ci_appl")
+                sys_id = ci.get("sys_id", f"sys-{ci_name}")
+                drift_records.append({
+                    "drift_id": drift_id,
+                    "urn": f"urn:ea:{ci_class.replace('cmdb_ci_', '')}:{ci_name}",
+                    "ci_name": ci_name,
+                    "drift_type": "ORPHAN_CI",
+                    "severity": severity,
+                    "declared_state": f"CMDB: Active {ci.get('operational_status', 'Operational')} CI ({sys_id}, {tier})",
+                    "runtime_state": "Cloud/Git: Terminated / Decommissioned (0 active resources or repos)",
+                    "discrepancy_type": "Orphan CMDB Record (Absent in Cloud/Git Runtime)",
+                    "remediation_action": "RETIRE_CMDB_RECORD",
+                    "remediation_payload": {
+                        "target_api": f"ServiceNow Table API: /api/now/table/{ci_class}/{sys_id}",
+                        "method": "PATCH",
+                        "body": {
+                            "operational_status": "Retired",
+                            "install_status": "7",
+                            "comments": "Automated EA drift detection: Asset terminated and absent in runtime cloud/Git.",
+                        },
+                    },
+                    "reconciled_at": now,
+                })
+
+        # ----------------------------------------------------------------------
+        # 2. SHADOW IT / UNDOCUMENTED ASSETS: In Cloud or Git, missing in CMDB
+        # ----------------------------------------------------------------------
+        known_runtime_systems = set(cloud_systems_map.keys()).union(set(nodes_by_name.keys()))
+        for sys_name in sorted(known_runtime_systems):
+            if sys_name not in cmdb_by_name:
+                node = nodes_by_name.get(sys_name)
+                cloud_res = cloud_systems_map.get(sys_name)
+                tags = cloud_res["tags"] if cloud_res else {}
+                contains_pii = tags.get("ContainsPII") == "true" or (node and node.get("metadata", {}).get("pci_dss_scope"))
+                tier = tags.get("Tier") or (node.get("criticality") if node else "Tier-1")
+
+                if contains_pii or tier == "Tier-0":
+                    severity = "CRITICAL"
+                elif tier == "Tier-1":
+                    severity = "HIGH"
+                else:
+                    severity = "MEDIUM"
+
+                kind = node.get("kind", "Microservice") if node else "CloudResource"
+                target_table = "cmdb_ci_database" if "db" in sys_name or "cassandra" in sys_name else (
+                    "cmdb_ci_cloud_service" if "stream" in sys_name or "kinesis" in sys_name else "cmdb_ci_appl"
+                )
+                drift_id = f"drift-shadow-{sys_name}"
+                urn = node["urn"] if node else f"urn:ea:cloudresource:{sys_name}"
+                owner = tags.get("OwnerTeam") or (node.get("owner_team") if node else "unassigned")
+
+                drift_records.append({
+                    "drift_id": drift_id,
+                    "urn": urn,
+                    "ci_name": sys_name,
+                    "drift_type": "SHADOW_IT",
+                    "severity": severity,
+                    "declared_state": "CMDB: Missing / Unregistered (No CI record found)",
+                    "runtime_state": f"Cloud/Git: Active {kind} in production (Tier: {tier}, Owner: {owner})",
+                    "discrepancy_type": "Shadow IT / Undocumented Asset (Missing in CMDB)",
+                    "remediation_action": "REGISTER_CMDB_CI",
+                    "remediation_payload": {
+                        "target_api": f"ServiceNow Table API: /api/now/table/{target_table}",
+                        "method": "POST",
+                        "body": {
+                            "name": sys_name,
+                            "ci_class": target_table,
+                            "environment": "Production",
+                            "u_tier": tier,
+                            "support_group": owner,
+                            "u_contains_pii": bool(contains_pii),
+                            "comments": "Automated EA discovery: Asset actively running without CMDB record.",
+                        },
+                    },
+                    "reconciled_at": now,
+                })
+
+        # ----------------------------------------------------------------------
+        # 3. ATTRIBUTE / METADATA DRIFT: Present in both, but attributes differ
+        # ----------------------------------------------------------------------
+        for ci_name, ci in cmdb_by_name.items():
+            node = nodes_by_name.get(ci_name)
+            cloud_res = cloud_systems_map.get(ci_name)
+            time_entry = time_by_name.get(ci_name)
+
+            if node or cloud_res:
+                cmdb_tier = str(ci.get("tier") or "").strip()
+                cmdb_env = str(ci.get("environment") or "").strip()
+                cmdb_owner = str(ci.get("owner_team") or "").strip()
+                cmdb_status = str(ci.get("operational_status") or "").strip()
+
+                auth_tier = str((node.get("criticality") if node else None) or (cloud_res["tags"].get("Tier") if cloud_res else "Tier-1") or "Tier-1").strip()
+                auth_env = str((cloud_res["tags"].get("Environment") if cloud_res else "Production") or "Production").strip()
+                auth_owner = str((node.get("owner_team") if node else None) or (cloud_res["tags"].get("OwnerTeam") if cloud_res else "unassigned") or "unassigned").strip()
+
+                # Check Lifecycle Drift
+                if time_entry and time_entry.get("disposition") == "Eliminate" and cmdb_status.lower() in ("operational", "active", "1"):
+                    drift_records.append({
+                        "drift_id": f"drift-attr-lifecycle-{ci_name}",
+                        "urn": node["urn"] if node else f"urn:ea:system:{ci_name}",
+                        "ci_name": ci_name,
+                        "drift_type": "ATTRIBUTE_DRIFT",
+                        "severity": "CRITICAL",
+                        "declared_state": f"EA Portfolio: Eliminate / Phase-out (EOL: {time_entry.get('eol_date', '2025-12-31')}, Tech Debt: {time_entry.get('tech_debt_score', 90)})",
+                        "runtime_state": f"CMDB: Active Operational Database ({ci['sys_id']})",
+                        "discrepancy_type": "Lifecycle Drift (Sunset Database marked Operational in CMDB)",
+                        "remediation_action": "SYNC_CMDB_METADATA",
+                        "remediation_payload": {
+                            "target_api": f"ServiceNow Table API: /api/now/table/{ci['ci_class']}/{ci['sys_id']}",
+                            "method": "PATCH",
+                            "body": {
+                                "operational_status": "Pending Decommission",
+                                "u_lifecycle_stage": "Phase-Out",
+                                "comments": "Automated EA sync: Classified for Elimination in Executive TIME Matrix.",
+                            },
+                        },
+                        "reconciled_at": now,
+                    })
+
+                # Check Tier / Env / Owner Drift
+                elif (cmdb_tier.lower() != auth_tier.lower()) or (cmdb_env and auth_env and cmdb_env.lower() != auth_env.lower()) or (cmdb_owner and auth_owner and cmdb_owner.lower() != auth_owner.lower()):
+                    drift_records.append({
+                        "drift_id": f"drift-attr-meta-{ci_name}",
+                        "urn": node["urn"] if node else f"urn:ea:system:{ci_name}",
+                        "ci_name": ci_name,
+                        "drift_type": "ATTRIBUTE_DRIFT",
+                        "severity": "HIGH",
+                        "declared_state": f"Git/Cloud: {auth_tier}, Environment={auth_env}, Owner={auth_owner}",
+                        "runtime_state": f"CMDB: {cmdb_tier}, Environment={cmdb_env}, Owner={cmdb_owner} ({ci['sys_id']})",
+                        "discrepancy_type": "Attribute Drift (Tier, Environment & Ownership Mismatch)",
+                        "remediation_action": "SYNC_CMDB_METADATA",
+                        "remediation_payload": {
+                            "target_api": f"ServiceNow Table API: /api/now/table/{ci['ci_class']}/{ci['sys_id']}",
+                            "method": "PATCH",
+                            "body": {
+                                "u_tier": auth_tier,
+                                "environment": auth_env,
+                                "support_group": auth_owner,
+                                "comments": "Automated EA metadata sync from authoritative Git/Cloud manifests.",
+                            },
+                        },
+                        "reconciled_at": now,
+                    })
+
+        # ----------------------------------------------------------------------
+        # 4. POLICY VIOLATIONS (e.g. Unapproved datastores / unencrypted storage)
+        # ----------------------------------------------------------------------
         for c in cloud_rows:
             tags = {}
             if c.get("tags"):
@@ -276,35 +459,29 @@ class StandaloneConformancePipeline:
                 except Exception:
                     pass
             resource_name = c["resource_name"]
-
-            # Drift Check 1: Cloud resource with unapproved technology (e.g. Cassandra)
-            if "cassandra" in resource_name.lower():
+            if "cassandra" in resource_name.lower() and tags.get("Encrypted") == "false":
                 drift_records.append({
+                    "drift_id": f"drift-policy-cassandra-{resource_name}",
                     "urn": f"urn:ea:database:{resource_name}",
-                    "declared_state": "Architectural Target: Delta Lake / Managed PostgreSQL",
-                    "runtime_state": f"Live Cluster: {c.get('resource_type', 'CloudResource')} running Cassandra 3.11",
-                    "discrepancy_type": "Unapproved Datastore (EA-POL-001)",
+                    "ci_name": resource_name,
+                    "drift_type": "POLICY_VIOLATION",
                     "severity": "CRITICAL",
-                    "reconciled_at": now
+                    "declared_state": "Security Standard: Mandatory KMS CMK Encryption & Pure Delta Backbone",
+                    "runtime_state": f"Live Cluster: {c.get('resource_type', 'CloudResource')} unencrypted Cassandra 3.11",
+                    "discrepancy_type": "Unapproved Datastore / Security Non-Compliance (EA-POL-001/002)",
+                    "remediation_action": "BLOCK_PR_MERGE",
+                    "remediation_payload": {
+                        "target_api": "GitHub Status API / ARB Pre-Merge Gate",
+                        "action": "BLOCK",
+                        "detail": "Enforce migration to Databricks Unity Catalog Delta Lake.",
+                    },
+                    "reconciled_at": now,
                 })
 
-            # Drift Check 2: Unencrypted PII storage
-            if tags.get("ContainsPII") == "true" and tags.get("Encrypted") == "false":
-                drift_records.append({
-                    "urn": f"urn:ea:resource:{resource_name}",
-                    "declared_state": "Security Standard: Mandatory KMS CMK Encryption for PII",
-                    "runtime_state": "Live Config: Storage bucket unencrypted",
-                    "discrepancy_type": "Unencrypted PII Storage (EA-POL-002)",
-                    "severity": "CRITICAL",
-                    "reconciled_at": now
-                })
-
-        if drift_records:
-            drift_count = self.client.save_drift_records(drift_records)
-        else:
-            drift_count = 0
-
-        logger.info(f"Identified {drift_count} architecture drift discrepancies.")
+        # Save to ea.gold.drift_reconciled
+        self.client.execute_statement(f"DELETE FROM {SCHEMA_GOLD}.drift_reconciled")
+        drift_count = self.client.save_drift_records(drift_records)
+        logger.info(f"Reconciled {drift_count} architecture and CMDB drift discrepancies in {SCHEMA_GOLD}.drift_reconciled.")
         return drift_count
 
     def reconcile_capability_realizations(self) -> int:

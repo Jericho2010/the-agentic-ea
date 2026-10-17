@@ -1053,6 +1053,71 @@ Graph traversal reveals **{blast['upstream_count']} upstream callers** directly 
                 })
         return rows
 
+    def reconcile_cmdb_drift(self) -> List[Dict[str, Any]]:
+        """Reconciles ServiceNow CMDB against Git architecture and runtime cloud telemetry."""
+        from src.ingestion.dlt_metamodel_pipeline import StandaloneConformancePipeline
+        pipeline = StandaloneConformancePipeline()
+        pipeline.reconcile_drift()
+        return self.client.get_drift_reconciled()
+
+    def get_cmdb_hygiene_metrics(self) -> Dict[str, Any]:
+        """Calculates ServiceNow CMDB baseline hygiene KPIs and discrepancy distributions."""
+        cmdb_cis = self.client.get_cmdb_ci()
+        if not cmdb_cis:
+            from src.ingestion.ingest_servicenow_cmdb import ServiceNowCMDBIngestor
+            ServiceNowCMDBIngestor().ingest()
+            cmdb_cis = self.client.get_cmdb_ci()
+
+        drift_rows = self.client.get_drift_reconciled()
+        if not drift_rows:
+            self.reconcile_cmdb_drift()
+            drift_rows = self.client.get_drift_reconciled()
+
+        total_cmdb = len(cmdb_cis)
+        orphan_cis = [d for d in drift_rows if d.get("drift_type") == "ORPHAN_CI"]
+        shadow_it = [d for d in drift_rows if d.get("drift_type") == "SHADOW_IT"]
+        attr_drift = [d for d in drift_rows if d.get("drift_type") == "ATTRIBUTE_DRIFT"]
+        policy_violations = [d for d in drift_rows if d.get("drift_type") == "POLICY_VIOLATION"]
+        critical_discrepancies = [d for d in drift_rows if d.get("severity") == "CRITICAL"]
+
+        drift_ci_names = {d.get("ci_name") for d in orphan_cis + attr_drift}
+        healthy_cis = [ci for ci in cmdb_cis if ci["name"] not in drift_ci_names]
+        healthy_count = len(healthy_cis)
+        in_sync_pct = round((healthy_count / total_cmdb * 100.0), 1) if total_cmdb > 0 else 0.0
+
+        return {
+            "total_cmdb_cis": total_cmdb,
+            "in_sync_count": healthy_count,
+            "in_sync_percentage": in_sync_pct,
+            "orphan_ci_count": len(orphan_cis),
+            "shadow_it_count": len(shadow_it),
+            "attribute_drift_count": len(attr_drift),
+            "policy_violation_count": len(policy_violations),
+            "total_drift_discrepancies": len(drift_rows),
+            "critical_discrepancies_count": len(critical_discrepancies),
+            "healthy_cis": healthy_cis,
+            "orphan_cis": orphan_cis,
+            "shadow_it": shadow_it,
+            "attribute_drift": attr_drift,
+            "remediation_ready_count": len(drift_rows),
+        }
+
+    def generate_cmdb_remediation_payload(self, drift_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieves and formats the automated ServiceNow REST remediation payload for a discrepancy."""
+        drift_rows = self.client.get_drift_reconciled()
+        match = next((d for d in drift_rows if d.get("drift_id") == drift_id), None)
+        if not match:
+            return None
+        payload_raw = match.get("remediation_payload")
+        if isinstance(payload_raw, str):
+            try:
+                return json.loads(payload_raw)
+            except Exception:
+                return {"raw": payload_raw}
+        elif isinstance(payload_raw, dict):
+            return payload_raw
+        return {}
+
     def get_codriving_actions(self, target_identifier: str) -> List[Dict[str, str]]:
         """Returns contextual interactive co-driving action chips for UI and EA Navigator interactions."""
         blast = self.calculate_blast_radius(target_identifier)
@@ -1232,6 +1297,20 @@ Enforce mandatory column-level tagging in Databricks Unity Catalog and encrypt t
 * **Investment Concentration:** Customer Experience ($147,999.84/yr, 48.1%) and Finance & Billing ($126,999.96/yr, 41.3%) command 89.4% of total estate spend.
 * **Top Tech Debt Exposure:** **Order Fulfillment** carries maximum debt (90/100) due to `cassandra-legacy-cluster` (Eliminate).
 * **Governance Risk:** **Data Privacy & Governance** carries high debt (65/100) due to legacy `customer-pii-stream` (Migrate).
+"""
+        elif any(k in q for k in ["cmdb", "servicenow", "hygiene", "baseline", "shadow it", "orphan"]):
+            hygiene = self.get_cmdb_hygiene_metrics()
+            response_text = f"""### 🔄 ServiceNow CMDB Baseline Hygiene & Drift Reconciliation
+
+* **Total CMDB CIs Tracked:** **{hygiene['total_cmdb_cis']}**
+* **In-Sync / Authoritative Baseline:** **{hygiene['in_sync_count']} / {hygiene['total_cmdb_cis']}** ({hygiene['in_sync_percentage']}%)
+* **Orphan CIs (Terminated in Cloud, Active in CMDB):** **{hygiene['orphan_ci_count']}** (Action: `RETIRE_CMDB_RECORD`)
+* **Shadow IT / Undocumented Assets:** **{hygiene['shadow_it_count']}** (Action: `REGISTER_CMDB_CI`)
+* **Attribute & Lifecycle Drift:** **{hygiene['attribute_drift_count']}** (Action: `SYNC_CMDB_METADATA`)
+* **Critical Governance Discrepancies:** **{hygiene['critical_discrepancies_count']}**
+
+#### Automated ServiceNow Table API Remediation
+The platform has compiled REST API remediation payloads (JSON) ready for automated dispatch to synchronize CMDB state with authoritative Git and Databricks cloud telemetry.
 """
         else:
             # Blast Radius & Impact Analysis

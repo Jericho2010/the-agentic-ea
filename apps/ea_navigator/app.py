@@ -104,7 +104,7 @@ with col_h2:
     """, unsafe_allow_html=True)
 
 # Navigation Tabs
-tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time, tab_migration, tab_capabilities = st.tabs([
+tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time, tab_migration, tab_capabilities, tab_cmdb = st.tabs([
     "🏛️ Estate Catalog",
     "🗺️ Living Architecture Maps",
     "🧭 EA Navigator Cockpit",
@@ -112,6 +112,7 @@ tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time, tab_migration, tab
     "📊 Executive TIME Matrix",
     "🚀 Target-State Migration Roadmap",
     "🎯 Business Capabilities & Investment",
+    "🔄 CMDB Baseline Hygiene & Drift",
 ])
 
 
@@ -580,6 +581,83 @@ with tab_capabilities:
             label="📥 Download Capability Realizations (CSV)",
             data=df_full.to_csv(index=False),
             file_name="ea_gold_capability_realization.csv",
+            mime="text/csv",
+        )
+
+
+# ==============================================================================
+# TAB 8: SERVICENOW CMDB BASELINE HYGIENE & DRIFT
+# ==============================================================================
+with tab_cmdb:
+    st.subheader("🔄 Continuous ServiceNow CMDB Synchronization & Baseline Hygiene")
+    st.caption("Automated 3-way reconciliation between ServiceNow CMDB CIs (ea.bronze.cmdb_ci), Git architecture (ea.metamodel.nodes), and runtime Cloud CUR telemetry (ea.bronze.cloud_resources).")
+
+    hygiene = navigator.get_cmdb_hygiene_metrics()
+    cmdb_cis = client.get_cmdb_ci()
+    drift_records = client.get_drift_reconciled()
+
+    # KPI Metrics Bar
+    k1, k2, k3, k4, k5 = st.columns(5)
+    k1.metric("Total CMDB CIs", f"{hygiene['total_cmdb_cis']} CIs", "ServiceNow Table API")
+    k2.metric("In-Sync Baseline", f"{hygiene['in_sync_percentage']}%", f"{hygiene['in_sync_count']} Authoritative")
+    k3.metric("Orphan Records", f"{hygiene['orphan_ci_count']}", "Terminated in Cloud", delta_color="inverse")
+    k4.metric("Shadow IT", f"{hygiene['shadow_it_count']}", "Missing in CMDB", delta_color="inverse")
+    k5.metric("Attribute Drift", f"{hygiene['attribute_drift_count']}", "Metadata Mismatch", delta_color="inverse")
+
+    st.markdown("---")
+    st.markdown("#### 🚨 Reconciled Estate Drift & CMDB Discrepancy Taxonomy")
+    st.caption("Conformed mart `ea.gold.drift_reconciled` categorizing discrepancies and providing actionable remediation.")
+
+    # Drift Type Filter
+    drift_filter = st.selectbox(
+        "Filter by Discrepancy Taxonomy:",
+        ["All Discrepancies", "ORPHAN_CI (Terminated in Cloud, Active in CMDB)", "SHADOW_IT (Running in Cloud/Git, Missing in CMDB)", "ATTRIBUTE_DRIFT (Mismatched Tier/Env/Lifecycle)", "POLICY_VIOLATION (Unapproved Datastores / Security)"],
+        index=0
+    )
+
+    filtered_drift = drift_records
+    if "ORPHAN_CI" in drift_filter:
+        filtered_drift = [d for d in drift_records if d.get("drift_type") == "ORPHAN_CI"]
+    elif "SHADOW_IT" in drift_filter:
+        filtered_drift = [d for d in drift_records if d.get("drift_type") == "SHADOW_IT"]
+    elif "ATTRIBUTE_DRIFT" in drift_filter:
+        filtered_drift = [d for d in drift_records if d.get("drift_type") == "ATTRIBUTE_DRIFT"]
+    elif "POLICY_VIOLATION" in drift_filter:
+        filtered_drift = [d for d in drift_records if d.get("drift_type") == "POLICY_VIOLATION"]
+
+    if filtered_drift:
+        df_d = pd.DataFrame(filtered_drift)[[
+            "drift_id", "ci_name", "drift_type", "severity", "discrepancy_type",
+            "remediation_action", "declared_state", "runtime_state", "reconciled_at"
+        ]]
+        st.dataframe(df_d, use_container_width=True)
+
+        st.markdown("#### ⚡ Automated ServiceNow REST API Remediation Payloads")
+        st.caption("Pre-compiled Table API payloads ready for automated dispatch to bring CMDB into 100% hygiene alignment.")
+
+        for d in filtered_drift:
+            with st.expander(f"🔧 [{d.get('severity', 'HIGH')}] {d.get('drift_type')} — `{d.get('ci_name')}` ➔ Action: `{d.get('remediation_action')}`"):
+                st.markdown(f"**Discrepancy Detail:** {d.get('discrepancy_type')}")
+                st.markdown(f"**Declared Baseline:** {d.get('declared_state')}")
+                st.markdown(f"**Observed Runtime:** {d.get('runtime_state')}")
+                st.markdown("**Automated ServiceNow Remediation Payload (JSON):**")
+                payload = navigator.generate_cmdb_remediation_payload(d.get("drift_id", ""))
+                st.json(payload or d.get("remediation_payload", "{}"))
+    else:
+        st.success("✅ Zero drift discrepancies detected for selected filter.")
+
+    st.markdown("---")
+    st.markdown("#### 📦 Raw ServiceNow CMDB Inventory (`ea.bronze.cmdb_ci`)")
+    if cmdb_cis:
+        df_cmdb = pd.DataFrame(cmdb_cis)[[
+            "sys_id", "name", "ci_class", "operational_status", "environment",
+            "tier", "owner_team", "ip_address", "cloud_resource_id", "synced_at"
+        ]]
+        st.dataframe(df_cmdb, use_container_width=True)
+        st.download_button(
+            label="📥 Download ServiceNow CMDB CIs (CSV)",
+            data=df_cmdb.to_csv(index=False),
+            file_name="ea_bronze_cmdb_ci.csv",
             mime="text/csv",
         )
 

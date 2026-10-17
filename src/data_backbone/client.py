@@ -5,6 +5,7 @@ high-performance local fallback mode for offline/non-prod workstation execution.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import sqlite3
@@ -131,6 +132,22 @@ class UnityCatalogClient:
         """)
 
         cur.execute("""
+        CREATE TABLE IF NOT EXISTS bronze_cmdb_ci (
+            sys_id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            ci_class TEXT NOT NULL,
+            operational_status TEXT NOT NULL,
+            environment TEXT,
+            tier TEXT,
+            owner_team TEXT,
+            ip_address TEXT,
+            cloud_resource_id TEXT,
+            raw_attributes TEXT,
+            synced_at TEXT NOT NULL
+        );
+        """)
+
+        cur.execute("""
         CREATE TABLE IF NOT EXISTS gold_time_matrix (
             name TEXT NOT NULL,
             urn TEXT PRIMARY KEY,
@@ -141,13 +158,23 @@ class UnityCatalogClient:
         );
         """)
 
+        cur.execute("PRAGMA table_info(gold_drift_reconciled);")
+        existing_cols = [row[1] for row in cur.fetchall()]
+        if existing_cols and "drift_type" not in existing_cols:
+            cur.execute("DROP TABLE gold_drift_reconciled;")
+
         cur.execute("""
         CREATE TABLE IF NOT EXISTS gold_drift_reconciled (
-            urn TEXT PRIMARY KEY,
+            drift_id TEXT PRIMARY KEY,
+            urn TEXT NOT NULL,
+            ci_name TEXT NOT NULL,
+            drift_type TEXT NOT NULL,
+            severity TEXT NOT NULL,
             declared_state TEXT NOT NULL,
             runtime_state TEXT NOT NULL,
             discrepancy_type TEXT NOT NULL,
-            severity TEXT NOT NULL,
+            remediation_action TEXT NOT NULL,
+            remediation_payload TEXT,
             reconciled_at TEXT NOT NULL
         );
         """)
@@ -239,11 +266,23 @@ class UnityCatalogClient:
         conn.close()
         return rows
 
-    def get_drift_reconciled(self) -> List[Dict[str, Any]]:
-        """Retrieve reconciled architecture drift telemetry."""
+    def get_drift_reconciled(self, drift_type: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Retrieve reconciled architecture and CMDB drift telemetry."""
         conn = self._get_local_connection()
         cur = conn.cursor()
-        cur.execute("SELECT * FROM gold_drift_reconciled ORDER BY reconciled_at DESC;")
+        if drift_type:
+            cur.execute("SELECT * FROM gold_drift_reconciled WHERE drift_type = ? ORDER BY reconciled_at DESC;", (drift_type,))
+        else:
+            cur.execute("SELECT * FROM gold_drift_reconciled ORDER BY reconciled_at DESC;")
+        rows = [dict(r) for r in cur.fetchall()]
+        conn.close()
+        return rows
+
+    def get_cmdb_ci(self) -> List[Dict[str, Any]]:
+        """Retrieve all ingested ServiceNow CMDB configuration items."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM bronze_cmdb_ci ORDER BY ci_class, name ASC;")
         rows = [dict(r) for r in cur.fetchall()]
         conn.close()
         return rows
@@ -552,28 +591,102 @@ class UnityCatalogClient:
         conn.close()
         return count
 
-    def save_drift_records(self, records: List[Dict[str, Any]]) -> int:
-        """Upsert reconciled drift records."""
+    def save_cmdb_ci(self, records: List[Dict[str, Any]]) -> int:
+        """Upsert ServiceNow CMDB configuration items into ea.bronze.cmdb_ci."""
         conn = self._get_local_connection()
         cur = conn.cursor()
         count = 0
+        now = datetime.now(timezone.utc).isoformat()
         for r in records:
+            raw_attr = r.get("raw_attributes")
+            if isinstance(raw_attr, dict):
+                raw_attr = json.dumps(raw_attr)
+            elif not raw_attr:
+                raw_attr = "{}"
             cur.execute("""
-            INSERT INTO gold_drift_reconciled (urn, declared_state, runtime_state, discrepancy_type, severity, reconciled_at)
-            VALUES (?, ?, ?, ?, ?, ?)
-            ON CONFLICT(urn) DO UPDATE SET
+            INSERT INTO bronze_cmdb_ci (
+                sys_id, name, ci_class, operational_status, environment, tier,
+                owner_team, ip_address, cloud_resource_id, raw_attributes, synced_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(sys_id) DO UPDATE SET
+                name = excluded.name,
+                ci_class = excluded.ci_class,
+                operational_status = excluded.operational_status,
+                environment = excluded.environment,
+                tier = excluded.tier,
+                owner_team = excluded.owner_team,
+                ip_address = excluded.ip_address,
+                cloud_resource_id = excluded.cloud_resource_id,
+                raw_attributes = excluded.raw_attributes,
+                synced_at = excluded.synced_at;
+            """, (
+                r["sys_id"],
+                r["name"],
+                r.get("ci_class", "cmdb_ci_appl"),
+                r.get("operational_status", "Operational"),
+                r.get("environment", "Production"),
+                r.get("tier", "Tier-2"),
+                r.get("owner_team", "unassigned"),
+                r.get("ip_address"),
+                r.get("cloud_resource_id"),
+                raw_attr,
+                r.get("synced_at", now),
+            ))
+            count += 1
+        conn.commit()
+        conn.close()
+        return count
+
+    def save_drift_records(self, records: List[Dict[str, Any]]) -> int:
+        """Upsert reconciled drift and CMDB discrepancy records."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        count = 0
+        now = datetime.now(timezone.utc).isoformat()
+        for r in records:
+            drift_id = r.get("drift_id")
+            if not drift_id:
+                # generate deterministic ID
+                drift_id = f"drift-{hashlib.md5((r['urn'] + r.get('discrepancy_type', '')).encode()).hexdigest()[:12]}"
+            ci_name = r.get("ci_name") or r["urn"].split(":")[-1]
+            drift_type = r.get("drift_type", "POLICY_VIOLATION")
+            remediation_action = r.get("remediation_action", "REMEDIATE_POLICY")
+            payload = r.get("remediation_payload")
+            if isinstance(payload, dict):
+                payload = json.dumps(payload)
+            elif not payload:
+                payload = "{}"
+
+            cur.execute("""
+            INSERT INTO gold_drift_reconciled (
+                drift_id, urn, ci_name, drift_type, severity, declared_state,
+                runtime_state, discrepancy_type, remediation_action, remediation_payload, reconciled_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(drift_id) DO UPDATE SET
+                urn = excluded.urn,
+                ci_name = excluded.ci_name,
+                drift_type = excluded.drift_type,
+                severity = excluded.severity,
                 declared_state = excluded.declared_state,
                 runtime_state = excluded.runtime_state,
                 discrepancy_type = excluded.discrepancy_type,
-                severity = excluded.severity,
+                remediation_action = excluded.remediation_action,
+                remediation_payload = excluded.remediation_payload,
                 reconciled_at = excluded.reconciled_at;
             """, (
+                drift_id,
                 r["urn"],
+                ci_name,
+                drift_type,
+                r["severity"],
                 r["declared_state"],
                 r["runtime_state"],
                 r["discrepancy_type"],
-                r["severity"],
-                r.get("reconciled_at", datetime.now(timezone.utc).isoformat()),
+                remediation_action,
+                payload,
+                r.get("reconciled_at", now),
             ))
             count += 1
         conn.commit()
@@ -631,6 +744,7 @@ class UnityCatalogClient:
             ("ea.metamodel.evidence", "metamodel_evidence"),
             ("ea.bronze.git_repos", "bronze_git_repos"),
             ("ea.bronze.cloud_resources", "bronze_cloud_resources"),
+            ("ea.bronze.cmdb_ci", "bronze_cmdb_ci"),
             ("ea.gold.time_matrix", "gold_time_matrix"),
             ("ea.gold.drift_reconciled", "gold_drift_reconciled"),
             ("ea.gold.capability_realization", "gold_capability_realization"),

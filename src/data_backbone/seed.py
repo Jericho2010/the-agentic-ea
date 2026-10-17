@@ -524,15 +524,289 @@ SEED_TIME_MATRIX = [
 ]
 
 
+SEED_CMDB_CI = [
+    {
+        "sys_id": "sys-ci-appl-web-storefront-001",
+        "name": "web-storefront",
+        "ci_class": "cmdb_ci_appl",
+        "operational_status": "Operational",
+        "environment": "Production",
+        "tier": "Tier-1",
+        "owner_team": "team-frontend",
+        "ip_address": "10.0.1.25",
+        "cloud_resource_id": "enterprise-edge-prod/web-storefront",
+        "raw_attributes": {
+            "install_status": "1",
+            "category": "Customer Experience Application",
+            "short_description": "Next.js Storefront Web Application",
+            "support_group": "team-frontend",
+            "u_disposition": "Invest",
+        },
+        "synced_at": "2026-10-17T06:00:00Z",
+    },
+    {
+        "sys_id": "sys-ci-appl-payments-api-002",
+        "name": "payments-api",
+        "ci_class": "cmdb_ci_appl",
+        "operational_status": "Operational",
+        "environment": "Production",
+        "tier": "Tier-0",
+        "owner_team": "team-payments",
+        "ip_address": "10.0.2.14",
+        "cloud_resource_id": "arn:aws:eks:us-east-1:112233445566:fargate/payments-api",
+        "raw_attributes": {
+            "install_status": "1",
+            "category": "Core Payment Processing Microservice",
+            "short_description": "Go Gin Payment Gateway API",
+            "support_group": "team-payments",
+            "u_pci_dss_scope": "true",
+        },
+        "synced_at": "2026-10-17T06:00:00Z",
+    },
+    {
+        "sys_id": "sys-ci-db-billing-rds-003",
+        "name": "billing-db",
+        "ci_class": "cmdb_ci_database",
+        "operational_status": "Operational",
+        "environment": "Production",
+        "tier": "Tier-0",
+        "owner_team": "team-data-platform",
+        "ip_address": "10.0.5.40",
+        "cloud_resource_id": "arn:aws:rds:us-east-1:112233445566:db:billing-db-rds",
+        "raw_attributes": {
+            "install_status": "1",
+            "database_type": "PostgreSQL 16",
+            "support_group": "team-data-platform",
+            "u_contains_pii": "true",
+            "u_kms_encrypted": "true",
+        },
+        "synced_at": "2026-10-17T06:00:00Z",
+    },
+    {
+        "sys_id": "sys-ci-appl-checkout-service-004",
+        "name": "checkout-service",
+        "ci_class": "cmdb_ci_appl",
+        "operational_status": "Operational",
+        "environment": "Staging",
+        "tier": "Tier-3",
+        "owner_team": "team-growth",
+        "ip_address": "10.0.3.18",
+        "cloud_resource_id": "arn:aws:eks:us-east-1:112233445566:fargate/checkout-service",
+        "raw_attributes": {
+            "install_status": "1",
+            "category": "Order Processing",
+            "short_description": "Java Spring Boot Checkout Service",
+            "support_group": "team-growth",
+        },
+        "synced_at": "2026-10-17T06:00:00Z",
+    },
+    {
+        "sys_id": "sys-ci-db-cassandra-legacy-005",
+        "name": "cassandra-legacy-cluster",
+        "ci_class": "cmdb_ci_database",
+        "operational_status": "Operational",
+        "environment": "Production",
+        "tier": "Tier-2",
+        "owner_team": "team-legacy-ops",
+        "ip_address": "10.0.8.100",
+        "cloud_resource_id": "arn:aws:ec2:us-east-1:112233445566:instance/i-cassandra-legacy-node",
+        "raw_attributes": {
+            "install_status": "1",
+            "database_type": "Cassandra 3.11",
+            "support_group": "team-legacy-ops",
+        },
+        "synced_at": "2026-10-17T06:00:00Z",
+    },
+    {
+        "sys_id": "sys-ci-orphan-recs-ai-006",
+        "name": "recommendations-ai-legacy",
+        "ci_class": "cmdb_ci_appl",
+        "operational_status": "Operational",
+        "environment": "Production",
+        "tier": "Tier-2",
+        "owner_team": "team-recs",
+        "ip_address": "10.0.9.15",
+        "cloud_resource_id": "i-0987654321fedcba0",
+        "raw_attributes": {
+            "install_status": "1",
+            "category": "Machine Learning Service",
+            "short_description": "Legacy Python Recommender - Terminated instance",
+            "support_group": "team-recs",
+        },
+        "synced_at": "2026-10-17T06:00:00Z",
+    },
+    {
+        "sys_id": "sys-ci-orphan-es-logging-007",
+        "name": "elastic-search-v6-logging",
+        "ci_class": "cmdb_ci_database",
+        "operational_status": "Operational",
+        "environment": "Production",
+        "tier": "Tier-3",
+        "owner_team": "team-logging",
+        "ip_address": "10.0.9.88",
+        "cloud_resource_id": "arn:aws:es:us-east-1:112233445566:domain/es-v6-logs",
+        "raw_attributes": {
+            "install_status": "1",
+            "database_type": "Elasticsearch 6.8",
+            "support_group": "team-logging",
+        },
+        "synced_at": "2026-10-17T06:00:00Z",
+    },
+]
+
+
 SEED_DRIFT = [
     {
+        "drift_id": "drift-orphan-recs-ai",
+        "urn": "urn:ea:application:recommendations-ai-legacy",
+        "ci_name": "recommendations-ai-legacy",
+        "drift_type": "ORPHAN_CI",
+        "severity": "MEDIUM",
+        "declared_state": "CMDB: Active Operational CI (sys-ci-orphan-recs-ai-006, Tier-2)",
+        "runtime_state": "Cloud/Git: Terminated/Decommissioned (0 live instances, absent in Git AST)",
+        "discrepancy_type": "Orphan CMDB Record (Absent in Cloud/Git Runtime)",
+        "remediation_action": "RETIRE_CMDB_RECORD",
+        "remediation_payload": {
+            "target_api": "ServiceNow Table API: /api/now/table/cmdb_ci_appl/sys-ci-orphan-recs-ai-006",
+            "method": "PATCH",
+            "body": {
+                "operational_status": "Retired",
+                "install_status": "7",
+                "comments": "Automated EA baseline reconciliation: Instance terminated, retired from CMDB."
+            }
+        },
+        "reconciled_at": "2026-10-17T06:00:00Z",
+    },
+    {
+        "drift_id": "drift-orphan-es-logging",
+        "urn": "urn:ea:database:elastic-search-v6-logging",
+        "ci_name": "elastic-search-v6-logging",
+        "drift_type": "ORPHAN_CI",
+        "severity": "LOW",
+        "declared_state": "CMDB: Active Operational Database (sys-ci-orphan-es-logging-007, Tier-3)",
+        "runtime_state": "Cloud/Git: Decommissioned (0 active endpoints in cloud telemetry)",
+        "discrepancy_type": "Orphan CMDB Record (Absent in Cloud/Git Runtime)",
+        "remediation_action": "RETIRE_CMDB_RECORD",
+        "remediation_payload": {
+            "target_api": "ServiceNow Table API: /api/now/table/cmdb_ci_database/sys-ci-orphan-es-logging-007",
+            "method": "PATCH",
+            "body": {
+                "operational_status": "Retired",
+                "install_status": "7",
+                "comments": "Automated EA baseline reconciliation: Elasticsearch v6 cluster decommissioned."
+            }
+        },
+        "reconciled_at": "2026-10-17T06:00:00Z",
+    },
+    {
+        "drift_id": "drift-shadow-customer-pii-stream",
+        "urn": "urn:ea:cloudresource:customer-pii-stream",
+        "ci_name": "customer-pii-stream",
+        "drift_type": "SHADOW_IT",
+        "severity": "CRITICAL",
+        "declared_state": "CMDB: Missing / Unregistered (No CI record found in cmdb_ci)",
+        "runtime_state": "Cloud CUR: AWS::Kinesis::Stream ($7,800/yr, Contains Customer PII = true)",
+        "discrepancy_type": "Shadow IT / Undocumented Asset (Missing in CMDB)",
+        "remediation_action": "REGISTER_CMDB_CI",
+        "remediation_payload": {
+            "target_api": "ServiceNow Table API: /api/now/table/cmdb_ci_cloud_service",
+            "method": "POST",
+            "body": {
+                "name": "customer-pii-stream",
+                "ci_class": "cmdb_ci_cloud_service",
+                "environment": "Production",
+                "u_tier": "Tier-1",
+                "support_group": "team-data-platform",
+                "u_contains_pii": True,
+                "comments": "Automated EA registration: Cloud Kinesis stream with customer PII discovered."
+            }
+        },
+        "reconciled_at": "2026-10-17T06:00:00Z",
+    },
+    {
+        "drift_id": "drift-shadow-payments-service",
+        "urn": "urn:ea:microservice:payments-service",
+        "ci_name": "payments-service",
+        "drift_type": "SHADOW_IT",
+        "severity": "HIGH",
+        "declared_state": "CMDB: Missing / Unregistered",
+        "runtime_state": "Git/Cloud: Active Go Microservice (Tier-0, team-payments)",
+        "discrepancy_type": "Shadow IT / Undocumented Asset (Missing in CMDB)",
+        "remediation_action": "REGISTER_CMDB_CI",
+        "remediation_payload": {
+            "target_api": "ServiceNow Table API: /api/now/table/cmdb_ci_appl",
+            "method": "POST",
+            "body": {
+                "name": "payments-service",
+                "ci_class": "cmdb_ci_appl",
+                "environment": "Production",
+                "u_tier": "Tier-0",
+                "support_group": "team-payments",
+                "comments": "Automated EA registration: Active payments ledger microservice registered."
+            }
+        },
+        "reconciled_at": "2026-10-17T06:00:00Z",
+    },
+    {
+        "drift_id": "drift-attr-checkout-service",
+        "urn": "urn:ea:microservice:checkout-service",
+        "ci_name": "checkout-service",
+        "drift_type": "ATTRIBUTE_DRIFT",
+        "severity": "HIGH",
+        "declared_state": "Git/Cloud: Tier-1, Environment=Production, Owner=team-checkout",
+        "runtime_state": "CMDB: Tier-3, Environment=Staging, Owner=team-growth (sys-ci-appl-checkout-service-004)",
+        "discrepancy_type": "Attribute Drift (Tier, Environment & Ownership Mismatch)",
+        "remediation_action": "SYNC_CMDB_METADATA",
+        "remediation_payload": {
+            "target_api": "ServiceNow Table API: /api/now/table/cmdb_ci_appl/sys-ci-appl-checkout-service-004",
+            "method": "PATCH",
+            "body": {
+                "u_tier": "Tier-1",
+                "environment": "Production",
+                "support_group": "team-checkout",
+                "comments": "Automated EA metadata sync from authoritative Git/Cloud manifests."
+            }
+        },
+        "reconciled_at": "2026-10-17T06:00:00Z",
+    },
+    {
+        "drift_id": "drift-attr-cassandra-legacy",
+        "urn": "urn:ea:database:cassandra-legacy-cluster",
+        "ci_name": "cassandra-legacy-cluster",
+        "drift_type": "ATTRIBUTE_DRIFT",
+        "severity": "CRITICAL",
+        "declared_state": "EA Portfolio: Eliminate / Phase-out (EOL: 2025-12-31, Tech Debt: 90)",
+        "runtime_state": "CMDB: Active Operational Database (sys-ci-db-cassandra-legacy-005)",
+        "discrepancy_type": "Lifecycle Drift (Sunset Database marked Operational in CMDB)",
+        "remediation_action": "SYNC_CMDB_METADATA",
+        "remediation_payload": {
+            "target_api": "ServiceNow Table API: /api/now/table/cmdb_ci_database/sys-ci-db-cassandra-legacy-005",
+            "method": "PATCH",
+            "body": {
+                "operational_status": "Pending Decommission",
+                "u_lifecycle_stage": "Phase-Out",
+                "comments": "Automated EA sync: Classified for Elimination in Executive TIME Matrix."
+            }
+        },
+        "reconciled_at": "2026-10-17T06:00:00Z",
+    },
+    {
+        "drift_id": "drift-policy-cassandra-unapproved",
         "urn": "urn:ea:database:orders-cassandra-db",
+        "ci_name": "orders-cassandra-db",
+        "drift_type": "POLICY_VIOLATION",
+        "severity": "CRITICAL",
         "declared_state": "Terraform PR #104 (Proposed: Cassandra 3.11, ContainsPII=true, Encrypted=false)",
         "runtime_state": "Policy Rule Violation: Datastore in Eliminate Disposition; Unencrypted Storage",
-        "discrepancy_type": "Unapproved Datastore / Security Non-Compliance",
-        "severity": "CRITICAL",
+        "discrepancy_type": "Unapproved Datastore / Security Non-Compliance (EA-POL-001/002)",
+        "remediation_action": "BLOCK_PR_MERGE",
+        "remediation_payload": {
+            "target_api": "GitHub Status API / ARB Pre-Merge Gate",
+            "action": "BLOCK",
+            "detail": "Enforce migration to Databricks Unity Catalog Delta Lake."
+        },
         "reconciled_at": "2026-10-16T12:00:00Z",
-    }
+    },
 ]
 
 
@@ -699,6 +973,7 @@ def seed_database() -> Dict[str, int]:
     n_count = client.merge_nodes(SEED_NODES)
     e_count = client.merge_edges(SEED_EDGES)
     t_count = client.save_time_matrix(SEED_TIME_MATRIX)
+    cmdb_count = client.save_cmdb_ci(SEED_CMDB_CI)
     d_count = client.save_drift_records(SEED_DRIFT)
     c_count = client.save_capability_realizations(SEED_CAPABILITY_REALIZATIONS)
     a_count = sum(1 for rec in SEED_ARB_AUDIT_LEDGER if client.record_arb_audit(rec))
@@ -706,6 +981,7 @@ def seed_database() -> Dict[str, int]:
         "nodes": n_count,
         "edges": e_count,
         "time_matrix": t_count,
+        "cmdb_ci": cmdb_count,
         "drift": d_count,
         "capability_realizations": c_count,
         "arb_audit_ledger": a_count,

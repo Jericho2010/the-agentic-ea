@@ -52,7 +52,8 @@ echo -e "  ✓ Conformed Delta Tables Seeded (ea.metamodel.*, ea.bronze.*, ea.go
 echo -e "\n${BOLD}[4/8] Running Modular Bronze Ingestion Connectors...${NC}"
 python -m src.ingestion.ingest_cloud_cur
 python -m src.ingestion.ingest_github_org
-echo -e "  ✓ Ingested Git AST manifests & Cloud CUR FinOps billing records into Bronze"
+python -m src.ingestion.ingest_servicenow_cmdb
+echo -e "  ✓ Ingested Git AST manifests, Cloud CUR FinOps billing, and ServiceNow CMDB CIs into Bronze"
 
 # 5. Contract 4: Delta Live Tables (DLT) Conformance Pipeline
 echo -e "\n${BOLD}[5/8] Running Delta Live Tables (DLT) Conformance Pipeline...${NC}"
