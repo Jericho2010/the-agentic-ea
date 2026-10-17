@@ -277,6 +277,40 @@ DDL_STATEMENTS = {
     USING DELTA
     COMMENT 'Conformed Business Process Mining & Optimization Mart';
     """,
+    "bronze_ai_models": f"""
+    CREATE TABLE IF NOT EXISTS {SCHEMA_BRONZE}.ai_models (
+        model_id STRING NOT NULL COMMENT 'Unique AI/ML model identifier',
+        model_name STRING NOT NULL COMMENT 'Canonical model name in MLflow registry',
+        version STRING NOT NULL COMMENT 'Model version semver',
+        framework STRING NOT NULL COMMENT 'ML framework (PyTorch, LangChain, Scikit-learn, etc.)',
+        task_type STRING NOT NULL COMMENT 'AI task type (Emotion Recognition, Fraud Detection, GenAI Chatbot, Recommendation)',
+        training_dataset_urn STRING NOT NULL COMMENT 'PAM URN of training dataset',
+        serving_endpoint_urn STRING NOT NULL COMMENT 'PAM URN of model serving endpoint',
+        owner_team STRING NOT NULL COMMENT 'Responsible engineering or data science team',
+        license STRING NOT NULL COMMENT 'Model or weights license',
+        has_human_in_the_loop BOOLEAN NOT NULL COMMENT 'True if human oversight is embedded in decision loop',
+        timestamp TIMESTAMP NOT NULL COMMENT 'Registration timestamp'
+    )
+    USING DELTA
+    COMMENT 'Raw Ingested AI/ML Model Registry Catalog';
+    """,
+    "gold_ai_governance": f"""
+    CREATE TABLE IF NOT EXISTS {SCHEMA_GOLD}.ai_governance (
+        model_id STRING NOT NULL COMMENT 'Unique AI/ML model identifier',
+        model_name STRING NOT NULL COMMENT 'Model name',
+        version STRING NOT NULL COMMENT 'Model version',
+        task_type STRING NOT NULL COMMENT 'AI task type',
+        eu_risk_tier STRING NOT NULL COMMENT 'EU AI Act Risk Tier: UNACCEPTABLE_RISK, HIGH_RISK, LIMITED_RISK, MINIMAL_RISK',
+        compliance_status STRING NOT NULL COMMENT 'COMPLIANT, ACTION_REQUIRED, PROHIBITED',
+        has_model_card BOOLEAN NOT NULL COMMENT 'True if formal model card and risk documentation exists',
+        has_data_lineage BOOLEAN NOT NULL COMMENT 'True if end-to-end training data to inference lineage is tracked',
+        has_human_oversight BOOLEAN NOT NULL COMMENT 'True if human-in-the-loop oversight is active',
+        governance_action STRING NOT NULL COMMENT 'DECOMMISSION_IMMEDIATELY, ENFORCE_HUMAN_OVERSIGHT, ATTACH_AI_DISCLOSURE, RETAIN'
+    )
+    USING DELTA
+    COMMENT 'Conformed AI Governance & EU AI Act Compliance Mart';
+    """,
 }
+
 
 

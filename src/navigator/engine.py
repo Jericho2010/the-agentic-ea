@@ -1747,6 +1747,154 @@ Graph traversal reveals **{blast['upstream_count']} upstream callers** directly 
             "svg_path": str(svg_p),
         }
 
+    def analyze_ai_governance(self, tenant_id: str = "core") -> Dict[str, Any]:
+        """
+        Audits AI/ML model registry and pipelines against the EU AI Act (Regulation EU 2024/1689).
+        Classifies models into risk tiers:
+          - Unacceptable Risk (Prohibited under Art. 5, e.g. biometric emotion evaluation in recruitment)
+          - High Risk (Annex III, e.g. credit/fraud risk scoring for natural persons)
+          - Limited Risk (Art. 50 transparency disclosure, e.g. customer-facing GenAI chatbots)
+          - Minimal Risk (Unrestricted, e.g. recommender engines)
+        Tracks end-to-end lineage from training corpus to serving endpoints, populates ea.gold.ai_governance,
+        and provides automated remediation and governance actions.
+        """
+        models = self.client.get_ai_models()
+        if not models:
+            from src.data_backbone.seed import SEED_AI_MODELS
+            self.client.save_ai_models(SEED_AI_MODELS)
+            models = self.client.get_ai_models()
+
+        gov_records = self.client.get_ai_governance()
+        if not gov_records:
+            from src.data_backbone.seed import SEED_AI_GOVERNANCE
+            self.client.save_ai_governance(SEED_AI_GOVERNANCE)
+            gov_records = self.client.get_ai_governance()
+
+        prohibited = [g for g in gov_records if g.get("eu_risk_tier") == "UNACCEPTABLE_RISK"]
+        high_risk = [g for g in gov_records if g.get("eu_risk_tier") == "HIGH_RISK"]
+        limited_risk = [g for g in gov_records if g.get("eu_risk_tier") == "LIMITED_RISK"]
+        minimal_risk = [g for g in gov_records if g.get("eu_risk_tier") == "MINIMAL_RISK"]
+
+        action_required = [g for g in gov_records if g.get("compliance_status") in ("ACTION_REQUIRED", "PROHIBITED")]
+        compliant = [g for g in gov_records if g.get("compliance_status") == "COMPLIANT"]
+
+        nodes = self.client.get_nodes()
+        edges = self.client.get_edges()
+
+        lineage_traces = []
+        for m in models:
+            m_id = m.get("model_id")
+            m_name = m.get("model_name")
+            m_urn = f"urn:ea:aimodel:{m_name}"
+
+            train_edge = next((e for e in edges if e.get("target_urn") == m_urn and e.get("relation") == "trains"), None)
+            dataset_urn = train_edge["source_urn"] if train_edge else m.get("training_dataset_urn", "")
+            dataset_name = dataset_urn.split(":")[-1]
+
+            serve_edge = next((e for e in edges if e.get("source_urn") == m_urn and e.get("relation") == "serves"), None)
+            endpoint_urn = serve_edge["target_urn"] if serve_edge else m.get("serving_endpoint_urn", "")
+            endpoint_name = endpoint_urn.split(":")[-1]
+
+            gov = next((g for g in gov_records if g.get("model_id") == m_id or g.get("model_name") == m_name), {})
+
+            lineage_traces.append({
+                "model_id": m_id,
+                "model_name": m_name,
+                "version": m.get("version"),
+                "framework": m.get("framework"),
+                "task_type": m.get("task_type"),
+                "owner_team": m.get("owner_team"),
+                "license": m.get("license"),
+                "training_dataset_urn": dataset_urn,
+                "training_dataset_name": dataset_name,
+                "serving_endpoint_urn": endpoint_urn,
+                "serving_endpoint_name": endpoint_name,
+                "eu_risk_tier": gov.get("eu_risk_tier", "MINIMAL_RISK"),
+                "compliance_status": gov.get("compliance_status", "COMPLIANT"),
+                "has_model_card": gov.get("has_model_card", False),
+                "has_data_lineage": gov.get("has_data_lineage", True),
+                "has_human_oversight": gov.get("has_human_oversight", False),
+                "governance_action": gov.get("governance_action", "RETAIN"),
+            })
+
+        governance_actions = [
+            {
+                "model_id": "MDL-001-BIOMETRIC-EVALUATOR",
+                "model_name": "candidate-biometric-evaluator",
+                "risk_tier": "UNACCEPTABLE_RISK",
+                "action": "DECOMMISSION_IMMEDIATELY",
+                "article": "EU AI Act Article 5(1)(c) / 5(1)(f)",
+                "details": "Prohibited emotion recognition & biometric categorization in workplace and recruitment contexts. Mandatory immediate shutdown of serving endpoint.",
+                "remediation": "Decommission model endpoint `candidate-evaluation-endpoint` and purge video training corpus `recruitment-video-corpus`.",
+            },
+            {
+                "model_id": "MDL-002-FRAUD-RISK-SCORER",
+                "model_name": "fraud-risk-scorer-v2",
+                "risk_tier": "HIGH_RISK",
+                "action": "ENFORCE_HUMAN_OVERSIGHT",
+                "article": "EU AI Act Annex III (Point 5 - Essential Services & Fraud Scoring)",
+                "details": "High-risk credit/fraud evaluation system for natural persons. Currently operates without verified dual-key human-in-the-loop review.",
+                "remediation": "Implement human review gate for transactions >$5,000 scored as high risk, maintain continuous audit logging, and publish technical documentation.",
+            },
+            {
+                "model_id": "MDL-003-CUSTOMER-SUPPORT-LLM",
+                "model_name": "customer-support-llm-v1",
+                "risk_tier": "LIMITED_RISK",
+                "action": "ATTACH_AI_DISCLOSURE",
+                "article": "EU AI Act Article 50(1) Transparency Obligation",
+                "details": "Customer-facing conversational AI chatbot interacting with natural persons without explicit transparency notification.",
+                "remediation": "Inject mandatory UI disclosure banner stating 'You are interacting with an AI assistant powered by Enterprise GenAI'.",
+            },
+            {
+                "model_id": "MDL-004-PRODUCT-RECOMMENDER",
+                "model_name": "product-recommender-v3",
+                "risk_tier": "MINIMAL_RISK",
+                "action": "RETAIN",
+                "article": "EU AI Act Title IX / Voluntary Code of Conduct",
+                "details": "Standard collaborative filtering and recommendation engine with no biometric or discriminatory impact. Meets all enterprise requirements.",
+                "remediation": "Retain in production; adhere to standard MLflow model registry lifecycle and drift monitoring.",
+            },
+        ]
+
+        return {
+            "tenant_id": tenant_id,
+            "total_models_count": len(models),
+            "prohibited_count": len(prohibited),
+            "high_risk_count": len(high_risk),
+            "limited_risk_count": len(limited_risk),
+            "minimal_risk_count": len(minimal_risk),
+            "action_required_count": len(action_required),
+            "compliant_count": len(compliant),
+            "models": models,
+            "governance_records": gov_records,
+            "lineage_traces": lineage_traces,
+            "governance_actions": governance_actions,
+            "prohibited_models": prohibited,
+            "high_risk_models": high_risk,
+            "limited_risk_models": limited_risk,
+            "minimal_risk_models": minimal_risk,
+        }
+
+    def compile_ai_model_lineage_diagram(self) -> Dict[str, str]:
+        """
+        Compiles Archify living architecture diagram visualizing the end-to-end AI/ML model lineage
+        (Training Datasets ➔ MLflow Model Registry with EU AI Act Risk Tiers ➔ Serving Endpoints).
+        Writes to data/diagrams/ai_model_lineage.html and .svg.
+        """
+        output_html = ROOT_DIR / "data" / "diagrams" / "ai_model_lineage.html"
+        output_svg = ROOT_DIR / "data" / "diagrams" / "ai_model_lineage.svg"
+        output_html.parent.mkdir(parents=True, exist_ok=True)
+
+        html_p, svg_p = self.archify_bridge.compile_ai_model_lineage_diagram(
+            output_html_path=output_html,
+            title="EU AI Act Risk Classification & End-to-End Model Lineage",
+            subtitle="Enterprise AI Governance & Compliance Topology (Datasets ➔ Models ➔ Serving Endpoints)",
+        )
+        return {
+            "html_path": str(html_p),
+            "svg_path": str(svg_p),
+        }
+
     def get_codriving_actions(self, target_identifier: str) -> List[Dict[str, str]]:
         """Returns contextual interactive co-driving action chips for UI and EA Navigator interactions."""
         blast = self.calculate_blast_radius(target_identifier)
@@ -1787,6 +1935,11 @@ Graph traversal reveals **{blast['upstream_count']} upstream callers** directly 
                 "label": "⏱️ Process Mining & Bottlenecks",
                 "action": "process_mining",
                 "query": "Analyze Order-to-Cash journey cycle times and detect Cassandra latency bottleneck",
+            },
+            {
+                "label": "🤖 EU AI Act Governance Audit",
+                "action": "ai_governance",
+                "query": "Audit AI models against EU AI Act risk tiers and detect prohibited biometric systems",
             },
             {
                 "label": f"🗺️ Generate Living Blast Map",
@@ -2097,6 +2250,40 @@ Interactive M&A landscape map compiled distinguishing acquired vs core assets:
 * **Customer Journey Workflow Map:** [Archify Workflow](file://{proc_diag['html_path']})
 """
             diag = proc_diag
+        elif any(k in q for k in ["ai", "ml", "model", "eu ai act", "risk tier", "governance", "mlflow", "llm"]):
+            ai_data = self.analyze_ai_governance()
+            ai_diag = self.compile_ai_model_lineage_diagram()
+            response_text = f"""### 🤖 AI Governance & ML Model Cataloging (EU AI Act)
+
+* **Governed AI/ML Models:** **{ai_data['total_models_count']}** registered models in authoritative catalog (`ea.gold.ai_governance`)
+* **Prohibited AI Systems (Art. 5):** **{ai_data['prohibited_count']}** (`candidate-biometric-evaluator` ➔ Action: `DECOMMISSION_IMMEDIATELY`)
+* **High-Risk AI Systems (Annex III):** **{ai_data['high_risk_count']}** (`fraud-risk-scorer-v2` ➔ Action: `ENFORCE_HUMAN_OVERSIGHT`)
+* **Limited-Risk AI Systems (Art. 50):** **{ai_data['limited_risk_count']}** (`customer-support-llm-v1` ➔ Action: `ATTACH_AI_DISCLOSURE`)
+* **Minimal-Risk AI Systems:** **{ai_data['minimal_risk_count']}** (`product-recommender-v3` ➔ Action: `RETAIN`)
+* **Action Required / Non-Compliant:** **{ai_data['action_required_count']} / {ai_data['total_models_count']}** models require governance remediation
+
+#### EU AI Act Risk & Compliance Registry (`ea.gold.ai_governance`)
+| Model ID | Model Name | Version | Task Type | EU Risk Tier | Compliance Status | Model Card | Data Lineage | Human Oversight | Governance Action |
+| :--- | :--- | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :--- |
+"""
+            for m in ai_data["lineage_traces"]:
+                status_icon = "🚨 **PROHIBITED**" if m["compliance_status"] == "PROHIBITED" else ("⚠️ ACTION REQUIRED" if m["compliance_status"] == "ACTION_REQUIRED" else "✅ COMPLIANT")
+                card_icon = "✅" if m["has_model_card"] else "❌"
+                lineage_icon = "✅" if m["has_data_lineage"] else "❌"
+                oversight_icon = "✅" if m["has_human_oversight"] else "❌"
+                response_text += f"| `{m['model_id']}` | `{m['model_name']}` | {m['version']} | {m['task_type']} | **{m['eu_risk_tier']}** | {status_icon} | {card_icon} | {lineage_icon} | {oversight_icon} | `{m['governance_action']}` |\n"
+
+            response_text += """
+#### Priority Automated Governance Actions
+"""
+            for act in ai_data["governance_actions"]:
+                response_text += f"* **`{act['action']}`** on `{act['model_name']}` ({act['risk_tier']}): {act['details']} → *Remediation: {act['remediation']}*\n"
+
+            response_text += f"""
+#### Interactive AI Model Lineage & Topology Map
+* **EU AI Act Living Lineage Map:** [Archify Lineage](file://{ai_diag['html_path']})
+"""
+            diag = ai_diag
         else:
             # Blast Radius & Impact Analysis
             callers_str = ", ".join([f"`{c['name']}` ({c['criticality']})" for c in blast.get("upstream_callers", [])]) or "None (Edge consumer)"

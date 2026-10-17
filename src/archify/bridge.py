@@ -48,7 +48,13 @@ def build_archify_spec(
     highlight_set = set(highlight_urns or [])
 
     # Group components by layer/kind for deterministic layout
-    layer_order = ["Application", "Microservice", "Database", "CloudResource", "APIInterface"]
+    if boundary_mode == "ai_lineage":
+        layer_order = ["Database", "AIModel", "Microservice"]
+        max_cols_per_row = 4
+    else:
+        layer_order = ["Application", "Microservice", "Database", "CloudResource", "APIInterface"]
+        max_cols_per_row = 3
+
     layers: Dict[str, List[Dict[str, Any]]] = {k: [] for k in layer_order}
     for n in nodes:
         kind = n.get("kind", "Microservice")
@@ -63,9 +69,8 @@ def build_archify_spec(
     # Layout coordinates: row by layer, col within layer
     start_y = 60
     row_height = 180
-    col_width = 280
+    col_width = 320
     start_x = 60
-    max_cols_per_row = 3
 
     app_wraps = []
     service_wraps = []
@@ -100,9 +105,37 @@ def build_archify_spec(
                 cls = meta.get("data_classification", "Internal")
                 jur = meta.get("jurisdiction", "EU-West-1")
                 sublabel = f"{cls} • {jur}"
+            elif boundary_mode == "ai_lineage":
+                if kind == "AIModel":
+                    tier = meta.get("eu_risk_tier", "MINIMAL_RISK")
+                    if tier == "UNACCEPTABLE_RISK":
+                        tag = "PROHIBITED"
+                        comp_type = "security"
+                    elif tier == "HIGH_RISK":
+                        tag = "HIGH_RISK"
+                        comp_type = "security"
+                    elif tier == "LIMITED_RISK":
+                        tag = "LIMITED"
+                        comp_type = "backend"
+                    else:
+                        tag = "MINIMAL"
+                        comp_type = "backend"
+                    status = meta.get("compliance_status", "COMPLIANT")
+                    sublabel = f"{meta.get('framework', 'PyTorch')} • {status}"
+                elif kind == "Database":
+                    tag = "DATASET"
+                    comp_type = "database"
+                    sublabel = f"Training Corpus • {meta.get('records_count', '')}"
+                elif kind == "Microservice":
+                    tag = meta.get("status", "ACTIVE")
+                    comp_type = "cloud"
+                    sublabel = f"Serving Endpoint • {meta.get('protocol', 'HTTPS/REST')}"
+                else:
+                    sublabel = f"{node.get('owner_team', 'unassigned')} • {node.get('lifecycle_status', 'run')}"
             else:
                 sublabel = f"{node.get('owner_team', 'unassigned')} • {node.get('lifecycle_status', 'run')}"
 
+            comp_w = max(190, min(280, int(len(node["name"]) * 7.5) + 20))
             comp = {
                 "id": cid,
                 "type": comp_type,
@@ -110,7 +143,7 @@ def build_archify_spec(
                 "sublabel": sublabel,
                 "tag": tag,
                 "pos": [x, y],
-                "size": [190, 60],
+                "size": [comp_w, 60],
             }
             components.append(comp)
 
@@ -170,8 +203,41 @@ def build_archify_spec(
         if disc_wraps:
             boundaries.append({
                 "kind": "region",
-                "label": "Flagged Interface Discrepancies (Zombie / Dead / Protocol Sprawl)",
+                "label": "Flagged Interface Discrepancies (Zombie / Dead / Sprawl)",
                 "wraps": disc_wraps,
+            })
+    elif boundary_mode == "ai_lineage":
+        data_wraps = []
+        model_wraps = []
+        serving_wraps = []
+        for n in nodes:
+            cid = node_id_map.get(n["urn"])
+            if not cid:
+                continue
+            kind = n.get("kind", "")
+            if kind == "Database":
+                data_wraps.append(cid)
+            elif kind == "AIModel":
+                model_wraps.append(cid)
+            elif kind == "Microservice":
+                serving_wraps.append(cid)
+        if data_wraps:
+            boundaries.append({
+                "kind": "region",
+                "label": "Training Datasets & Feature Stores",
+                "wraps": data_wraps,
+            })
+        if model_wraps:
+            boundaries.append({
+                "kind": "region",
+                "label": "MLflow Model Registry (EU AI Act Governed Tiers)",
+                "wraps": model_wraps,
+            })
+        if serving_wraps:
+            boundaries.append({
+                "kind": "region",
+                "label": "Model Serving & Inference Endpoints",
+                "wraps": serving_wraps,
             })
     else:
         if app_wraps:
@@ -268,6 +334,36 @@ def build_archify_spec(
                     "DOCUMENT_AND_SECURE: Shadow debug dump endpoint",
                     "DECOMMISSION: Dead inventory batch integration",
                     "STANDARDIZE_MTLS: Legacy SOAP CRM integration",
+                ],
+            },
+        ]
+    elif boundary_mode == "ai_lineage":
+        cards = [
+            {
+                "dot": "emerald",
+                "title": "AI Model Registry Governance",
+                "items": [
+                    f"Governed AI Models: {len(model_wraps)} Systems",
+                    "Lineage: Training Data ➔ Model ➔ Serving",
+                    "Authoritative Catalog: ea.gold.ai_governance",
+                ],
+            },
+            {
+                "dot": "rose",
+                "title": "EU AI Act Compliance Alert",
+                "items": [
+                    "Prohibited (Art. 5): candidate-biometric-evaluator",
+                    "High-Risk (Annex III): fraud-risk-scorer-v2 (Lacks Oversight)",
+                    "Limited-Risk (Art. 50): customer-support-llm-v1 (Needs Disclosure)",
+                ],
+            },
+            {
+                "dot": "orange",
+                "title": "Automated Governance Actions",
+                "items": [
+                    "DECOMMISSION_IMMEDIATELY: Biometric evaluation engine",
+                    "ENFORCE_HUMAN_OVERSIGHT: Dual-key fraud risk scoring",
+                    "ATTACH_AI_DISCLOSURE: Customer chatbot transparency banner",
                 ],
             },
         ]
@@ -929,6 +1025,49 @@ class ArchifyBridge:
             steps=steps,
             title=title,
             subtitle=subtitle,
+        )
+
+    def compile_ai_model_lineage_diagram(
+        self,
+        output_html_path: Optional[Path] = None,
+        title: str = "EU AI Act Risk Classification & End-to-End Model Lineage",
+        subtitle: str = "Enterprise AI Governance & Compliance Topology (Datasets ➔ Models ➔ Serving Endpoints)",
+    ) -> Tuple[Path, Path]:
+        """Compiles end-to-end AI/ML model lineage and governance topology diagram."""
+        all_nodes = self.client.get_nodes()
+        all_edges = self.client.get_edges()
+
+        # Filter strictly for AI model lineage ecosystem
+        ai_node_urns = {
+            n["urn"]
+            for n in all_nodes
+            if n.get("kind") == "AIModel"
+            or "aimodel" in n.get("urn", "")
+            or "biometric" in n.get("urn", "")
+            or "fraud-risk" in n.get("urn", "")
+            or "support-llm" in n.get("urn", "")
+            or "support-chatbot" in n.get("urn", "")
+            or "recommender" in n.get("urn", "")
+            or "recruitment-video" in n.get("urn", "")
+            or "historical-transaction" in n.get("urn", "")
+            or "support-ticket" in n.get("urn", "")
+            or "catalog-clickstream" in n.get("urn", "")
+        }
+
+        ai_nodes = [n for n in all_nodes if n["urn"] in ai_node_urns]
+        ai_edges = [
+            e for e in all_edges
+            if e["source_urn"] in ai_node_urns and e["target_urn"] in ai_node_urns
+        ]
+
+        out_base = output_html_path or (ROOT_DIR / "data" / "diagrams" / "ai_model_lineage.html")
+        return compile_archify_diagram(
+            nodes=ai_nodes,
+            edges=ai_edges,
+            output_path=Path(out_base),
+            title=title,
+            subtitle=subtitle,
+            boundary_mode="ai_lineage",
         )
 
 

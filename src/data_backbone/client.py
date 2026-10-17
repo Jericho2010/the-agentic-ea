@@ -322,6 +322,37 @@ class UnityCatalogClient:
         );
         """)
 
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS bronze_ai_models (
+            model_id TEXT PRIMARY KEY,
+            model_name TEXT NOT NULL,
+            version TEXT NOT NULL,
+            framework TEXT NOT NULL,
+            task_type TEXT NOT NULL,
+            training_dataset_urn TEXT NOT NULL,
+            serving_endpoint_urn TEXT NOT NULL,
+            owner_team TEXT NOT NULL,
+            license TEXT NOT NULL,
+            has_human_in_the_loop INTEGER NOT NULL DEFAULT 0,
+            timestamp TEXT NOT NULL
+        );
+        """)
+
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS gold_ai_governance (
+            model_id TEXT PRIMARY KEY,
+            model_name TEXT NOT NULL,
+            version TEXT NOT NULL,
+            task_type TEXT NOT NULL,
+            eu_risk_tier TEXT NOT NULL,
+            compliance_status TEXT NOT NULL,
+            has_model_card INTEGER NOT NULL DEFAULT 0,
+            has_data_lineage INTEGER NOT NULL DEFAULT 0,
+            has_human_oversight INTEGER NOT NULL DEFAULT 0,
+            governance_action TEXT NOT NULL
+        );
+        """)
+
         conn.commit()
         conn.close()
 
@@ -1189,6 +1220,116 @@ class UnityCatalogClient:
         conn.close()
         return count
 
+    def get_ai_models(self) -> List[Dict[str, Any]]:
+        """Retrieve all ingested AI/ML models from ea.bronze.ai_models."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM bronze_ai_models ORDER BY model_id ASC;")
+        rows = []
+        for r in cur.fetchall():
+            d = dict(r)
+            d["has_human_in_the_loop"] = bool(d.get("has_human_in_the_loop"))
+            rows.append(d)
+        conn.close()
+        return rows
+
+    def save_ai_models(self, records: List[Dict[str, Any]]) -> int:
+        """Upsert AI/ML model records into ea.bronze.ai_models."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        count = 0
+        for r in records:
+            cur.execute("""
+            INSERT INTO bronze_ai_models (
+                model_id, model_name, version, framework, task_type,
+                training_dataset_urn, serving_endpoint_urn, owner_team,
+                license, has_human_in_the_loop, timestamp
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(model_id) DO UPDATE SET
+                model_name = excluded.model_name,
+                version = excluded.version,
+                framework = excluded.framework,
+                task_type = excluded.task_type,
+                training_dataset_urn = excluded.training_dataset_urn,
+                serving_endpoint_urn = excluded.serving_endpoint_urn,
+                owner_team = excluded.owner_team,
+                license = excluded.license,
+                has_human_in_the_loop = excluded.has_human_in_the_loop,
+                timestamp = excluded.timestamp;
+            """, (
+                r["model_id"],
+                r["model_name"],
+                r["version"],
+                r["framework"],
+                r["task_type"],
+                r["training_dataset_urn"],
+                r["serving_endpoint_urn"],
+                r["owner_team"],
+                r["license"],
+                1 if r.get("has_human_in_the_loop") else 0,
+                r.get("timestamp", datetime.now(timezone.utc).isoformat()),
+            ))
+            count += 1
+        conn.commit()
+        conn.close()
+        return count
+
+    def get_ai_governance(self) -> List[Dict[str, Any]]:
+        """Retrieve conformed AI governance records from ea.gold.ai_governance."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM gold_ai_governance ORDER BY model_id ASC;")
+        rows = []
+        for r in cur.fetchall():
+            d = dict(r)
+            d["has_model_card"] = bool(d.get("has_model_card"))
+            d["has_data_lineage"] = bool(d.get("has_data_lineage"))
+            d["has_human_oversight"] = bool(d.get("has_human_oversight"))
+            rows.append(d)
+        conn.close()
+        return rows
+
+    def save_ai_governance(self, records: List[Dict[str, Any]]) -> int:
+        """Upsert AI governance records into ea.gold.ai_governance."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        count = 0
+        for r in records:
+            cur.execute("""
+            INSERT INTO gold_ai_governance (
+                model_id, model_name, version, task_type, eu_risk_tier,
+                compliance_status, has_model_card, has_data_lineage,
+                has_human_oversight, governance_action
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(model_id) DO UPDATE SET
+                model_name = excluded.model_name,
+                version = excluded.version,
+                task_type = excluded.task_type,
+                eu_risk_tier = excluded.eu_risk_tier,
+                compliance_status = excluded.compliance_status,
+                has_model_card = excluded.has_model_card,
+                has_data_lineage = excluded.has_data_lineage,
+                has_human_oversight = excluded.has_human_oversight,
+                governance_action = excluded.governance_action;
+            """, (
+                r["model_id"],
+                r["model_name"],
+                r["version"],
+                r["task_type"],
+                r["eu_risk_tier"],
+                r["compliance_status"],
+                1 if r.get("has_model_card") else 0,
+                1 if r.get("has_data_lineage") else 0,
+                1 if r.get("has_human_oversight") else 0,
+                r["governance_action"],
+            ))
+            count += 1
+        conn.commit()
+        conn.close()
+        return count
+
     def _normalize_sql(self, sql: str) -> str:
         """Translates Databricks Unity Catalog 3-level namespaces (ea.<schema>.<table>) to local table names."""
         replacements = [
@@ -1200,6 +1341,7 @@ class UnityCatalogClient:
             ("ea.bronze.cmdb_ci", "bronze_cmdb_ci"),
             ("ea.bronze.api_gateway_logs", "bronze_api_gateway_logs"),
             ("ea.bronze.process_event_logs", "bronze_process_event_logs"),
+            ("ea.bronze.ai_models", "bronze_ai_models"),
             ("ea.gold.time_matrix", "gold_time_matrix"),
             ("ea.gold.drift_reconciled", "gold_drift_reconciled"),
             ("ea.gold.capability_realization", "gold_capability_realization"),
@@ -1208,6 +1350,7 @@ class UnityCatalogClient:
             ("ea.gold.compliance_lineage", "gold_compliance_lineage"),
             ("ea.gold.interface_rationalization", "gold_interface_rationalization"),
             ("ea.gold.process_optimization", "gold_process_optimization"),
+            ("ea.gold.ai_governance", "gold_ai_governance"),
         ]
         res = sql
         for uc, local in replacements:

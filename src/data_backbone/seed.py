@@ -1592,12 +1592,152 @@ SEED_PROCESS_EVENT_LOGS: List[Dict[str, Any]] = [
     {"trace_id": "TRC-2026-OTC-003", "process_id": "PROC-ORDER-TO-CASH", "step_id": "STEP-05", "step_name": "Audit & Event Ingestion", "service_urn": "urn:ea:cloudresource:customer-pii-stream", "duration_ms": 44.1, "status": "SUCCESS", "timestamp": "2026-10-18T02:00:04Z"},
 ]
 
+# ==============================================================================
+# AI MODEL CATALOG & EU AI ACT GOVERNANCE SEED DATA (Scenario S11)
+# ==============================================================================
+SEED_AI_MODELS: List[Dict[str, Any]] = [
+    {
+        "model_id": "MDL-001-BIOMETRIC-EVALUATOR",
+        "model_name": "candidate-biometric-evaluator",
+        "version": "v1.4.0",
+        "framework": "OpenCV / PyTorch",
+        "task_type": "Emotion Recognition & Biometric Evaluation",
+        "training_dataset_urn": "urn:ea:database:recruitment-video-corpus",
+        "serving_endpoint_urn": "urn:ea:microservice:candidate-evaluation-endpoint",
+        "owner_team": "People Analytics AI Team",
+        "license": "Proprietary",
+        "has_human_in_the_loop": False,
+        "timestamp": "2026-10-18T00:00:00Z",
+    },
+    {
+        "model_id": "MDL-002-FRAUD-RISK-SCORER",
+        "model_name": "fraud-risk-scorer-v2",
+        "version": "v2.1.0",
+        "framework": "PyTorch / MLflow",
+        "task_type": "Credit & Fraud Risk Assessment",
+        "training_dataset_urn": "urn:ea:database:historical-transaction-ledger",
+        "serving_endpoint_urn": "urn:ea:microservice:payments-fraud-scoring-endpoint",
+        "owner_team": "Risk Intelligence Team",
+        "license": "Proprietary",
+        "has_human_in_the_loop": False,
+        "timestamp": "2026-10-18T00:00:00Z",
+    },
+    {
+        "model_id": "MDL-003-CUSTOMER-SUPPORT-LLM",
+        "model_name": "customer-support-llm-v1",
+        "version": "v1.0.2",
+        "framework": "Llama 3 / LangChain",
+        "task_type": "Customer Support GenAI Chatbot",
+        "training_dataset_urn": "urn:ea:database:support-ticket-kb-corpus",
+        "serving_endpoint_urn": "urn:ea:microservice:support-chatbot-endpoint",
+        "owner_team": "Customer Support AI Team",
+        "license": "Meta Llama 3 Community License",
+        "has_human_in_the_loop": True,
+        "timestamp": "2026-10-18T00:00:00Z",
+    },
+    {
+        "model_id": "MDL-004-PRODUCT-RECOMMENDER",
+        "model_name": "product-recommender-v3",
+        "version": "v3.2.0",
+        "framework": "Scikit-learn / LightFM",
+        "task_type": "E-Commerce Personalization & Recommendations",
+        "training_dataset_urn": "urn:ea:database:catalog-clickstream-mart",
+        "serving_endpoint_urn": "urn:ea:microservice:storefront-recommendations-endpoint",
+        "owner_team": "Merchandising Algorithms Team",
+        "license": "Apache 2.0",
+        "has_human_in_the_loop": False,
+        "timestamp": "2026-10-18T00:00:00Z",
+    },
+]
+
+SEED_AI_GOVERNANCE: List[Dict[str, Any]] = [
+    {
+        "model_id": "MDL-001-BIOMETRIC-EVALUATOR",
+        "model_name": "candidate-biometric-evaluator",
+        "version": "v1.4.0",
+        "task_type": "Emotion Recognition & Biometric Evaluation",
+        "eu_risk_tier": "UNACCEPTABLE_RISK",
+        "compliance_status": "PROHIBITED",
+        "has_model_card": False,
+        "has_data_lineage": True,
+        "has_human_oversight": False,
+        "governance_action": "DECOMMISSION_IMMEDIATELY",
+    },
+    {
+        "model_id": "MDL-002-FRAUD-RISK-SCORER",
+        "model_name": "fraud-risk-scorer-v2",
+        "version": "v2.1.0",
+        "task_type": "Credit & Fraud Risk Assessment",
+        "eu_risk_tier": "HIGH_RISK",
+        "compliance_status": "ACTION_REQUIRED",
+        "has_model_card": True,
+        "has_data_lineage": True,
+        "has_human_oversight": False,
+        "governance_action": "ENFORCE_HUMAN_OVERSIGHT",
+    },
+    {
+        "model_id": "MDL-003-CUSTOMER-SUPPORT-LLM",
+        "model_name": "customer-support-llm-v1",
+        "version": "v1.0.2",
+        "task_type": "Customer Support GenAI Chatbot",
+        "eu_risk_tier": "LIMITED_RISK",
+        "compliance_status": "ACTION_REQUIRED",
+        "has_model_card": True,
+        "has_data_lineage": True,
+        "has_human_oversight": True,
+        "governance_action": "ATTACH_AI_DISCLOSURE",
+    },
+    {
+        "model_id": "MDL-004-PRODUCT-RECOMMENDER",
+        "model_name": "product-recommender-v3",
+        "version": "v3.2.0",
+        "task_type": "E-Commerce Personalization & Recommendations",
+        "eu_risk_tier": "MINIMAL_RISK",
+        "compliance_status": "COMPLIANT",
+        "has_model_card": True,
+        "has_data_lineage": True,
+        "has_human_oversight": False,
+        "governance_action": "RETAIN",
+    },
+]
+
+SEED_AI_NODES: List[Dict[str, Any]] = [
+    # Training Datasets
+    {"urn": "urn:ea:database:recruitment-video-corpus", "name": "recruitment-video-corpus", "kind": "Database", "owner_team": "People Analytics AI Team", "lifecycle_status": "run", "criticality": "Tier-2", "metadata": {"storage_type": "s3_bucket", "records_count": "50,000"}},
+    {"urn": "urn:ea:database:historical-transaction-ledger", "name": "historical-transaction-ledger", "kind": "Database", "owner_team": "Risk Intelligence Team", "lifecycle_status": "run", "criticality": "Tier-1", "metadata": {"storage_type": "delta_lake", "records_count": "12,000,000"}},
+    {"urn": "urn:ea:database:support-ticket-kb-corpus", "name": "support-ticket-kb-corpus", "kind": "Database", "owner_team": "Customer Support AI Team", "lifecycle_status": "run", "criticality": "Tier-2", "metadata": {"storage_type": "delta_lake", "records_count": "450,000"}},
+    {"urn": "urn:ea:database:catalog-clickstream-mart", "name": "catalog-clickstream-mart", "kind": "Database", "owner_team": "Merchandising Algorithms Team", "lifecycle_status": "run", "criticality": "Tier-2", "metadata": {"storage_type": "delta_lake", "records_count": "8,500,000"}},
+    # AI / ML Models
+    {"urn": "urn:ea:aimodel:candidate-biometric-evaluator", "name": "candidate-biometric-evaluator", "kind": "AIModel", "owner_team": "People Analytics AI Team", "lifecycle_status": "deprecated", "criticality": "Tier-1", "metadata": {"eu_risk_tier": "UNACCEPTABLE_RISK", "framework": "PyTorch", "compliance_status": "PROHIBITED"}},
+    {"urn": "urn:ea:aimodel:fraud-risk-scorer-v2", "name": "fraud-risk-scorer-v2", "kind": "AIModel", "owner_team": "Risk Intelligence Team", "lifecycle_status": "run", "criticality": "Tier-1", "metadata": {"eu_risk_tier": "HIGH_RISK", "framework": "PyTorch / MLflow", "compliance_status": "ACTION_REQUIRED"}},
+    {"urn": "urn:ea:aimodel:customer-support-llm-v1", "name": "customer-support-llm-v1", "kind": "AIModel", "owner_team": "Customer Support AI Team", "lifecycle_status": "run", "criticality": "Tier-2", "metadata": {"eu_risk_tier": "LIMITED_RISK", "framework": "Llama 3", "compliance_status": "ACTION_REQUIRED"}},
+    {"urn": "urn:ea:aimodel:product-recommender-v3", "name": "product-recommender-v3", "kind": "AIModel", "owner_team": "Merchandising Algorithms Team", "lifecycle_status": "run", "criticality": "Tier-2", "metadata": {"eu_risk_tier": "MINIMAL_RISK", "framework": "Scikit-learn", "compliance_status": "COMPLIANT"}},
+    # Serving Endpoints
+    {"urn": "urn:ea:microservice:candidate-evaluation-endpoint", "name": "candidate-evaluation-endpoint", "kind": "Microservice", "owner_team": "People Analytics AI Team", "lifecycle_status": "deprecated", "criticality": "Tier-1", "metadata": {"protocol": "HTTPS/REST", "status": "BLOCKED"}},
+    {"urn": "urn:ea:microservice:payments-fraud-scoring-endpoint", "name": "payments-fraud-scoring-endpoint", "kind": "Microservice", "owner_team": "Risk Intelligence Team", "lifecycle_status": "run", "criticality": "Tier-1", "metadata": {"protocol": "gRPC/mTLS", "status": "NEEDS_OVERSIGHT"}},
+    {"urn": "urn:ea:microservice:support-chatbot-endpoint", "name": "support-chatbot-endpoint", "kind": "Microservice", "owner_team": "Customer Support AI Team", "lifecycle_status": "run", "criticality": "Tier-2", "metadata": {"protocol": "HTTPS/REST", "status": "NEEDS_DISCLOSURE"}},
+    {"urn": "urn:ea:microservice:storefront-recommendations-endpoint", "name": "storefront-recommendations-endpoint", "kind": "Microservice", "owner_team": "Merchandising Algorithms Team", "lifecycle_status": "run", "criticality": "Tier-2", "metadata": {"protocol": "HTTPS/REST", "status": "COMPLIANT"}},
+]
+
+SEED_AI_EDGES: List[Dict[str, Any]] = [
+    # Training Data Lineage (Dataset -> AIModel)
+    {"source_urn": "urn:ea:database:recruitment-video-corpus", "target_urn": "urn:ea:aimodel:candidate-biometric-evaluator", "relation": "trains", "protocol": "MLflow/TrainingRun", "contains_pii": True},
+    {"source_urn": "urn:ea:database:historical-transaction-ledger", "target_urn": "urn:ea:aimodel:fraud-risk-scorer-v2", "relation": "trains", "protocol": "MLflow/TrainingRun", "contains_pii": True},
+    {"source_urn": "urn:ea:database:support-ticket-kb-corpus", "target_urn": "urn:ea:aimodel:customer-support-llm-v1", "relation": "trains", "protocol": "MLflow/FineTuning", "contains_pii": False},
+    {"source_urn": "urn:ea:database:catalog-clickstream-mart", "target_urn": "urn:ea:aimodel:product-recommender-v3", "relation": "trains", "protocol": "MLflow/TrainingRun", "contains_pii": False},
+    # Serving Lineage (AIModel -> Serving Endpoint)
+    {"source_urn": "urn:ea:aimodel:candidate-biometric-evaluator", "target_urn": "urn:ea:microservice:candidate-evaluation-endpoint", "relation": "serves", "protocol": "ModelServing/REST", "contains_pii": True},
+    {"source_urn": "urn:ea:aimodel:fraud-risk-scorer-v2", "target_urn": "urn:ea:microservice:payments-fraud-scoring-endpoint", "relation": "serves", "protocol": "ModelServing/gRPC", "contains_pii": True},
+    {"source_urn": "urn:ea:aimodel:customer-support-llm-v1", "target_urn": "urn:ea:microservice:support-chatbot-endpoint", "relation": "serves", "protocol": "ModelServing/REST", "contains_pii": False},
+    {"source_urn": "urn:ea:aimodel:product-recommender-v3", "target_urn": "urn:ea:microservice:storefront-recommendations-endpoint", "relation": "serves", "protocol": "ModelServing/REST", "contains_pii": False},
+]
+
 
 def seed_database() -> Dict[str, int]:
     """Seed the Unity Catalog conformed tables."""
     client = get_unity_catalog_client()
-    n_count = client.merge_nodes(SEED_NODES + SEED_MA_NODES)
-    e_count = client.merge_edges(SEED_EDGES + SEED_MA_EDGES)
+    n_count = client.merge_nodes(SEED_NODES + SEED_MA_NODES + SEED_AI_NODES)
+    e_count = client.merge_edges(SEED_EDGES + SEED_MA_EDGES + SEED_AI_EDGES)
     t_count = client.save_time_matrix(SEED_TIME_MATRIX)
     cmdb_count = client.save_cmdb_ci(SEED_CMDB_CI)
     d_count = client.save_drift_records(SEED_DRIFT)
@@ -1609,6 +1749,8 @@ def seed_database() -> Dict[str, int]:
     ir_count = client.save_interface_rationalization(SEED_INTERFACE_RATIONALIZATION)
     p_opt_count = client.save_process_optimization(SEED_PROCESS_OPTIMIZATION)
     p_evt_count = client.save_process_event_logs(SEED_PROCESS_EVENT_LOGS)
+    ai_m_count = client.save_ai_models(SEED_AI_MODELS)
+    ai_g_count = client.save_ai_governance(SEED_AI_GOVERNANCE)
     return {
         "nodes": n_count,
         "edges": e_count,
@@ -1623,6 +1765,8 @@ def seed_database() -> Dict[str, int]:
         "interface_rationalization": ir_count,
         "process_optimization": p_opt_count,
         "process_event_logs": p_evt_count,
+        "ai_models": ai_m_count,
+        "ai_governance": ai_g_count,
     }
 
 

@@ -104,7 +104,7 @@ with col_h2:
     """, unsafe_allow_html=True)
 
 # Navigation Tabs
-tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time, tab_migration, tab_capabilities, tab_cmdb, tab_ma, tab_compliance, tab_interfaces, tab_process = st.tabs([
+tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time, tab_migration, tab_capabilities, tab_cmdb, tab_ma, tab_compliance, tab_interfaces, tab_process, tab_ai_governance = st.tabs([
     "🏛️ Estate Catalog",
     "🗺️ Living Architecture Maps",
     "🧭 EA Navigator Cockpit",
@@ -117,6 +117,7 @@ tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time, tab_migration, tab
     "⚖️ Regulatory Compliance & Privacy Lineage (GDPR / DORA)",
     "🔌 Interface & Integration Rationalization",
     "⏱️ Business Process Optimization & Customer Journey",
+    "🤖 AI Governance & ML Catalog (EU AI Act)",
 ])
 
 
@@ -999,6 +1000,93 @@ with tab_process:
         st.components.v1.html(html_code, height=650, scrolling=True)
     else:
         st.warning("Customer journey workflow diagram could not be loaded.")
+
+
+# ==============================================================================
+# TAB 13: AI GOVERNANCE & ML CATALOG (EU AI ACT)
+# ==============================================================================
+with tab_ai_governance:
+    st.subheader("🤖 AI Governance, ML Model Catalog & EU AI Act Compliance")
+    st.caption("Conformed ML model catalog in `ea.gold.ai_governance` mapping EU AI Act risk tiers (Art. 5 Prohibited, Annex III High-Risk, Art. 50 Limited-Risk, Minimal-Risk) and end-to-end data lineage.")
+
+    ai_data = navigator.analyze_ai_governance()
+
+    # 5 KPI Metric Cards
+    m_col1, m_col2, m_col3, m_col4, m_col5 = st.columns(5)
+    m_col1.metric("Total AI Models", f"{ai_data['total_models_count']} Systems")
+    m_col2.metric("🚨 Prohibited (Art. 5)", f"{ai_data['prohibited_count']}", delta="-1 Action Required", delta_color="inverse")
+    m_col3.metric("⚠️ High-Risk (Annex III)", f"{ai_data['high_risk_count']}", delta="Needs Oversight", delta_color="inverse")
+    m_col4.metric("💬 Limited-Risk (Art. 50)", f"{ai_data['limited_risk_count']}", delta="Needs Disclosure", delta_color="inverse")
+    m_col5.metric("🟢 Minimal-Risk", f"{ai_data['minimal_risk_count']}", delta="Compliant")
+
+    st.markdown("---")
+    st.markdown("#### 📋 AI Model Registry & EU AI Act Compliance Matrix (`ea.gold.ai_governance`)")
+
+    gov_rows = ai_data["lineage_traces"]
+    if gov_rows:
+        df_gov = pd.DataFrame(gov_rows)
+        df_display = df_gov.copy()
+        df_display["model_card"] = df_display["has_model_card"].apply(lambda b: "✅ Available" if b else "❌ Missing")
+        df_display["data_lineage"] = df_display["has_data_lineage"].apply(lambda b: "✅ Verified" if b else "❌ Unmapped")
+        df_display["human_oversight"] = df_display["has_human_oversight"].apply(lambda b: "✅ Enforced" if b else "❌ Absent")
+        df_display["status"] = df_display["compliance_status"].apply(
+            lambda s: "🚨 PROHIBITED" if s == "PROHIBITED" else ("⚠️ ACTION REQUIRED" if s == "ACTION_REQUIRED" else "✅ COMPLIANT")
+        )
+
+        st.dataframe(
+            df_display[[
+                "model_id", "model_name", "version", "framework", "task_type",
+                "eu_risk_tier", "status", "model_card", "data_lineage", "human_oversight", "governance_action"
+            ]],
+            use_container_width=True,
+        )
+
+        st.download_button(
+            label="📥 Export AI Governance Catalog (CSV)",
+            data=df_gov.to_csv(index=False),
+            file_name="ea_gold_ai_governance.csv",
+            mime="text/csv",
+        )
+
+    st.markdown("---")
+    st.markdown("#### ⚖️ Priority Automated AI Governance Actions")
+    act_col1, act_col2 = st.columns(2)
+
+    for idx, act in enumerate(ai_data["governance_actions"]):
+        target_col = act_col1 if idx % 2 == 0 else act_col2
+        with target_col:
+            badge_color = "#f43f5e" if act["risk_tier"] == "UNACCEPTABLE_RISK" else ("#f59e0b" if act["risk_tier"] == "HIGH_RISK" else ("#38bdf8" if act["risk_tier"] == "LIMITED_RISK" else "#10b981"))
+            st.markdown(f"""
+            <div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 700; color: #f8fafc; font-size: 15px;">{act['model_name']}</span>
+                    <span style="background: #1e293b; color: {badge_color}; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;">{act['risk_tier']}</span>
+                </div>
+                <div style="margin-top: 8px; font-size: 13px; color: #94a3b8;">
+                    <strong>Action:</strong> <span style="color: {badge_color}; font-weight: bold;">{act['action']}</span> | 
+                    <strong>Article:</strong> <code>{act['article']}</code>
+                </div>
+                <div style="margin-top: 8px; font-size: 12px; color: #cbd5e1;">
+                    {act['details']}
+                </div>
+                <div style="margin-top: 8px; font-size: 12px; color: #38bdf8;">
+                    💡 <em>Remediation: {act['remediation']}</em>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.markdown("#### 🗺️ Interactive End-to-End AI Model Lineage & Topology Diagram")
+    st.caption("Interactive Archify vector map displaying complete lineage from Training Datasets ➔ MLflow Model Registry (EU AI Act Governed Tiers) ➔ Model Serving Endpoints.")
+
+    ai_diag_path = ROOT_DIR / "data" / "diagrams" / "ai_model_lineage.html"
+    if not ai_diag_path.exists():
+        navigator.compile_ai_model_lineage_diagram()
+    if ai_diag_path.exists():
+        html_code = ai_diag_path.read_text(encoding="utf-8")
+        st.components.v1.html(html_code, height=650, scrolling=True)
+    else:
+        st.warning("AI model lineage diagram could not be loaded.")
 
 
 
