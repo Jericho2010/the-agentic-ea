@@ -160,12 +160,12 @@ class StandaloneConformancePipeline:
         """
         logger.info("Reconciling ea.gold.time_matrix from cloud resources...")
         cloud_rows = self.client.execute_query(
-            f"SELECT resource_name, tags, monthly_cost_usd FROM {SCHEMA_BRONZE}.cloud_resources"
+            f"SELECT resource_name, tags, monthly_cost_usd, account_id FROM {SCHEMA_BRONZE}.cloud_resources"
         )
         nodes_rows = self.client.execute_query(
             f"SELECT urn, name, kind, lifecycle_status, criticality FROM {SCHEMA_METAMODEL}.nodes"
         )
-        node_urn_by_name = {n["name"]: n["urn"] for n in nodes_rows}
+        node_urn_by_name = {n["name"]: n["urn"] for n in nodes_rows if not n.get("urn", "").startswith("urn:ea:acquired:")}
 
         systems_data: Dict[str, Dict[str, Any]] = {}
         for r in cloud_rows:
@@ -175,6 +175,9 @@ class StandaloneConformancePipeline:
                     tags = json.loads(r["tags"]) if isinstance(r["tags"], str) else r["tags"]
                 except Exception:
                     pass
+            # Skip acquired entity resources across tenant boundaries (tracked in M&A synergies)
+            if tags.get("Tenant") == "acq-target-corp" or r.get("account_id") == "998877665544":
+                continue
             system = tags.get("System", r["resource_name"].split("-")[0])
             monthly = float(r.get("monthly_cost_usd") or 0.0)
             if system not in systems_data:
@@ -268,14 +271,17 @@ class StandaloneConformancePipeline:
 
         nodes_rows = self.client.get_nodes()
         cloud_rows = self.client.execute_query(
-            f"SELECT resource_name, tags, resource_type, monthly_cost_usd FROM {SCHEMA_BRONZE}.cloud_resources"
+            f"SELECT resource_name, tags, resource_type, monthly_cost_usd, account_id FROM {SCHEMA_BRONZE}.cloud_resources"
         )
         time_rows = self.client.get_time_matrix()
         time_by_name = {t["name"]: t for t in time_rows}
 
         now = datetime.now(timezone.utc).isoformat()
         cmdb_by_name = {c["name"]: c for c in cmdb_rows}
-        nodes_by_name = {n["name"]: n for n in nodes_rows if not n.get("urn", "").startswith("urn:ea:capability:")}
+        nodes_by_name = {
+            n["name"]: n for n in nodes_rows
+            if not n.get("urn", "").startswith("urn:ea:capability:") and not n.get("urn", "").startswith("urn:ea:acquired:")
+        }
 
         # Build cloud systems map
         cloud_systems_map: Dict[str, Dict[str, Any]] = {}
@@ -286,6 +292,9 @@ class StandaloneConformancePipeline:
                     tags = json.loads(c["tags"]) if isinstance(c["tags"], str) else c["tags"]
                 except Exception:
                     pass
+            # Skip acquired entity resources across tenant boundary
+            if tags.get("Tenant") == "acq-target-corp" or c.get("account_id") == "998877665544":
+                continue
             sys_name = tags.get("System", c["resource_name"].split("-")[0])
             cloud_systems_map[sys_name] = {
                 "resource_name": c["resource_name"],

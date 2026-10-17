@@ -967,16 +967,201 @@ SEED_ARB_AUDIT_LEDGER = [
 ]
 
 
+SEED_MA_NODES = [
+    {
+        "urn": "urn:ea:acquired:microservice:acquired-payment-gateway",
+        "name": "acquired-payment-gateway",
+        "kind": "Microservice",
+        "owner_team": "acq-payments-team",
+        "lifecycle_status": "sunset",
+        "criticality": "Tier-1",
+        "metadata": {
+            "runtime": "PHP 8.1 / Laravel 10",
+            "cloud_provider": "AWS",
+            "annual_cost_usd": 42000.00,
+            "monthly_cost_usd": 3500.00,
+            "tech_debt_score": 75,
+            "tenant_id": "acq-target-corp",
+            "org_name": "acquired-target-org",
+            "repo": "https://github.com/acquired-target-org/acquired-payment-gateway",
+            "redundancy_status": "DUPLICATE",
+            "target_core_service": "payments-api",
+        },
+    },
+    {
+        "urn": "urn:ea:acquired:microservice:acquired-auth-portal",
+        "name": "acquired-auth-portal",
+        "kind": "Microservice",
+        "owner_team": "acq-security-team",
+        "lifecycle_status": "sunset",
+        "criticality": "Tier-1",
+        "metadata": {
+            "runtime": "Node.js 16 / Express",
+            "cloud_provider": "AWS",
+            "annual_cost_usd": 18000.00,
+            "monthly_cost_usd": 1500.00,
+            "tech_debt_score": 70,
+            "tenant_id": "acq-target-corp",
+            "org_name": "acquired-target-org",
+            "repo": "https://github.com/acquired-target-org/acquired-auth-portal",
+            "redundancy_status": "OVERLAPPING",
+            "target_core_service": "auth-gateway",
+        },
+    },
+    {
+        "urn": "urn:ea:acquired:database:acquired-crm-db",
+        "name": "acquired-crm-db",
+        "kind": "Database",
+        "owner_team": "acq-data-team",
+        "lifecycle_status": "deprecated",
+        "criticality": "Tier-1",
+        "metadata": {
+            "engine": "MySQL 5.7 on EC2",
+            "eol_date": "2024-10-31",
+            "cloud_provider": "AWS",
+            "annual_cost_usd": 28000.00,
+            "monthly_cost_usd": 2333.33,
+            "tech_debt_score": 85,
+            "tenant_id": "acq-target-corp",
+            "org_name": "acquired-target-org",
+            "redundancy_status": "TECH_DEBT_RISK",
+            "target_core_service": "billing-db",
+        },
+    },
+    {
+        "urn": "urn:ea:acquired:cloudresource:acquired-analytics-pipeline",
+        "name": "acquired-analytics-pipeline",
+        "kind": "CloudResource",
+        "owner_team": "acq-bi-team",
+        "lifecycle_status": "sunset",
+        "criticality": "Tier-2",
+        "metadata": {
+            "engine": "AWS Redshift DC2.large",
+            "cloud_provider": "AWS",
+            "annual_cost_usd": 36000.00,
+            "monthly_cost_usd": 3000.00,
+            "tech_debt_score": 60,
+            "tenant_id": "acq-target-corp",
+            "org_name": "acquired-target-org",
+            "redundancy_status": "MODERNIZE_TO_DATABRICKS",
+            "target_core_service": "ea.silver.orders_stream",
+        },
+    },
+]
+
+SEED_MA_EDGES = [
+    {
+        "source_urn": "urn:ea:acquired:microservice:acquired-payment-gateway",
+        "target_urn": "urn:ea:capability:payment-processing",
+        "relation": "realizes",
+        "protocol": "Domain Realization",
+        "contains_pii": False,
+    },
+    {
+        "source_urn": "urn:ea:acquired:microservice:acquired-auth-portal",
+        "target_urn": "urn:ea:capability:identity-and-access-management",
+        "relation": "realizes",
+        "protocol": "Domain Realization",
+        "contains_pii": False,
+    },
+    {
+        "source_urn": "urn:ea:acquired:database:acquired-crm-db",
+        "target_urn": "urn:ea:capability:digital-storefront",
+        "relation": "realizes",
+        "protocol": "Data Persistence",
+        "contains_pii": True,
+    },
+    {
+        "source_urn": "urn:ea:acquired:cloudresource:acquired-analytics-pipeline",
+        "target_urn": "urn:ea:capability:data-privacy-and-governance",
+        "relation": "realizes",
+        "protocol": "Analytics Ingestion",
+        "contains_pii": False,
+    },
+    {
+        "source_urn": "urn:ea:acquired:microservice:acquired-payment-gateway",
+        "target_urn": "urn:ea:acquired:database:acquired-crm-db",
+        "relation": "connects_to",
+        "protocol": "TCP/3306",
+        "contains_pii": True,
+    },
+]
+
+SEED_MA_SYNERGIES = [
+    {
+        "synergy_id": "SYN-001-PAYMENTS",
+        "target_entity_name": "acquired-payment-gateway",
+        "target_entity_urn": "urn:ea:acquired:microservice:acquired-payment-gateway",
+        "capability_name": "Payment Processing",
+        "capability_urn": "urn:ea:capability:payment-processing",
+        "core_counterpart_name": "payments-api",
+        "core_counterpart_urn": "urn:ea:microservice:payments-api",
+        "overlap_type": "Duplicate Capability",
+        "recommendation": "Decommission acquired PHP gateway; migrate merchant routing to core payments-api",
+        "current_annual_cost": 42000.00,
+        "potential_synergy_savings": 42000.00,
+        "risk_level": "Low",
+        "discovered_at": "2026-10-17T00:00:00Z",
+    },
+    {
+        "synergy_id": "SYN-002-AUTH",
+        "target_entity_name": "acquired-auth-portal",
+        "target_entity_urn": "urn:ea:acquired:microservice:acquired-auth-portal",
+        "capability_name": "Identity & Access Management",
+        "capability_urn": "urn:ea:capability:identity-and-access-management",
+        "core_counterpart_name": "auth-gateway",
+        "core_counterpart_urn": "urn:ea:microservice:auth-gateway",
+        "overlap_type": "Overlapping Service",
+        "recommendation": "Federate acquired user pool into core auth-gateway and decommission Node.js portal",
+        "current_annual_cost": 18000.00,
+        "potential_synergy_savings": 18000.00,
+        "risk_level": "Medium",
+        "discovered_at": "2026-10-17T00:00:00Z",
+    },
+    {
+        "synergy_id": "SYN-003-ANALYTICS",
+        "target_entity_name": "acquired-analytics-pipeline",
+        "target_entity_urn": "urn:ea:acquired:cloudresource:acquired-analytics-pipeline",
+        "capability_name": "Data Privacy & Governance",
+        "capability_urn": "urn:ea:capability:data-privacy-and-governance",
+        "core_counterpart_name": "ea.silver.orders_stream",
+        "core_counterpart_urn": "urn:ea:cloudresource:customer-pii-stream",
+        "overlap_type": "Stack Divergence / Redundancy",
+        "recommendation": "Migrate Redshift workloads to Databricks Unity Catalog DLT pipelines; eliminate Redshift cluster",
+        "current_annual_cost": 36000.00,
+        "potential_synergy_savings": 24000.00,
+        "risk_level": "Low",
+        "discovered_at": "2026-10-17T00:00:00Z",
+    },
+    {
+        "synergy_id": "SYN-004-CRM-DB",
+        "target_entity_name": "acquired-crm-db",
+        "target_entity_urn": "urn:ea:acquired:database:acquired-crm-db",
+        "capability_name": "Digital Storefront & Catalog",
+        "capability_urn": "urn:ea:capability:digital-storefront",
+        "core_counterpart_name": "billing-db",
+        "core_counterpart_urn": "urn:ea:database:billing-db",
+        "overlap_type": "Obsolescence & Tech Debt",
+        "recommendation": "Replatform MySQL 5.7 (past EOL) to managed Aurora PostgreSQL or Databricks Lakehouse",
+        "current_annual_cost": 28000.00,
+        "potential_synergy_savings": 0.00,
+        "risk_level": "High",
+        "discovered_at": "2026-10-17T00:00:00Z",
+    },
+]
+
+
 def seed_database() -> Dict[str, int]:
     """Seed the Unity Catalog conformed tables."""
     client = get_unity_catalog_client()
-    n_count = client.merge_nodes(SEED_NODES)
-    e_count = client.merge_edges(SEED_EDGES)
+    n_count = client.merge_nodes(SEED_NODES + SEED_MA_NODES)
+    e_count = client.merge_edges(SEED_EDGES + SEED_MA_EDGES)
     t_count = client.save_time_matrix(SEED_TIME_MATRIX)
     cmdb_count = client.save_cmdb_ci(SEED_CMDB_CI)
     d_count = client.save_drift_records(SEED_DRIFT)
     c_count = client.save_capability_realizations(SEED_CAPABILITY_REALIZATIONS)
     a_count = sum(1 for rec in SEED_ARB_AUDIT_LEDGER if client.record_arb_audit(rec))
+    syn_count = client.save_ma_synergies(SEED_MA_SYNERGIES)
     return {
         "nodes": n_count,
         "edges": e_count,
@@ -985,6 +1170,7 @@ def seed_database() -> Dict[str, int]:
         "drift": d_count,
         "capability_realizations": c_count,
         "arb_audit_ledger": a_count,
+        "ma_synergies": syn_count,
     }
 
 

@@ -172,6 +172,25 @@ DDL_STATEMENTS = {
     USING DELTA
     COMMENT 'Immutable Architecture Review Board (ARB) Pre-Merge Governance Audit Ledger';
     """,
+    "gold_ma_synergies": f"""
+    CREATE TABLE IF NOT EXISTS {SCHEMA_GOLD}.ma_synergies (
+        synergy_id STRING NOT NULL COMMENT 'Unique synergy item UUID',
+        target_entity_name STRING NOT NULL COMMENT 'Acquired component name',
+        target_entity_urn STRING NOT NULL COMMENT 'Acquired component URN',
+        capability_name STRING NOT NULL COMMENT 'Realized capability',
+        capability_urn STRING NOT NULL COMMENT 'Realized capability URN',
+        core_counterpart_name STRING COMMENT 'Existing core enterprise component name',
+        core_counterpart_urn STRING COMMENT 'Existing core enterprise component URN',
+        overlap_type STRING NOT NULL COMMENT 'DUPLICATE_CAPABILITY, TECH_STACK_DIVERGENCE, DEBT_REMEDIATION',
+        recommendation STRING NOT NULL COMMENT 'RETIRE_AND_MIGRATE, RATIONALIZE, RETAIN_TEMPORARILY',
+        current_annual_cost DOUBLE NOT NULL COMMENT 'Current run cost of acquired asset in USD',
+        potential_synergy_savings DOUBLE NOT NULL COMMENT 'Annual savings upon rationalization in USD',
+        risk_level STRING NOT NULL COMMENT 'HIGH, MEDIUM, LOW',
+        discovered_at TIMESTAMP NOT NULL COMMENT 'Discovery timestamp'
+    )
+    USING DELTA
+    COMMENT 'M&A Day-One Portfolio Synergy & Overlap Analysis Mart';
+    """,
 }
 
 

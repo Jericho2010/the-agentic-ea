@@ -104,7 +104,7 @@ with col_h2:
     """, unsafe_allow_html=True)
 
 # Navigation Tabs
-tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time, tab_migration, tab_capabilities, tab_cmdb = st.tabs([
+tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time, tab_migration, tab_capabilities, tab_cmdb, tab_ma = st.tabs([
     "🏛️ Estate Catalog",
     "🗺️ Living Architecture Maps",
     "🧭 EA Navigator Cockpit",
@@ -113,6 +113,7 @@ tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time, tab_migration, tab
     "🚀 Target-State Migration Roadmap",
     "🎯 Business Capabilities & Investment",
     "🔄 CMDB Baseline Hygiene & Drift",
+    "🏢 M&A Day-One Landscape Discovery",
 ])
 
 
@@ -660,5 +661,71 @@ with tab_cmdb:
             file_name="ea_bronze_cmdb_ci.csv",
             mime="text/csv",
         )
+
+
+# ==============================================================================
+# TAB 9: M&A DAY-ONE LANDSCAPE DISCOVERY & SYNERGIES
+# ==============================================================================
+with tab_ma:
+    st.subheader("🏢 M&A Day-One IT Landscape Discovery & Overlap Analysis")
+    st.caption("Rapid zero-footprint discovery of acquired entity IT estate, business capability overlap mapping, technology stack divergence, and FinOps synergy rationalization.")
+
+    ma_metrics = navigator.analyze_ma_landscape()
+    synergies = client.get_ma_synergies() or ma_metrics["synergies"]
+
+    # Top KPI Metrics Cards
+    k1, k2, k3, k4, k5 = st.columns(5)
+    k1.metric("Day-One Total Spend", f"${ma_metrics['combined_annual_cost_usd']:,.2f}", f"Core: ${ma_metrics['core_annual_cost_usd']:,.0f}")
+    k2.metric("Acquired Estate Spend", f"${ma_metrics['acquired_annual_cost_usd']:,.2f}", "4 Systems Tracked")
+    k3.metric("Rationalization Synergies", f"${ma_metrics['potential_synergy_savings_usd']:,.2f}", "67.7% Acquired Run Cost", delta_color="normal")
+    k4.metric("Target Post-Synergy Spend", f"${ma_metrics['post_synergy_annual_cost_usd']:,.2f}", "Annual Target")
+    k5.metric("Technical Debt Score", f"{ma_metrics['acquired_avg_tech_debt']} / 100", f"Core: {ma_metrics['core_avg_tech_debt']} / 100", delta_color="inverse")
+
+    st.markdown("---")
+    st.markdown("#### 🎯 Capability Overlap & Synergy Rationalization Matrix (`ea.gold.ma_synergies`)")
+    st.caption("Identified duplicate capabilities and overlapping services between acquired entity and enterprise core estate.")
+
+    if synergies:
+        df_syn = pd.DataFrame(synergies)[[
+            "synergy_id", "target_entity_name", "capability_name", "core_counterpart_name",
+            "overlap_type", "potential_synergy_savings", "current_annual_cost", "risk_level", "recommendation"
+        ]]
+        st.dataframe(df_syn, use_container_width=True)
+
+    st.markdown("---")
+    st.markdown("#### ⚙️ Technology Stack Divergence & Obsolescence Analysis")
+    st.caption("Architectural comparison between acquired technology choices and core enterprise standards.")
+
+    div_cols = st.columns(2)
+    for idx, div in enumerate(ma_metrics["tech_stack_divergence"]):
+        col = div_cols[idx % 2]
+        with col:
+            risk_color = "#ef4444" if div.get("risk") == "High" else ("#f59e0b" if div.get("risk") == "Medium" else "#10b981")
+            st.markdown(f"""
+            <div style="background: #0f172a; border-left: 4px solid {risk_color}; border-radius: 8px; padding: 14px; margin-bottom: 12px; border: 1px solid #1e293b;">
+                <div style="font-weight: 700; color: #f8fafc; font-size: 15px;">{div['area']} <span style="font-size: 11px; color: {risk_color}; background: #1e293b; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">Risk: {div.get('risk', 'Low')}</span></div>
+                <div style="margin-top: 6px; font-size: 13px; color: #94a3b8;">
+                    <strong>Acquired Tech:</strong> <code style="color: #fda4af;">{div['acquired']}</code><br/>
+                    <strong>Enterprise Standard:</strong> <code style="color: #6ee7b7;">{div['core']}</code>
+                </div>
+                <div style="margin-top: 8px; font-size: 12px; color: #38bdf8;">
+                    💡 <em>{div['action']}</em>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.markdown("#### 🗺️ Living Architecture Map: Merged M&A Landscape")
+    st.caption("Interactive Archify vector living map highlighting acquired target assets and overlap connections.")
+
+    ma_diag_path = ROOT_DIR / "data" / "diagrams" / "ma_landscape_view.html"
+    if not ma_diag_path.exists():
+        navigator.compile_ma_landscape_diagram()
+
+    if ma_diag_path.exists():
+        html_code = ma_diag_path.read_text(encoding="utf-8")
+        st.components.v1.html(html_code, height=650, scrolling=True)
+    else:
+        st.warning("Diagram could not be loaded.")
 
 

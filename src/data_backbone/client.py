@@ -213,6 +213,24 @@ class UnityCatalogClient:
         );
         """)
 
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS gold_ma_synergies (
+            synergy_id TEXT PRIMARY KEY,
+            target_entity_name TEXT NOT NULL,
+            target_entity_urn TEXT NOT NULL,
+            capability_name TEXT NOT NULL,
+            capability_urn TEXT NOT NULL,
+            core_counterpart_name TEXT,
+            core_counterpart_urn TEXT,
+            overlap_type TEXT NOT NULL,
+            recommendation TEXT NOT NULL,
+            current_annual_cost REAL NOT NULL,
+            potential_synergy_savings REAL NOT NULL,
+            risk_level TEXT NOT NULL,
+            discovered_at TEXT NOT NULL
+        );
+        """)
+
         conn.commit()
         conn.close()
 
@@ -406,6 +424,15 @@ class UnityCatalogClient:
             else:
                 d["violations"] = []
             rows.append(d)
+        conn.close()
+        return rows
+
+    def get_ma_synergies(self) -> List[Dict[str, Any]]:
+        """Retrieve all M&A capability overlap and synergy rationalization records."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM gold_ma_synergies ORDER BY potential_synergy_savings DESC, current_annual_cost DESC;")
+        rows = [dict(r) for r in cur.fetchall()]
         conn.close()
         return rows
 
@@ -736,6 +763,53 @@ class UnityCatalogClient:
         conn.close()
         return count
 
+    def save_ma_synergies(self, records: List[Dict[str, Any]]) -> int:
+        """Upsert M&A synergy and overlap records."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        count = 0
+        now = datetime.now(timezone.utc).isoformat()
+        for r in records:
+            cur.execute("""
+            INSERT INTO gold_ma_synergies (
+                synergy_id, target_entity_name, target_entity_urn, capability_name, capability_urn,
+                core_counterpart_name, core_counterpart_urn, overlap_type, recommendation,
+                current_annual_cost, potential_synergy_savings, risk_level, discovered_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(synergy_id) DO UPDATE SET
+                target_entity_name = excluded.target_entity_name,
+                target_entity_urn = excluded.target_entity_urn,
+                capability_name = excluded.capability_name,
+                capability_urn = excluded.capability_urn,
+                core_counterpart_name = excluded.core_counterpart_name,
+                core_counterpart_urn = excluded.core_counterpart_urn,
+                overlap_type = excluded.overlap_type,
+                recommendation = excluded.recommendation,
+                current_annual_cost = excluded.current_annual_cost,
+                potential_synergy_savings = excluded.potential_synergy_savings,
+                risk_level = excluded.risk_level,
+                discovered_at = excluded.discovered_at;
+            """, (
+                r["synergy_id"],
+                r["target_entity_name"],
+                r["target_entity_urn"],
+                r["capability_name"],
+                r["capability_urn"],
+                r.get("core_counterpart_name"),
+                r.get("core_counterpart_urn"),
+                r["overlap_type"],
+                r["recommendation"],
+                float(r["current_annual_cost"]),
+                float(r["potential_synergy_savings"]),
+                r.get("risk_level", "Medium"),
+                r.get("discovered_at", now),
+            ))
+            count += 1
+        conn.commit()
+        conn.close()
+        return count
+
     def _normalize_sql(self, sql: str) -> str:
         """Translates Databricks Unity Catalog 3-level namespaces (ea.<schema>.<table>) to local table names."""
         replacements = [
@@ -749,6 +823,7 @@ class UnityCatalogClient:
             ("ea.gold.drift_reconciled", "gold_drift_reconciled"),
             ("ea.gold.capability_realization", "gold_capability_realization"),
             ("ea.gold.arb_audit_ledger", "gold_arb_audit_ledger"),
+            ("ea.gold.ma_synergies", "gold_ma_synergies"),
         ]
         res = sql
         for uc, local in replacements:
