@@ -2,6 +2,11 @@ command:
   - "streamlit"
   - "run"
   - "apps/ea_navigator/app.py"
+  - "--theme.base=dark"
+  - "--theme.primaryColor=#38bdf8"
+  - "--theme.backgroundColor=#0b0f19"
+  - "--theme.secondaryBackgroundColor=#131b2e"
+  - "--theme.textColor=#f1f5f9"
 
 env:
   - name: "DATABRICKS_HOST"

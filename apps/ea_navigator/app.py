@@ -48,11 +48,40 @@ st.markdown("""
         background-color: #0b0f19;
         color: #f1f5f9;
     }
+    [data-testid="stMetricValue"],
+    [data-testid="stMetricValue"] *,
+    [data-testid="stMetricValue"] > div {
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        font-size: 1.85rem !important;
+    }
+    [data-testid="stMetricLabel"],
+    [data-testid="stMetricLabel"] *,
+    [data-testid="stMetricLabel"] > div,
+    [data-testid="stMetricLabel"] label,
+    [data-testid="stMetricLabel"] p {
+        color: #94a3b8 !important;
+        font-weight: 600 !important;
+        font-size: 0.85rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+    }
+    [data-testid="stMetricDelta"],
+    [data-testid="stMetricDelta"] * {
+        font-weight: 600 !important;
+    }
     .stMetric {
-        background: #131b2e;
-        border: 1px solid #1e293b;
-        border-radius: 8px;
-        padding: 12px;
+        background: #131b2e !important;
+        border: 1px solid #1e293b !important;
+        border-radius: 8px !important;
+        padding: 14px !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.25) !important;
+    }
+    h1, h2, h3, h4, h5, h6 {
+        color: #ffffff !important;
+    }
+    p, span, label {
+        color: #e2e8f0 !important;
     }
     .stTabs [data-baseweb="tab-list"] {
         gap: 12px;

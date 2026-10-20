@@ -3,6 +3,8 @@ bundle:
 
 sync:
   include:
+    - ".streamlit/**"
+    - "apps/ea_navigator/.streamlit/**"
     - "data/diagrams/**"
     - "data/backstage/**"
 
