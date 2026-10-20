@@ -335,6 +335,13 @@ Living architectural decisions governing `{entity_name}`.
                 adr_filename = f"docs/adrs/ADR-{adr_num}.md"
                 adr_index += f"| [{adr_num}](ADR-{adr_num}.md) | {adr_title} | `{adr_status}` | {adr_date} |\n"
 
+                adr_context = adr.get("context", "Architecture evolution required to support scaling and regulatory governance.")
+                adr_decision = adr.get("decision", "Adopt conformed microservice boundary with event-driven data backbone.")
+                default_positive = "* Decoupled failure domains\n* Unified data lineage"
+                default_negative = "* Increased distributed tracing operational overhead"
+                adr_positive = adr.get("positive_consequences", default_positive)
+                adr_negative = adr.get("negative_consequences", default_negative)
+
                 adr_content = f"""# ADR-{adr_num}: {adr_title}
 
 * **Status:** {adr_status}
@@ -342,17 +349,17 @@ Living architectural decisions governing `{entity_name}`.
 * **Date:** {adr_date}
 
 ## Context and Problem Statement
-{adr.get('context', 'Architecture evolution required to support scaling and regulatory governance.')}
+{adr_context}
 
 ## Decision Outcome
-Chosen option: "{adr.get('decision', 'Adopt conformed microservice boundary with event-driven data backbone.')}"
+Chosen option: "{adr_decision}"
 
 ## Consequences
 ### Positive
-{adr.get('positive_consequences', '* Decoupled failure domains\\n* Unified data lineage')}
+{adr_positive}
 
 ### Negative / Trade-offs
-{adr.get('negative_consequences', '* Increased distributed tracing operational overhead')}
+{adr_negative}
 """
                 bundle[adr_filename] = adr_content
         else:
