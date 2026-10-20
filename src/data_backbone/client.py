@@ -12,6 +12,7 @@ import logging
 import os
 import re
 import sqlite3
+import time
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -107,26 +108,62 @@ class UnityCatalogClient:
 
         # Check offline flag: if not offline, connect directly to Databricks SQL Warehouse
         if os.environ.get("DATABRICKS_OFFLINE") != "1" and self.token and self.http_path:
-            try:
-                from databricks import sql
-                self.sql_module = sql
-                # Verify live connectivity
-                with sql.connect(
-                    server_hostname=self.server_hostname,
-                    http_path=self.http_path,
-                    access_token=self.token,
-                ) as conn:
-                    with conn.cursor() as cur:
-                        cur.execute("SELECT 1")
-                self.is_connected_to_cloud = True
-                logger.info(f"Connected to live Databricks SQL Warehouse at {self.server_hostname} ({self.http_path})")
+            connected = self._connect_to_cloud(max_retries=3, backoff_base=2.0)
+            if connected:
                 atexit.register(self.close)
-            except Exception as e:
-                logger.warning(f"Could not connect to Databricks SQL Warehouse: {e}. Falling back to local SQLite.")
-                self.is_connected_to_cloud = False
+            else:
+                logger.warning("Could not connect to Databricks SQL Warehouse. Falling back to local SQLite.")
 
         # Ensure local DB is initialized
         self._init_local_db()
+
+    def _connect_to_cloud(self, max_retries: int = 3, backoff_base: float = 2.0) -> bool:
+        """
+        Attempt connection to Databricks SQL Warehouse with exponential backoff for auto-start.
+        Returns True if successfully connected, False otherwise.
+        """
+        if os.environ.get("DATABRICKS_OFFLINE") == "1":
+            self.is_connected_to_cloud = False
+            return False
+        if not self.token or not self.http_path:
+            self.is_connected_to_cloud = False
+            return False
+
+        try:
+            if self.sql_module is None:
+                from databricks import sql
+                self.sql_module = sql
+        except ImportError:
+            logger.warning("databricks-sql-connector is not installed.")
+            self.is_connected_to_cloud = False
+            return False
+
+        for attempt in range(max_retries):
+            try:
+                self._reset_cloud_connection()
+                conn = self.sql_module.connect(
+                    server_hostname=self.server_hostname,
+                    http_path=self.http_path,
+                    access_token=self.token,
+                )
+                with conn.cursor() as cur:
+                    cur.execute("SELECT 1")
+                self._cloud_conn = conn
+                self.is_connected_to_cloud = True
+                logger.info(
+                    f"Connected to live Databricks SQL Warehouse at {self.server_hostname} ({self.http_path}) (attempt {attempt + 1})"
+                )
+                return True
+            except Exception as e:
+                logger.warning(
+                    f"Connection attempt {attempt + 1}/{max_retries} to Databricks SQL Warehouse failed: {e}"
+                )
+                if attempt < max_retries - 1:
+                    sleep_secs = backoff_base ** attempt
+                    time.sleep(sleep_secs)
+
+        self.is_connected_to_cloud = False
+        return False
 
     @staticmethod
     def _clean_hostname(host: str) -> str:
@@ -582,8 +619,18 @@ class UnityCatalogClient:
         );
         """)
 
+        cur.execute("SELECT count(*) FROM metamodel_nodes;")
+        node_count = cur.fetchone()[0]
         conn.commit()
         conn.close()
+
+        if node_count == 0:
+            logger.info("Local SQLite database is empty. Auto-seeding conformed baseline records...")
+            try:
+                from src.data_backbone.seed import seed_database
+                seed_database(client=self)
+            except Exception as e:
+                logger.warning(f"Could not auto-seed local SQLite database: {e}")
 
     def get_nodes(self) -> List[Dict[str, Any]]:
         """Retrieve all PAM nodes from conformed catalog."""
@@ -1884,6 +1931,9 @@ class UnityCatalogClient:
         Execute a SELECT query against the catalog, returning list of dicts.
         Routes to live Databricks SQL Warehouse when connected, falling back to local SQLite.
         """
+        if not self.is_connected_to_cloud and os.environ.get("DATABRICKS_OFFLINE") != "1":
+            self._connect_to_cloud(max_retries=2, backoff_base=1.5)
+
         if self.is_connected_to_cloud:
             cloud_sql = self._to_cloud_sql(sql)
             try:
@@ -1905,6 +1955,7 @@ class UnityCatalogClient:
             except Exception as e:
                 logger.warning(f"Databricks SQL query failed ({e}), attempting local SQLite fallback...")
                 self._reset_cloud_connection()
+                self.is_connected_to_cloud = False
                 if not self.use_local_fallback:
                     raise
 
@@ -1922,6 +1973,9 @@ class UnityCatalogClient:
         Execute an INSERT/UPDATE/DELETE statement.
         Routes to live Databricks SQL Warehouse when connected, falling back to local SQLite.
         """
+        if not self.is_connected_to_cloud and os.environ.get("DATABRICKS_OFFLINE") != "1":
+            self._connect_to_cloud(max_retries=2, backoff_base=1.5)
+
         if self.is_connected_to_cloud:
             cloud_sql = self._to_cloud_sql(sql)
             try:
@@ -1935,6 +1989,7 @@ class UnityCatalogClient:
             except Exception as e:
                 logger.warning(f"Databricks SQL statement failed ({e}), attempting local SQLite fallback...")
                 self._reset_cloud_connection()
+                self.is_connected_to_cloud = False
                 if not self.use_local_fallback:
                     raise
 
@@ -1958,4 +2013,6 @@ def get_unity_catalog_client() -> UnityCatalogClient:
     global _client_instance
     if _client_instance is None:
         _client_instance = UnityCatalogClient()
+    elif not _client_instance.is_connected_to_cloud and os.environ.get("DATABRICKS_OFFLINE") != "1":
+        _client_instance._connect_to_cloud(max_retries=2, backoff_base=1.5)
     return _client_instance

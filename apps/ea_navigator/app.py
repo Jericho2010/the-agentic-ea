@@ -168,6 +168,11 @@ else:
         </div>
     </div>
     """, unsafe_allow_html=True)
+    if st.sidebar.button("🔄 Reconnect to Databricks SQL", key="btn_reconnect_uc"):
+        if hasattr(client, "_connect_to_cloud"):
+            client._connect_to_cloud(max_retries=3, backoff_base=2.0)
+        st.cache_resource.clear()
+        st.rerun()
 
 # Quick Estate Stats in Sidebar
 sb_nodes = client.get_nodes()

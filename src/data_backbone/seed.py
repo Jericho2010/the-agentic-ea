@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT_DIR))
@@ -2184,9 +2185,10 @@ SEED_VENDOR_LOCKIN_EXIT: List[Dict[str, Any]] = [
 ]
 
 
-def seed_database() -> Dict[str, int]:
+def seed_database(client: Optional[Any] = None) -> Dict[str, int]:
     """Seed the Unity Catalog conformed tables."""
-    client = get_unity_catalog_client()
+    if client is None:
+        client = get_unity_catalog_client()
     n_count = client.merge_nodes(SEED_NODES + SEED_MA_NODES + SEED_AI_NODES)
     e_count = client.merge_edges(SEED_EDGES + SEED_MA_EDGES + SEED_AI_EDGES)
     t_count = client.save_time_matrix(SEED_TIME_MATRIX)
