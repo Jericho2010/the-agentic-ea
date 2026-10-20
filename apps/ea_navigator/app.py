@@ -7,6 +7,7 @@ Catalog: ea (Unity Catalog)
 import json
 import os
 import sys
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -129,19 +130,44 @@ workspace = st.sidebar.radio(
 )
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("""
-<div style="background: #131b2e; border: 1px solid #1e293b; border-radius: 8px; padding: 12px; margin-bottom: 12px;">
-    <div style="font-size: 13px; font-weight: 700; color: #38bdf8; margin-bottom: 4px;">
-        ⚡ Databricks Unity Catalog
+
+# Dynamic Databricks Unity Catalog Connection Status
+if getattr(client, "is_connected_to_cloud", False):
+    try:
+        t0 = time.perf_counter()
+        client.execute_query("SELECT 1")
+        cloud_latency_ms = (time.perf_counter() - t0) * 1000
+        latency_str = f"{cloud_latency_ms:.1f}ms latency"
+    except Exception:
+        latency_str = "Active"
+
+    st.sidebar.markdown(f"""
+    <div style="background: #0f2027; border: 1px solid #10b981; border-radius: 8px; padding: 12px; margin-bottom: 12px;">
+        <div style="font-size: 13px; font-weight: 700; color: #38bdf8; margin-bottom: 4px;">
+            ⚡ Databricks Unity Catalog
+        </div>
+        <div style="font-size: 12px; color: #34d399; font-weight: 600;">
+            🟢 Connected: Live Databricks SQL (df4dc09688caf6d8) | Catalog: ea
+        </div>
+        <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">
+            Warehouse: df4dc09688caf6d8 | {latency_str}
+        </div>
     </div>
-    <div style="font-size: 12px; color: #34d399; font-weight: 600;">
-        ● Connected: ea catalog
+    """, unsafe_allow_html=True)
+else:
+    st.sidebar.markdown("""
+    <div style="background: #1e1b18; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px; margin-bottom: 12px;">
+        <div style="font-size: 13px; font-weight: 700; color: #f59e0b; margin-bottom: 4px;">
+            ⚡ Databricks Unity Catalog
+        </div>
+        <div style="font-size: 12px; color: #fbbf24; font-weight: 600;">
+            🟡 Emulated: Local SQLite Fallback
+        </div>
+        <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">
+            Workstation Mode | Offline Emulation
+        </div>
     </div>
-    <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">
-        Workspace: dbc-2d6963b0-153b
-    </div>
-</div>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 # Quick Estate Stats in Sidebar
 sb_nodes = client.get_nodes()

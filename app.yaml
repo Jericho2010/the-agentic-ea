@@ -2,3 +2,14 @@ command:
   - "streamlit"
   - "run"
   - "apps/ea_navigator/app.py"
+
+env:
+  - name: "DATABRICKS_HOST"
+    value: "https://dbc-2d6963b0-153b.cloud.databricks.com"
+  - name: "DATABRICKS_HTTP_PATH"
+    value: "/sql/1.0/warehouses/df4dc09688caf6d8"
+  - name: "DATABRICKS_WAREHOUSE_ID"
+    value: "df4dc09688caf6d8"
+  - name: "DATABRICKS_TOKEN"
+    value: ""
+

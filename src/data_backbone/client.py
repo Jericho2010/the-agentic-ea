@@ -5,18 +5,56 @@ high-performance local fallback mode for offline/non-prod workstation execution.
 """
 from __future__ import annotations
 
+import atexit
 import hashlib
 import json
+import logging
 import os
+import re
 import sqlite3
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
+
+logger = logging.getLogger("unity_catalog_client")
 
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 LOCAL_DB_PATH = ROOT_DIR / "data" / "unity_catalog" / "ea_metamodel.db"
 
 DEFAULT_DATABRICKS_HOST = "https://dbc-2d6963b0-153b.cloud.databricks.com/"
+DEFAULT_WAREHOUSE_ID = "df4dc09688caf6d8"
+DEFAULT_HTTP_PATH = f"/sql/1.0/warehouses/{DEFAULT_WAREHOUSE_ID}"
+DEFAULT_DATABRICKS_TOKEN = ""
+
+TABLE_MAP: Dict[str, str] = {
+    "metamodel_nodes": "ea.metamodel.nodes",
+    "metamodel_edges": "ea.metamodel.edges",
+    "metamodel_evidence": "ea.metamodel.evidence",
+    "bronze_git_repos": "ea.bronze.git_repos",
+    "bronze_cloud_resources": "ea.bronze.cloud_resources",
+    "bronze_cmdb_ci": "ea.bronze.cmdb_ci",
+    "bronze_api_gateway_logs": "ea.bronze.api_gateway_logs",
+    "bronze_process_event_logs": "ea.bronze.process_event_logs",
+    "bronze_ai_models": "ea.bronze.ai_models",
+    "gold_time_matrix": "ea.gold.time_matrix",
+    "gold_drift_reconciled": "ea.gold.drift_reconciled",
+    "gold_capability_realization": "ea.gold.capability_realization",
+    "gold_arb_audit_ledger": "ea.gold.arb_audit_ledger",
+    "gold_ma_synergies": "ea.gold.ma_synergies",
+    "gold_compliance_lineage": "ea.gold.compliance_lineage",
+    "gold_interface_rationalization": "ea.gold.interface_rationalization",
+    "gold_process_optimization": "ea.gold.process_optimization",
+    "gold_ai_governance": "ea.gold.ai_governance",
+    "gold_resilience_dr": "ea.gold.resilience_dr",
+    "gold_tech_debt_hotspots": "ea.gold.tech_debt_hotspots",
+    "gold_security_zero_trust": "ea.gold.security_zero_trust",
+    "gold_supply_chain_sbom": "ea.gold.supply_chain_sbom",
+    "gold_finops_unit_economics": "ea.gold.finops_unit_economics",
+    "gold_mdm_golden_records": "ea.gold.mdm_golden_records",
+    "gold_esg_carbon_accounting": "ea.gold.esg_carbon_accounting",
+    "gold_team_topologies": "ea.gold.team_topologies",
+    "gold_vendor_lockin_exit": "ea.gold.vendor_lockin_exit",
+}
 
 
 class UnityCatalogClient:
@@ -39,21 +77,103 @@ class UnityCatalogClient:
         use_local_fallback: bool = True,
     ):
         self.host = host or os.environ.get("DATABRICKS_HOST", DEFAULT_DATABRICKS_HOST)
-        self.token = token or os.environ.get("DATABRICKS_TOKEN")
-        self.http_path = http_path or os.environ.get("DATABRICKS_HTTP_PATH")
+        self.token = token or os.environ.get("DATABRICKS_TOKEN", DEFAULT_DATABRICKS_TOKEN)
+        self.http_path = http_path or os.environ.get("DATABRICKS_HTTP_PATH", DEFAULT_HTTP_PATH)
         self.use_local_fallback = use_local_fallback
+        self.server_hostname = self._clean_hostname(self.host)
         self.is_connected_to_cloud = False
+        self._cloud_conn = None
+        self.sql_module = None
 
-        if self.token and self.http_path:
+        # Resolve from ~/.databrickscfg if token or host was missing from env
+        if (not self.token or self.token == DEFAULT_DATABRICKS_TOKEN) and (Path.home() / ".databrickscfg").exists():
+            try:
+                import configparser
+                cfg = configparser.ConfigParser()
+                cfg.read(Path.home() / ".databrickscfg")
+                profile = os.environ.get("DATABRICKS_CONFIG_PROFILE", "DEFAULT")
+                if profile in cfg and cfg[profile].get("token"):
+                    self.token = cfg[profile].get("token")
+                    if cfg[profile].get("host"):
+                        self.host = cfg[profile].get("host")
+                        self.server_hostname = self._clean_hostname(self.host)
+                elif "DEFAULT" in cfg and cfg["DEFAULT"].get("token"):
+                    self.token = cfg["DEFAULT"].get("token")
+                    if cfg["DEFAULT"].get("host"):
+                        self.host = cfg["DEFAULT"].get("host")
+                        self.server_hostname = self._clean_hostname(self.host)
+            except Exception:
+                pass
+
+        # Check offline flag: if not offline, connect directly to Databricks SQL Warehouse
+        if os.environ.get("DATABRICKS_OFFLINE") != "1" and self.token and self.http_path:
             try:
                 from databricks import sql
                 self.sql_module = sql
+                # Verify live connectivity
+                with sql.connect(
+                    server_hostname=self.server_hostname,
+                    http_path=self.http_path,
+                    access_token=self.token,
+                ) as conn:
+                    with conn.cursor() as cur:
+                        cur.execute("SELECT 1")
                 self.is_connected_to_cloud = True
-            except ImportError:
+                logger.info(f"Connected to live Databricks SQL Warehouse at {self.server_hostname} ({self.http_path})")
+                atexit.register(self.close)
+            except Exception as e:
+                logger.warning(f"Could not connect to Databricks SQL Warehouse: {e}. Falling back to local SQLite.")
                 self.is_connected_to_cloud = False
 
         # Ensure local DB is initialized
         self._init_local_db()
+
+    @staticmethod
+    def _clean_hostname(host: str) -> str:
+        return host.replace("https://", "").replace("http://", "").rstrip("/")
+
+    @staticmethod
+    def _to_local_sql(sql: str) -> str:
+        """Translates Databricks Unity Catalog namespaces (ea.<schema>.<table>) to local table names."""
+        res = sql
+        for local_tbl, uc_tbl in TABLE_MAP.items():
+            res = res.replace(uc_tbl, local_tbl)
+        return res
+
+    def _normalize_sql(self, sql: str) -> str:
+        """Backwards compatibility alias for _to_local_sql."""
+        return self._to_local_sql(sql)
+
+    @staticmethod
+    def _to_cloud_sql(sql: str) -> str:
+        """Translates local table names to Databricks Unity Catalog 3-level namespaces (ea.<schema>.<table>)."""
+        res = UnityCatalogClient._to_local_sql(sql)
+        for local_tbl, uc_tbl in TABLE_MAP.items():
+            res = re.sub(rf"\b{local_tbl}\b", uc_tbl, res)
+        return res
+
+    def _get_cloud_connection(self):
+        """Retrieve or create an active Databricks SQL connection."""
+        if self._cloud_conn is None:
+            self._cloud_conn = self.sql_module.connect(
+                server_hostname=self.server_hostname,
+                http_path=self.http_path,
+                access_token=self.token,
+            )
+        return self._cloud_conn
+
+    def _reset_cloud_connection(self):
+        """Reset connection on error or reconnect."""
+        if self._cloud_conn is not None:
+            try:
+                self._cloud_conn.close()
+            except Exception:
+                pass
+            self._cloud_conn = None
+
+    def close(self):
+        """Close active cloud connection."""
+        self._reset_cloud_connection()
 
     def _get_local_connection(self) -> sqlite3.Connection:
         LOCAL_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -467,10 +587,7 @@ class UnityCatalogClient:
 
     def get_nodes(self) -> List[Dict[str, Any]]:
         """Retrieve all PAM nodes from conformed catalog."""
-        conn = self._get_local_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM metamodel_nodes ORDER BY kind, name;")
-        rows = cur.fetchall()
+        rows = self.execute_query("SELECT * FROM metamodel_nodes ORDER BY kind, name;")
         result = []
         for r in rows:
             d = dict(r)
@@ -480,15 +597,11 @@ class UnityCatalogClient:
                 except Exception:
                     pass
             result.append(d)
-        conn.close()
         return result
 
     def get_edges(self) -> List[Dict[str, Any]]:
         """Retrieve all ArchiMate relationship edges."""
-        conn = self._get_local_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM metamodel_edges ORDER BY source_urn, target_urn;")
-        rows = cur.fetchall()
+        rows = self.execute_query("SELECT * FROM metamodel_edges ORDER BY source_urn, target_urn;")
         result = []
         for r in rows:
             d = dict(r)
@@ -496,54 +609,29 @@ class UnityCatalogClient:
             d["transit_encryption"] = d.get("transit_encryption") or "tls_1_3"
             d["transferred_classification"] = d.get("transferred_classification") or ("PII:High" if d["contains_pii"] else "Internal")
             result.append(d)
-        conn.close()
         return result
 
     def get_evidence(self) -> List[Dict[str, Any]]:
         """Retrieve all AST & extraction evidence records."""
-        conn = self._get_local_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM metamodel_evidence ORDER BY discovered_at DESC;")
-        rows = [dict(r) for r in cur.fetchall()]
-        conn.close()
-        return rows
+        return self.execute_query("SELECT * FROM metamodel_evidence ORDER BY discovered_at DESC;")
 
     def get_time_matrix(self) -> List[Dict[str, Any]]:
         """Retrieve executive TIME matrix records."""
-        conn = self._get_local_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM gold_time_matrix ORDER BY annual_run_cost DESC;")
-        rows = [dict(r) for r in cur.fetchall()]
-        conn.close()
-        return rows
+        return self.execute_query("SELECT * FROM gold_time_matrix ORDER BY annual_run_cost DESC;")
 
     def get_drift_reconciled(self, drift_type: Optional[str] = None) -> List[Dict[str, Any]]:
         """Retrieve reconciled architecture and CMDB drift telemetry."""
-        conn = self._get_local_connection()
-        cur = conn.cursor()
         if drift_type:
-            cur.execute("SELECT * FROM gold_drift_reconciled WHERE drift_type = ? ORDER BY reconciled_at DESC;", (drift_type,))
-        else:
-            cur.execute("SELECT * FROM gold_drift_reconciled ORDER BY reconciled_at DESC;")
-        rows = [dict(r) for r in cur.fetchall()]
-        conn.close()
-        return rows
+            return self.execute_query("SELECT * FROM gold_drift_reconciled WHERE drift_type = ? ORDER BY reconciled_at DESC;", (drift_type,))
+        return self.execute_query("SELECT * FROM gold_drift_reconciled ORDER BY reconciled_at DESC;")
 
     def get_cmdb_ci(self) -> List[Dict[str, Any]]:
         """Retrieve all ingested ServiceNow CMDB configuration items."""
-        conn = self._get_local_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM bronze_cmdb_ci ORDER BY ci_class, name ASC;")
-        rows = [dict(r) for r in cur.fetchall()]
-        conn.close()
-        return rows
+        return self.execute_query("SELECT * FROM bronze_cmdb_ci ORDER BY ci_class, name ASC;")
 
     def get_capability_realizations(self) -> List[Dict[str, Any]]:
         """Retrieve conformed business capability realization data mart records."""
-        conn = self._get_local_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM gold_capability_realization ORDER BY capability_level, capability_name, allocated_annual_cost DESC;")
-        rows = [dict(r) for r in cur.fetchall()]
+        return self.execute_query("SELECT * FROM gold_capability_realization ORDER BY capability_level, capability_name, allocated_annual_cost DESC;")
         conn.close()
         return rows
 
@@ -643,11 +731,9 @@ class UnityCatalogClient:
 
     def get_arb_audit_ledger(self) -> List[Dict[str, Any]]:
         """Retrieve all ARB pre-merge governance audit records ordered by timestamp descending."""
-        conn = self._get_local_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM gold_arb_audit_ledger ORDER BY timestamp DESC;")
-        rows = []
-        for r in cur.fetchall():
+        rows = self.execute_query("SELECT * FROM gold_arb_audit_ledger ORDER BY timestamp DESC;")
+        result = []
+        for r in rows:
             d = dict(r)
             if d.get("violations_json"):
                 try:
@@ -656,82 +742,56 @@ class UnityCatalogClient:
                     d["violations"] = []
             else:
                 d["violations"] = []
-            rows.append(d)
-        conn.close()
-        return rows
+            result.append(d)
+        return result
 
     def get_ma_synergies(self) -> List[Dict[str, Any]]:
         """Retrieve all M&A capability overlap and synergy rationalization records."""
-        conn = self._get_local_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM gold_ma_synergies ORDER BY potential_synergy_savings DESC, current_annual_cost DESC;")
-        rows = [dict(r) for r in cur.fetchall()]
-        conn.close()
-        return rows
+        return self.execute_query("SELECT * FROM gold_ma_synergies ORDER BY potential_synergy_savings DESC, current_annual_cost DESC;")
 
     def get_compliance_lineage(self) -> List[Dict[str, Any]]:
         """Retrieve all regulatory compliance and privacy dataflow lineage records."""
-        conn = self._get_local_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM gold_compliance_lineage ORDER BY CASE risk_level WHEN 'CRITICAL' THEN 1 WHEN 'HIGH' THEN 2 WHEN 'MEDIUM' THEN 3 ELSE 4 END, flow_id ASC;")
-        rows = []
-        for r in cur.fetchall():
+        rows = self.execute_query("SELECT * FROM gold_compliance_lineage ORDER BY CASE risk_level WHEN 'CRITICAL' THEN 1 WHEN 'HIGH' THEN 2 WHEN 'MEDIUM' THEN 3 ELSE 4 END, flow_id ASC;")
+        result = []
+        for r in rows:
             d = dict(r)
             d["is_cross_border"] = bool(d.get("is_cross_border"))
-            rows.append(d)
-        conn.close()
-        return rows
+            result.append(d)
+        return result
 
     def get_api_gateway_logs(self) -> List[Dict[str, Any]]:
         """Retrieve all ingested runtime API gateway access logs."""
-        conn = self._get_local_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM bronze_api_gateway_logs ORDER BY requests_last_30d DESC, endpoint ASC;")
-        rows = [dict(r) for r in cur.fetchall()]
-        conn.close()
-        return rows
+        return self.execute_query("SELECT * FROM bronze_api_gateway_logs ORDER BY requests_last_30d DESC, endpoint ASC;")
 
     def get_interface_rationalization(self) -> List[Dict[str, Any]]:
         """Retrieve all conformed interface rationalization records."""
-        conn = self._get_local_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM gold_interface_rationalization ORDER BY CASE discrepancy_type WHEN 'ZOMBIE_SHADOW' THEN 1 WHEN 'DEAD_ORPHAN' THEN 2 WHEN 'PROTOCOL_SPRAWL' THEN 3 ELSE 4 END, interface_id ASC;")
-        rows = []
-        for r in cur.fetchall():
+        rows = self.execute_query("SELECT * FROM gold_interface_rationalization ORDER BY CASE discrepancy_type WHEN 'ZOMBIE_SHADOW' THEN 1 WHEN 'DEAD_ORPHAN' THEN 2 WHEN 'PROTOCOL_SPRAWL' THEN 3 ELSE 4 END, interface_id ASC;")
+        result = []
+        for r in rows:
             d = dict(r)
             d["is_declared"] = bool(d.get("is_declared"))
             d["is_active_runtime"] = bool(d.get("is_active_runtime"))
-            rows.append(d)
-        conn.close()
-        return rows
+            result.append(d)
+        return result
 
     def get_process_event_logs(self, process_id: Optional[str] = None) -> List[Dict[str, Any]]:
         """Retrieve all ingested process execution event logs."""
-        conn = self._get_local_connection()
-        cur = conn.cursor()
         if process_id:
-            cur.execute("SELECT * FROM bronze_process_event_logs WHERE process_id = ? ORDER BY timestamp ASC, step_id ASC;", (process_id,))
-        else:
-            cur.execute("SELECT * FROM bronze_process_event_logs ORDER BY timestamp ASC, step_id ASC;")
-        rows = [dict(r) for r in cur.fetchall()]
-        conn.close()
-        return rows
+            return self.execute_query("SELECT * FROM bronze_process_event_logs WHERE process_id = ? ORDER BY timestamp ASC, step_id ASC;", (process_id,))
+        return self.execute_query("SELECT * FROM bronze_process_event_logs ORDER BY timestamp ASC, step_id ASC;")
 
     def get_process_optimization(self, process_id: Optional[str] = None) -> List[Dict[str, Any]]:
         """Retrieve conformed process optimization & SLA metrics."""
-        conn = self._get_local_connection()
-        cur = conn.cursor()
         if process_id:
-            cur.execute("SELECT * FROM gold_process_optimization WHERE process_id = ? ORDER BY step_id ASC;", (process_id,))
+            rows = self.execute_query("SELECT * FROM gold_process_optimization WHERE process_id = ? ORDER BY step_id ASC;", (process_id,))
         else:
-            cur.execute("SELECT * FROM gold_process_optimization ORDER BY process_id ASC, step_id ASC;")
-        rows = []
-        for r in cur.fetchall():
+            rows = self.execute_query("SELECT * FROM gold_process_optimization ORDER BY process_id ASC, step_id ASC;")
+        result = []
+        for r in rows:
             d = dict(r)
             d["is_bottleneck"] = bool(d.get("is_bottleneck"))
-            rows.append(d)
-        conn.close()
-        return rows
+            result.append(d)
+        return result
 
 
 
@@ -902,13 +962,8 @@ class UnityCatalogClient:
 
     def get_bronze_records(self, table: str) -> List[Dict[str, Any]]:
         """Query bronze raw records."""
-        conn = self._get_local_connection()
-        cur = conn.cursor()
         tbl_name = f"bronze_{table}"
-        cur.execute(f"SELECT * FROM {tbl_name};")
-        rows = [dict(r) for r in cur.fetchall()]
-        conn.close()
-        return rows
+        return self.execute_query(f"SELECT * FROM {tbl_name};")
 
     def save_time_matrix(self, records: List[Dict[str, Any]]) -> int:
         """Upsert TIME matrix records."""
@@ -1331,16 +1386,13 @@ class UnityCatalogClient:
 
     def get_ai_models(self) -> List[Dict[str, Any]]:
         """Retrieve all ingested AI/ML models from ea.bronze.ai_models."""
-        conn = self._get_local_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM bronze_ai_models ORDER BY model_id ASC;")
-        rows = []
-        for r in cur.fetchall():
+        rows = self.execute_query("SELECT * FROM bronze_ai_models ORDER BY model_id ASC;")
+        result = []
+        for r in rows:
             d = dict(r)
             d["has_human_in_the_loop"] = bool(d.get("has_human_in_the_loop"))
-            rows.append(d)
-        conn.close()
-        return rows
+            result.append(d)
+        return result
 
     def save_ai_models(self, records: List[Dict[str, Any]]) -> int:
         """Upsert AI/ML model records into ea.bronze.ai_models."""
@@ -1386,18 +1438,15 @@ class UnityCatalogClient:
 
     def get_ai_governance(self) -> List[Dict[str, Any]]:
         """Retrieve conformed AI governance records from ea.gold.ai_governance."""
-        conn = self._get_local_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM gold_ai_governance ORDER BY model_id ASC;")
-        rows = []
-        for r in cur.fetchall():
+        rows = self.execute_query("SELECT * FROM gold_ai_governance ORDER BY model_id ASC;")
+        result = []
+        for r in rows:
             d = dict(r)
             d["has_model_card"] = bool(d.get("has_model_card"))
             d["has_data_lineage"] = bool(d.get("has_data_lineage"))
             d["has_human_oversight"] = bool(d.get("has_human_oversight"))
-            rows.append(d)
-        conn.close()
-        return rows
+            result.append(d)
+        return result
 
     def save_ai_governance(self, records: List[Dict[str, Any]]) -> int:
         """Upsert AI governance records into ea.gold.ai_governance."""
@@ -1444,16 +1493,13 @@ class UnityCatalogClient:
     # =========================================================================
     def get_resilience_dr(self) -> List[Dict[str, Any]]:
         """Retrieve conformed Disaster Recovery and RTO/RPO records from ea.gold.resilience_dr."""
-        conn = self._get_local_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM gold_resilience_dr ORDER BY dr_tier ASC, component_urn ASC;")
-        rows = []
-        for r in cur.fetchall():
+        rows = self.execute_query("SELECT * FROM gold_resilience_dr ORDER BY dr_tier ASC, component_urn ASC;")
+        result = []
+        for r in rows:
             d = dict(r)
             d["sla_breached"] = bool(d.get("sla_breached"))
-            rows.append(d)
-        conn.close()
-        return rows
+            result.append(d)
+        return result
 
     def save_resilience_dr(self, records: List[Dict[str, Any]]) -> int:
         """Upsert Disaster Recovery and RTO/RPO records into ea.gold.resilience_dr."""
@@ -1498,12 +1544,7 @@ class UnityCatalogClient:
     # =========================================================================
     def get_tech_debt_hotspots(self) -> List[Dict[str, Any]]:
         """Retrieve conformed technical debt and git churn records from ea.gold.tech_debt_hotspots."""
-        conn = self._get_local_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM gold_tech_debt_hotspots ORDER BY refactoring_roi_rank ASC;")
-        rows = [dict(r) for r in cur.fetchall()]
-        conn.close()
-        return rows
+        return self.execute_query("SELECT * FROM gold_tech_debt_hotspots ORDER BY refactoring_roi_rank ASC;")
 
     def save_tech_debt_hotspots(self, records: List[Dict[str, Any]]) -> int:
         """Upsert technical debt hotspot records into ea.gold.tech_debt_hotspots."""
@@ -1541,16 +1582,13 @@ class UnityCatalogClient:
     # =========================================================================
     def get_security_zero_trust(self) -> List[Dict[str, Any]]:
         """Retrieve conformed Zero-Trust microsegmentation flows from ea.gold.security_zero_trust."""
-        conn = self._get_local_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM gold_security_zero_trust ORDER BY source_urn ASC, target_urn ASC;")
-        rows = []
-        for r in cur.fetchall():
+        rows = self.execute_query("SELECT * FROM gold_security_zero_trust ORDER BY source_urn ASC, target_urn ASC;")
+        result = []
+        for r in rows:
             d = dict(r)
             d["mtls_enforced"] = bool(d.get("mtls_enforced"))
-            rows.append(d)
-        conn.close()
-        return rows
+            result.append(d)
+        return result
 
     def save_security_zero_trust(self, records: List[Dict[str, Any]]) -> int:
         """Upsert Zero-Trust microsegmentation flow records into ea.gold.security_zero_trust."""
@@ -1593,12 +1631,7 @@ class UnityCatalogClient:
     # =========================================================================
     def get_supply_chain_sbom(self) -> List[Dict[str, Any]]:
         """Retrieve conformed SBOM package records from ea.gold.supply_chain_sbom."""
-        conn = self._get_local_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM gold_supply_chain_sbom ORDER BY max_severity DESC, package_name ASC;")
-        rows = [dict(r) for r in cur.fetchall()]
-        conn.close()
-        return rows
+        return self.execute_query("SELECT * FROM gold_supply_chain_sbom ORDER BY max_severity DESC, package_name ASC;")
 
     def save_supply_chain_sbom(self, records: List[Dict[str, Any]]) -> int:
         """Upsert SBOM package records into ea.gold.supply_chain_sbom."""
@@ -1641,12 +1674,7 @@ class UnityCatalogClient:
     # =========================================================================
     def get_finops_unit_economics(self) -> List[Dict[str, Any]]:
         """Retrieve conformed FinOps unit economics records from ea.gold.finops_unit_economics."""
-        conn = self._get_local_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM gold_finops_unit_economics ORDER BY monthly_spend DESC;")
-        rows = [dict(r) for r in cur.fetchall()]
-        conn.close()
-        return rows
+        return self.execute_query("SELECT * FROM gold_finops_unit_economics ORDER BY monthly_spend DESC;")
 
     def save_finops_unit_economics(self, records: List[Dict[str, Any]]) -> int:
         """Upsert FinOps unit economics records into ea.gold.finops_unit_economics."""
@@ -1684,17 +1712,14 @@ class UnityCatalogClient:
     # =========================================================================
     def get_mdm_golden_records(self) -> List[Dict[str, Any]]:
         """Retrieve conformed MDM golden records from ea.gold.mdm_golden_records."""
-        conn = self._get_local_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM gold_mdm_golden_records ORDER BY entity_name ASC;")
-        rows = []
-        for r in cur.fetchall():
+        rows = self.execute_query("SELECT * FROM gold_mdm_golden_records ORDER BY entity_name ASC;")
+        result = []
+        for r in rows:
             d = dict(r)
-            d["divergence_detected"] = bool(d["divergence_detected"])
-            d["scd2_active"] = bool(d["scd2_active"])
-            rows.append(d)
-        conn.close()
-        return rows
+            d["divergence_detected"] = bool(d.get("divergence_detected"))
+            d["scd2_active"] = bool(d.get("scd2_active"))
+            result.append(d)
+        return result
 
     def save_mdm_golden_records(self, records: List[Dict[str, Any]]) -> int:
         """Upsert MDM golden records into ea.gold.mdm_golden_records."""
@@ -1734,12 +1759,7 @@ class UnityCatalogClient:
     # =========================================================================
     def get_esg_carbon_accounting(self) -> List[Dict[str, Any]]:
         """Retrieve conformed ESG carbon records from ea.gold.esg_carbon_accounting."""
-        conn = self._get_local_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM gold_esg_carbon_accounting ORDER BY monthly_emissions_kgco2 DESC;")
-        rows = [dict(r) for r in cur.fetchall()]
-        conn.close()
-        return rows
+        return self.execute_query("SELECT * FROM gold_esg_carbon_accounting ORDER BY monthly_emissions_kgco2 DESC;")
 
     def save_esg_carbon_accounting(self, records: List[Dict[str, Any]]) -> int:
         """Upsert ESG carbon records into ea.gold.esg_carbon_accounting."""
@@ -1780,16 +1800,13 @@ class UnityCatalogClient:
     # =========================================================================
     def get_team_topologies(self) -> List[Dict[str, Any]]:
         """Retrieve conformed Team Topologies records from ea.gold.team_topologies."""
-        conn = self._get_local_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM gold_team_topologies ORDER BY commit_co_change_friction DESC;")
-        rows = []
-        for r in cur.fetchall():
+        rows = self.execute_query("SELECT * FROM gold_team_topologies ORDER BY commit_co_change_friction DESC;")
+        result = []
+        for r in rows:
             d = dict(r)
-            d["codeowners_match"] = bool(d["codeowners_match"])
-            rows.append(d)
-        conn.close()
-        return rows
+            d["codeowners_match"] = bool(d.get("codeowners_match"))
+            result.append(d)
+        return result
 
     def save_team_topologies(self, records: List[Dict[str, Any]]) -> int:
         """Upsert Team Topologies records into ea.gold.team_topologies."""
@@ -1827,12 +1844,7 @@ class UnityCatalogClient:
     # =========================================================================
     def get_vendor_lockin_exit(self) -> List[Dict[str, Any]]:
         """Retrieve conformed vendor lock-in exit records from ea.gold.vendor_lockin_exit."""
-        conn = self._get_local_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM gold_vendor_lockin_exit ORDER BY lockin_risk_score DESC;")
-        rows = [dict(r) for r in cur.fetchall()]
-        conn.close()
-        return rows
+        return self.execute_query("SELECT * FROM gold_vendor_lockin_exit ORDER BY lockin_risk_score DESC;")
 
     def save_vendor_lockin_exit(self, records: List[Dict[str, Any]]) -> int:
         """Upsert vendor lock-in exit records into ea.gold.vendor_lockin_exit."""
@@ -1867,45 +1879,37 @@ class UnityCatalogClient:
         conn.close()
         return count
 
-    def _normalize_sql(self, sql: str) -> str:
-        """Translates Databricks Unity Catalog 3-level namespaces (ea.<schema>.<table>) to local table names."""
-        replacements = [
-            ("ea.metamodel.nodes", "metamodel_nodes"),
-            ("ea.metamodel.edges", "metamodel_edges"),
-            ("ea.metamodel.evidence", "metamodel_evidence"),
-            ("ea.bronze.git_repos", "bronze_git_repos"),
-            ("ea.bronze.cloud_resources", "bronze_cloud_resources"),
-            ("ea.bronze.cmdb_ci", "bronze_cmdb_ci"),
-            ("ea.bronze.api_gateway_logs", "bronze_api_gateway_logs"),
-            ("ea.bronze.process_event_logs", "bronze_process_event_logs"),
-            ("ea.bronze.ai_models", "bronze_ai_models"),
-            ("ea.gold.time_matrix", "gold_time_matrix"),
-            ("ea.gold.drift_reconciled", "gold_drift_reconciled"),
-            ("ea.gold.capability_realization", "gold_capability_realization"),
-            ("ea.gold.arb_audit_ledger", "gold_arb_audit_ledger"),
-            ("ea.gold.ma_synergies", "gold_ma_synergies"),
-            ("ea.gold.compliance_lineage", "gold_compliance_lineage"),
-            ("ea.gold.interface_rationalization", "gold_interface_rationalization"),
-            ("ea.gold.process_optimization", "gold_process_optimization"),
-            ("ea.gold.ai_governance", "gold_ai_governance"),
-            ("ea.gold.resilience_dr", "gold_resilience_dr"),
-            ("ea.gold.tech_debt_hotspots", "gold_tech_debt_hotspots"),
-            ("ea.gold.security_zero_trust", "gold_security_zero_trust"),
-            ("ea.gold.supply_chain_sbom", "gold_supply_chain_sbom"),
-            ("ea.gold.finops_unit_economics", "gold_finops_unit_economics"),
-            ("ea.gold.mdm_golden_records", "gold_mdm_golden_records"),
-            ("ea.gold.esg_carbon_accounting", "gold_esg_carbon_accounting"),
-            ("ea.gold.team_topologies", "gold_team_topologies"),
-            ("ea.gold.vendor_lockin_exit", "gold_vendor_lockin_exit"),
-        ]
-        res = sql
-        for uc, local in replacements:
-            res = res.replace(uc, local)
-        return res
-
     def execute_query(self, sql: str, params: tuple = ()) -> List[Dict[str, Any]]:
-        """Execute a SELECT query against the catalog, returning list of dicts."""
-        norm_sql = self._normalize_sql(sql)
+        """
+        Execute a SELECT query against the catalog, returning list of dicts.
+        Routes to live Databricks SQL Warehouse when connected, falling back to local SQLite.
+        """
+        if self.is_connected_to_cloud:
+            cloud_sql = self._to_cloud_sql(sql)
+            try:
+                conn = self._get_cloud_connection()
+                with conn.cursor() as cur:
+                    if params:
+                        cur.execute(cloud_sql, params)
+                    else:
+                        cur.execute(cloud_sql)
+                    rows = cur.fetchall()
+                    result = []
+                    for r in rows:
+                        d = r.asDict()
+                        for k, v in d.items():
+                            if isinstance(v, (datetime, date)):
+                                d[k] = v.isoformat()
+                        result.append(d)
+                    return result
+            except Exception as e:
+                logger.warning(f"Databricks SQL query failed ({e}), attempting local SQLite fallback...")
+                self._reset_cloud_connection()
+                if not self.use_local_fallback:
+                    raise
+
+        # Local SQLite execution fallback
+        norm_sql = self._to_local_sql(sql)
         conn = self._get_local_connection()
         cur = conn.cursor()
         cur.execute(norm_sql, params)
@@ -1914,8 +1918,27 @@ class UnityCatalogClient:
         return rows
 
     def execute_statement(self, sql: str, params: tuple = ()) -> int:
-        """Execute an INSERT/UPDATE/DELETE statement."""
-        norm_sql = self._normalize_sql(sql)
+        """
+        Execute an INSERT/UPDATE/DELETE statement.
+        Routes to live Databricks SQL Warehouse when connected, falling back to local SQLite.
+        """
+        if self.is_connected_to_cloud:
+            cloud_sql = self._to_cloud_sql(sql)
+            try:
+                conn = self._get_cloud_connection()
+                with conn.cursor() as cur:
+                    if params:
+                        cur.execute(cloud_sql, params)
+                    else:
+                        cur.execute(cloud_sql)
+                    return cur.rowcount if cur.rowcount is not None else 0
+            except Exception as e:
+                logger.warning(f"Databricks SQL statement failed ({e}), attempting local SQLite fallback...")
+                self._reset_cloud_connection()
+                if not self.use_local_fallback:
+                    raise
+
+        norm_sql = self._to_local_sql(sql)
         conn = self._get_local_connection()
         cur = conn.cursor()
         cur.execute(norm_sql, params)
