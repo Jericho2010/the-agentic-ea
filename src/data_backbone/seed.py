@@ -1732,6 +1732,258 @@ SEED_AI_EDGES: List[Dict[str, Any]] = [
     {"source_urn": "urn:ea:aimodel:product-recommender-v3", "target_urn": "urn:ea:microservice:storefront-recommendations-endpoint", "relation": "serves", "protocol": "ModelServing/REST", "contains_pii": False},
 ]
 
+# =============================================================================
+# SCENARIOS S12-S16: RESILIENCE, TECH DEBT, ZERO-TRUST, SBOM & FINOPS HUB
+# =============================================================================
+SEED_RESILIENCE_DR: List[Dict[str, Any]] = [
+    {
+        "component_urn": "urn:ea:database:cassandra-legacy-cluster",
+        "dr_tier": "Tier-1",
+        "rto_actual_min": 240,
+        "rto_target_min": 15,
+        "rpo_actual_min": 120,
+        "rpo_target_min": 5,
+        "replication_strategy": "Single-AZ Unreplicated",
+        "failover_automation": "MANUAL_RUNBOOK",
+        "sla_breached": True,
+    },
+    {
+        "component_urn": "urn:ea:database:billing-db",
+        "dr_tier": "Tier-1",
+        "rto_actual_min": 10,
+        "rto_target_min": 15,
+        "rpo_actual_min": 2,
+        "rpo_target_min": 5,
+        "replication_strategy": "Multi-AZ Synchronous",
+        "failover_automation": "AUTOMATED",
+        "sla_breached": False,
+    },
+    {
+        "component_urn": "urn:ea:microservice:payments-service",
+        "dr_tier": "Tier-1",
+        "rto_actual_min": 5,
+        "rto_target_min": 15,
+        "rpo_actual_min": 1,
+        "rpo_target_min": 5,
+        "replication_strategy": "Multi-Region Active-Active",
+        "failover_automation": "AUTOMATED",
+        "sla_breached": False,
+    },
+    {
+        "component_urn": "urn:ea:microservice:checkout-service",
+        "dr_tier": "Tier-1",
+        "rto_actual_min": 8,
+        "rto_target_min": 15,
+        "rpo_actual_min": 2,
+        "rpo_target_min": 5,
+        "replication_strategy": "Multi-AZ Active-Active",
+        "failover_automation": "AUTOMATED",
+        "sla_breached": False,
+    },
+    {
+        "component_urn": "urn:ea:cloudresource:customer-pii-stream",
+        "dr_tier": "Tier-2",
+        "rto_actual_min": 90,
+        "rto_target_min": 30,
+        "rpo_actual_min": 45,
+        "rpo_target_min": 15,
+        "replication_strategy": "Cross-Region Async (Unmonitored)",
+        "failover_automation": "MANUAL_RUNBOOK",
+        "sla_breached": True,
+    },
+]
+
+SEED_TECH_DEBT_HOTSPOTS: List[Dict[str, Any]] = [
+    {
+        "component_urn": "urn:ea:database:cassandra-legacy-cluster",
+        "debt_score": 92,
+        "git_churn_lines_30d": 4850,
+        "cyclomatic_complexity": 42.5,
+        "architectural_smells": "Deprecated Engine, EOL 3.11, Zero KMS, Single Point of Failure",
+        "refactoring_roi_rank": 1,
+    },
+    {
+        "component_urn": "urn:ea:microservice:checkout-service",
+        "debt_score": 74,
+        "git_churn_lines_30d": 12400,
+        "cyclomatic_complexity": 31.8,
+        "architectural_smells": "God Class Monolith, Tight Cassandra Coupling, Synchronous Blocking Calls",
+        "refactoring_roi_rank": 2,
+    },
+    {
+        "component_urn": "urn:ea:cloudresource:customer-pii-stream",
+        "debt_score": 65,
+        "git_churn_lines_30d": 1800,
+        "cyclomatic_complexity": 12.0,
+        "architectural_smells": "Unencrypted Cross-Border Egress, Self-managed Kafka Lag",
+        "refactoring_roi_rank": 3,
+    },
+    {
+        "component_urn": "urn:ea:microservice:payments-service",
+        "debt_score": 48,
+        "git_churn_lines_30d": 3200,
+        "cyclomatic_complexity": 18.2,
+        "architectural_smells": "Copyleft Dependency Contamination, High Fan-out",
+        "refactoring_roi_rank": 4,
+    },
+    {
+        "component_urn": "urn:ea:microservice:auth-service",
+        "debt_score": 35,
+        "git_churn_lines_30d": 950,
+        "cyclomatic_complexity": 10.4,
+        "architectural_smells": "Legacy Token Format, Approaching EOL Runtime",
+        "refactoring_roi_rank": 5,
+    },
+]
+
+SEED_SECURITY_ZERO_TRUST: List[Dict[str, Any]] = [
+    {
+        "source_urn": "urn:ea:microservice:payments-service",
+        "target_urn": "urn:ea:database:cassandra-legacy-cluster",
+        "protocol": "CQL/9042",
+        "mtls_enforced": False,
+        "trust_zone_source": "CORE_APP_MESH",
+        "trust_zone_target": "SECURE_DATA_VAULT",
+        "microsegmentation_status": "PLAINTEXT_TRAFFIC",
+    },
+    {
+        "source_urn": "urn:ea:microservice:payments-api",
+        "target_urn": "urn:ea:cloudresource:customer-pii-stream",
+        "protocol": "Kafka/Plaintext",
+        "mtls_enforced": False,
+        "trust_zone_source": "CORE_APP_MESH",
+        "trust_zone_target": "EXTERNAL_EGRESS",
+        "microsegmentation_status": "UNAUTHORIZED_CROSS_ZONE",
+    },
+    {
+        "source_urn": "urn:ea:application:web-storefront",
+        "target_urn": "urn:ea:microservice:checkout-service",
+        "protocol": "HTTPS/REST",
+        "mtls_enforced": True,
+        "trust_zone_source": "DMZ_INGRESS",
+        "trust_zone_target": "CORE_APP_MESH",
+        "microsegmentation_status": "COMPLIANT",
+    },
+    {
+        "source_urn": "urn:ea:microservice:checkout-service",
+        "target_urn": "urn:ea:microservice:payments-service",
+        "protocol": "gRPC/mTLS",
+        "mtls_enforced": True,
+        "trust_zone_source": "CORE_APP_MESH",
+        "trust_zone_target": "CORE_APP_MESH",
+        "microsegmentation_status": "COMPLIANT",
+    },
+    {
+        "source_urn": "urn:ea:microservice:payments-service",
+        "target_urn": "urn:ea:database:billing-db",
+        "protocol": "PostgreSQL/SSL",
+        "mtls_enforced": True,
+        "trust_zone_source": "CORE_APP_MESH",
+        "trust_zone_target": "SECURE_DATA_VAULT",
+        "microsegmentation_status": "COMPLIANT",
+    },
+]
+
+SEED_SUPPLY_CHAIN_SBOM: List[Dict[str, Any]] = [
+    {
+        "package_name": "crypto-legacy-utils",
+        "version": "v2.4.1",
+        "component_urn": "urn:ea:microservice:payments-service",
+        "license": "GPL-3.0",
+        "license_compliance": "PROHIBITED_COPYLEFT",
+        "cve_count": 3,
+        "max_severity": "CRITICAL",
+    },
+    {
+        "package_name": "fastapi",
+        "version": "v0.110.0",
+        "component_urn": "urn:ea:microservice:checkout-service",
+        "license": "MIT",
+        "license_compliance": "APPROVED",
+        "cve_count": 0,
+        "max_severity": "NONE",
+    },
+    {
+        "package_name": "grpcio",
+        "version": "v1.62.1",
+        "component_urn": "urn:ea:microservice:payments-service",
+        "license": "Apache-2.0",
+        "license_compliance": "APPROVED",
+        "cve_count": 0,
+        "max_severity": "NONE",
+    },
+    {
+        "package_name": "cassandra-driver",
+        "version": "v3.28.0",
+        "component_urn": "urn:ea:microservice:checkout-service",
+        "license": "Apache-2.0",
+        "license_compliance": "APPROVED",
+        "cve_count": 2,
+        "max_severity": "HIGH",
+    },
+    {
+        "package_name": "authlib",
+        "version": "v1.3.0",
+        "component_urn": "urn:ea:microservice:auth-service",
+        "license": "BSD-3-Clause",
+        "license_compliance": "APPROVED",
+        "cve_count": 0,
+        "max_severity": "NONE",
+    },
+    {
+        "package_name": "pydantic",
+        "version": "v2.6.4",
+        "component_urn": "urn:ea:microservice:payments-api",
+        "license": "MIT",
+        "license_compliance": "APPROVED",
+        "cve_count": 0,
+        "max_severity": "NONE",
+    },
+]
+
+SEED_FINOPS_UNIT_ECONOMICS: List[Dict[str, Any]] = [
+    {
+        "service_urn": "urn:ea:microservice:checkout-service",
+        "monthly_spend": 3800.00,
+        "cost_per_transaction": 0.042,
+        "tag_compliance_pct": 94.5,
+        "idle_waste_cost": 150.00,
+        "optimization_action": "RIGHTSIZE_COMPUTE",
+    },
+    {
+        "service_urn": "urn:ea:microservice:payments-service",
+        "monthly_spend": 4200.00,
+        "cost_per_transaction": 0.042,
+        "tag_compliance_pct": 98.0,
+        "idle_waste_cost": 80.00,
+        "optimization_action": "RETAIN",
+    },
+    {
+        "service_urn": "urn:ea:database:cassandra-legacy-cluster",
+        "monthly_spend": 5416.66,
+        "cost_per_transaction": 0.118,
+        "tag_compliance_pct": 62.0,
+        "idle_waste_cost": 700.00,
+        "optimization_action": "DECOMMISSION_AND_ELIMINATE",
+    },
+    {
+        "service_urn": "urn:ea:cloudresource:customer-pii-stream",
+        "monthly_spend": 650.00,
+        "cost_per_transaction": 0.015,
+        "tag_compliance_pct": 75.0,
+        "idle_waste_cost": 120.00,
+        "optimization_action": "MIGRATE_TO_MANAGED_DLT",
+    },
+    {
+        "service_urn": "urn:ea:application:web-storefront",
+        "monthly_spend": 2100.00,
+        "cost_per_transaction": 0.021,
+        "tag_compliance_pct": 100.0,
+        "idle_waste_cost": 0.00,
+        "optimization_action": "RETAIN",
+    },
+]
+
 
 def seed_database() -> Dict[str, int]:
     """Seed the Unity Catalog conformed tables."""
@@ -1751,6 +2003,11 @@ def seed_database() -> Dict[str, int]:
     p_evt_count = client.save_process_event_logs(SEED_PROCESS_EVENT_LOGS)
     ai_m_count = client.save_ai_models(SEED_AI_MODELS)
     ai_g_count = client.save_ai_governance(SEED_AI_GOVERNANCE)
+    dr_count = client.save_resilience_dr(SEED_RESILIENCE_DR)
+    debt_count = client.save_tech_debt_hotspots(SEED_TECH_DEBT_HOTSPOTS)
+    zt_count = client.save_security_zero_trust(SEED_SECURITY_ZERO_TRUST)
+    sbom_count = client.save_supply_chain_sbom(SEED_SUPPLY_CHAIN_SBOM)
+    finops_count = client.save_finops_unit_economics(SEED_FINOPS_UNIT_ECONOMICS)
     return {
         "nodes": n_count,
         "edges": e_count,
@@ -1767,6 +2024,11 @@ def seed_database() -> Dict[str, int]:
         "process_event_logs": p_evt_count,
         "ai_models": ai_m_count,
         "ai_governance": ai_g_count,
+        "resilience_dr": dr_count,
+        "tech_debt_hotspots": debt_count,
+        "security_zero_trust": zt_count,
+        "supply_chain_sbom": sbom_count,
+        "finops_unit_economics": finops_count,
     }
 
 

@@ -1895,6 +1895,186 @@ Graph traversal reveals **{blast['upstream_count']} upstream callers** directly 
             "svg_path": str(svg_p),
         }
 
+    def analyze_operations_resilience_finops(self, tenant_id: str = "core") -> Dict[str, Any]:
+        """
+        Executes unified audit across 5 synthesized enterprise operational disciplines:
+          - S12: Disaster Recovery & ICT Business Continuity (RTO/RPO SLAs, SPOFs)
+          - S13: Technical Debt Hotspots & Refactoring Prioritization
+          - S14: Zero-Trust Security Architecture & Microsegmentation
+          - S15: Software Supply Chain Security (SBOM, Prohibited Copyleft, CVEs)
+          - S16: Cloud FinOps Unit Economics & Idle Compute Waste
+        Populates and queries conformed Databricks Unity Catalog gold tables:
+          - ea.gold.resilience_dr
+          - ea.gold.tech_debt_hotspots
+          - ea.gold.security_zero_trust
+          - ea.gold.supply_chain_sbom
+          - ea.gold.finops_unit_economics
+        """
+        # 1. DR / Resilience
+        dr_records = self.client.get_resilience_dr()
+        if not dr_records:
+            from src.data_backbone.seed import SEED_RESILIENCE_DR
+            self.client.save_resilience_dr(SEED_RESILIENCE_DR)
+            dr_records = self.client.get_resilience_dr()
+
+        sla_breached = [r for r in dr_records if r.get("sla_breached")]
+        spof_components = [r for r in dr_records if "unreplicated" in r.get("replication_strategy", "").lower() or r.get("sla_breached")]
+        cassandra_dr = next((r for r in dr_records if "cassandra" in r.get("component_urn", "")), {})
+
+        # 2. Tech Debt Hotspots
+        debt_records = self.client.get_tech_debt_hotspots()
+        if not debt_records:
+            from src.data_backbone.seed import SEED_TECH_DEBT_HOTSPOTS
+            self.client.save_tech_debt_hotspots(SEED_TECH_DEBT_HOTSPOTS)
+            debt_records = self.client.get_tech_debt_hotspots()
+
+        debt_sorted = sorted(debt_records, key=lambda x: x.get("refactoring_roi_rank", 99))
+        cassandra_debt = next((r for r in debt_records if "cassandra" in r.get("component_urn", "")), {})
+        checkout_debt = next((r for r in debt_records if "checkout" in r.get("component_urn", "")), {})
+        avg_debt = round(sum(r.get("debt_score", 0) for r in debt_records) / len(debt_records), 1) if debt_records else 0.0
+
+        # 3. Zero-Trust Security
+        sec_records = self.client.get_security_zero_trust()
+        if not sec_records:
+            from src.data_backbone.seed import SEED_SECURITY_ZERO_TRUST
+            self.client.save_security_zero_trust(SEED_SECURITY_ZERO_TRUST)
+            sec_records = self.client.get_security_zero_trust()
+
+        compliant_sec = [r for r in sec_records if r.get("microsegmentation_status") == "COMPLIANT"]
+        cross_zone_violations = [r for r in sec_records if r.get("microsegmentation_status") == "UNAUTHORIZED_CROSS_ZONE"]
+        plaintext_violations = [r for r in sec_records if r.get("microsegmentation_status") == "PLAINTEXT_TRAFFIC"]
+        zt_compliance_pct = round(len(compliant_sec) / len(sec_records) * 100, 1) if sec_records else 0.0
+
+        # 4. SBOM & Supply Chain
+        sbom_records = self.client.get_supply_chain_sbom()
+        if not sbom_records:
+            from src.data_backbone.seed import SEED_SUPPLY_CHAIN_SBOM
+            self.client.save_supply_chain_sbom(SEED_SUPPLY_CHAIN_SBOM)
+            sbom_records = self.client.get_supply_chain_sbom()
+
+        copyleft_violations = [r for r in sbom_records if r.get("license_compliance") == "PROHIBITED_COPYLEFT"]
+        critical_cves = [r for r in sbom_records if r.get("max_severity") == "CRITICAL"]
+        gpl_violation = next((r for r in sbom_records if "GPL" in r.get("license", "")), {})
+
+        # 5. FinOps Unit Economics
+        finops_records = self.client.get_finops_unit_economics()
+        if not finops_records:
+            from src.data_backbone.seed import SEED_FINOPS_UNIT_ECONOMICS
+            self.client.save_finops_unit_economics(SEED_FINOPS_UNIT_ECONOMICS)
+            finops_records = self.client.get_finops_unit_economics()
+
+        total_monthly = round(sum(r.get("monthly_spend", 0.0) for r in finops_records), 2)
+        monthly_waste = round(sum(r.get("idle_waste_cost", 0.0) for r in finops_records), 2)
+        annual_waste = round(monthly_waste * 12, 2)
+        avg_tag_pct = round(sum(r.get("tag_compliance_pct", 0.0) for r in finops_records) / len(finops_records), 1) if finops_records else 0.0
+        waste_records = [r for r in finops_records if r.get("idle_waste_cost", 0.0) > 0]
+        cassandra_finops = next((r for r in finops_records if "cassandra" in r.get("service_urn", "")), {})
+        cassandra_monthly_waste = cassandra_finops.get("idle_waste_cost", 700.0)
+        cassandra_annual_waste = round(cassandra_monthly_waste * 12, 2)
+
+        operational_actions = [
+            {
+                "domain": "Disaster Recovery (S12)",
+                "component": "cassandra-legacy-cluster",
+                "action": "DECOMMISSION_AND_MIGRATE",
+                "risk": "CRITICAL SPOF (RTO: 240m vs 15m target, RPO: 120m vs 5m target)",
+                "remediation": "Migrate state to Databricks Unity Catalog managed Delta tables with automated multi-region replication.",
+            },
+            {
+                "domain": "Technical Debt (S13)",
+                "component": "checkout-service",
+                "action": "MODERNIZE_REFACTOR",
+                "risk": "High Complexity (Cyclomatic: 31.8, Churn: 12.4k lines, Smells: 8)",
+                "remediation": "Decompose monolithic cart handlers into asynchronous domain microservices with automated contract testing.",
+            },
+            {
+                "domain": "Zero-Trust Security (S14)",
+                "component": "payments-api ➔ customer-pii-stream",
+                "action": "ENFORCE_MICROSEGMENTATION",
+                "risk": "Unauthorized Cross-Zone Egress (DMZ ➔ External Cloud)",
+                "remediation": "Block direct egress; route telemetry via secure conformed data ingestion proxy with mTLS encryption.",
+            },
+            {
+                "domain": "Supply Chain SBOM (S15)",
+                "component": "crypto-legacy-utils (payments-service)",
+                "action": "REPLACE_DEPENDENCY",
+                "risk": "Copyleft License (GPL-3.0) & Critical Vulnerability (CVE-2024-4321)",
+                "remediation": "Replace with approved Apache-2.0 / MIT cryptographic library and patch to zero-CVE release.",
+            },
+            {
+                "domain": "FinOps Unit Economics (S16)",
+                "component": "cassandra-legacy-cluster",
+                "action": "ELIMINATE_IDLE_WASTE",
+                "risk": "Untagged Idle Compute ($700.00/mo = $8,400.00/yr waste, Tagging: 42%)",
+                "remediation": "Terminate idle standalone compute nodes upon migration cutover; enforce automated FinOps tagging policy.",
+            },
+        ]
+
+        return {
+            "tenant_id": tenant_id,
+            # DR
+            "total_dr_components": len(dr_records),
+            "dr_records": dr_records,
+            "sla_breached_count": len(sla_breached),
+            "sla_breached_records": sla_breached,
+            "spof_components": spof_components,
+            "cassandra_dr": cassandra_dr,
+            # Tech Debt
+            "total_debt_records": len(debt_records),
+            "debt_records": debt_sorted,
+            "top_hotspots": debt_sorted[:5],
+            "cassandra_debt": cassandra_debt,
+            "checkout_debt": checkout_debt,
+            "avg_debt_score": avg_debt,
+            # Zero-Trust
+            "total_security_flows": len(sec_records),
+            "security_records": sec_records,
+            "compliant_security_flows": compliant_sec,
+            "cross_zone_violations": cross_zone_violations,
+            "plaintext_violations": plaintext_violations,
+            "zero_trust_compliance_pct": zt_compliance_pct,
+            # SBOM
+            "total_sbom_packages": len(sbom_records),
+            "sbom_records": sbom_records,
+            "copyleft_violations": copyleft_violations,
+            "critical_cves": critical_cves,
+            "gpl_violation": gpl_violation,
+            # FinOps
+            "total_finops_services": len(finops_records),
+            "finops_records": finops_records,
+            "unit_cost_per_order": 0.042,
+            "total_monthly_spend_usd": total_monthly,
+            "monthly_idle_waste_usd": monthly_waste,
+            "annual_idle_waste_usd": annual_waste,
+            "cassandra_finops": cassandra_finops,
+            "cassandra_monthly_idle_waste_usd": cassandra_monthly_waste,
+            "cassandra_annual_idle_waste_usd": cassandra_annual_waste,
+            "avg_tag_compliance_pct": avg_tag_pct,
+            "waste_records": waste_records,
+            # Unified Actions
+            "operational_actions": operational_actions,
+        }
+
+    def compile_resilience_and_perimeter_diagram(self) -> Dict[str, str]:
+        """
+        Compiles Archify living architecture diagram visualizing resilience boundaries,
+        zero-trust perimeter, DR failover paths, tech debt hotspots, and FinOps idle waste.
+        Writes to data/diagrams/resilience_and_perimeter_view.html and .svg.
+        """
+        output_html = ROOT_DIR / "data" / "diagrams" / "resilience_and_perimeter_view.html"
+        output_svg = ROOT_DIR / "data" / "diagrams" / "resilience_and_perimeter_view.svg"
+        output_html.parent.mkdir(parents=True, exist_ok=True)
+
+        html_p, svg_p = self.archify_bridge.compile_resilience_and_perimeter_diagram(
+            output_html_path=output_html,
+            title="Resilience, Zero-Trust Perimeter & Operations Map",
+            subtitle="Enterprise Architecture DR, Micro-Segmentation, Tech Debt & FinOps Topology",
+        )
+        return {
+            "html_path": str(html_p),
+            "svg_path": str(svg_p),
+        }
+
     def get_codriving_actions(self, target_identifier: str) -> List[Dict[str, str]]:
         """Returns contextual interactive co-driving action chips for UI and EA Navigator interactions."""
         blast = self.calculate_blast_radius(target_identifier)
@@ -1940,6 +2120,11 @@ Graph traversal reveals **{blast['upstream_count']} upstream callers** directly 
                 "label": "🤖 EU AI Act Governance Audit",
                 "action": "ai_governance",
                 "query": "Audit AI models against EU AI Act risk tiers and detect prohibited biometric systems",
+            },
+            {
+                "label": "🛡️ Operations & FinOps Audit",
+                "action": "resilience_finops",
+                "query": "Audit DR RTO/RPO SLAs, technical debt hotspots, zero-trust microsegmentation, SBOM licenses, and FinOps unit economics",
             },
             {
                 "label": f"🗺️ Generate Living Blast Map",
@@ -2250,7 +2435,82 @@ Interactive M&A landscape map compiled distinguishing acquired vs core assets:
 * **Customer Journey Workflow Map:** [Archify Workflow](file://{proc_diag['html_path']})
 """
             diag = proc_diag
-        elif any(k in q for k in ["ai", "ml", "model", "eu ai act", "risk tier", "governance", "mlflow", "llm"]):
+        elif any(k in q for k in ["dr", "rto", "rpo", "disaster recovery", "resilience", "tech debt", "debt hotspot", "zero trust", "zero-trust", "microsegmentation", "sbom", "supply chain", "copyleft", "cve", "finops", "unit economics", "idle waste"]):
+            op_data = self.analyze_operations_resilience_finops()
+            res_diag = self.compile_resilience_and_perimeter_diagram()
+            response_text = f"""### 🛡️ Operations, Resilience & FinOps Hub Audit (S12–S16)
+
+* **Disaster Recovery (S12):** **{op_data['sla_breached_count']}** SLA breaches detected across **{op_data['total_dr_components']}** monitored components. Critical SPOF: `{op_data['cassandra_dr'].get('component_urn', '').split(':')[-1]}` (RTO: **{op_data['cassandra_dr'].get('rto_actual_min')}m** vs **{op_data['cassandra_dr'].get('rto_target_min')}m** target, RPO: **{op_data['cassandra_dr'].get('rpo_actual_min')}m** vs **{op_data['cassandra_dr'].get('rpo_target_min')}m** target).
+* **Technical Debt (S13):** Avg estate debt **{op_data['avg_debt_score']}/100**. Top refactoring target: `{op_data['cassandra_debt'].get('component_urn', '').split(':')[-1]}` (Score: **{op_data['cassandra_debt'].get('debt_score')}**, Rank: 1); Runner-up: `{op_data['checkout_debt'].get('component_urn', '').split(':')[-1]}` (Score: **{op_data['checkout_debt'].get('debt_score')}**, Churn: **{op_data['checkout_debt'].get('git_churn_lines_30d'):,} lines**).
+* **Zero-Trust Security (S14):** **{op_data['zero_trust_compliance_pct']}%** microsegmentation compliance across **{op_data['total_security_flows']}** flows. Flagged: **{len(op_data['plaintext_violations'])}** plaintext flows (`payments-service ➔ cassandra`) & **{len(op_data['cross_zone_violations'])}** unauthorized cross-zone egress (`payments-api ➔ customer-pii-stream`).
+* **Supply Chain SBOM (S15):** **{len(op_data['copyleft_violations'])}** copyleft violation (`crypto-legacy-utils` under **GPL-3.0**) and **{len(op_data['critical_cves'])}** critical CVE (**CVE-2024-4321** in `payments-service`).
+* **FinOps Unit Economics (S16):** Attributed cost per order transaction is **${op_data['unit_cost_per_order']:.3f}**. Untagged idle compute waste: **${op_data['monthly_idle_waste_usd']:,.2f}/mo** (**${op_data['annual_idle_waste_usd']:,.2f}/yr**) on legacy Cassandra (Tag compliance: **{op_data['avg_tag_compliance_pct']}%**).
+
+#### 1. Disaster Recovery & ICT Resilience (`ea.gold.resilience_dr`)
+| Component | DR Tier | Actual RTO | Target RTO | Actual RPO | Target RPO | Replication Strategy | SLA Status |
+| :--- | :---: | :---: | :---: | :---: | :---: | :--- | :---: |
+"""
+            for r in op_data["dr_records"]:
+                c_name = r["component_urn"].split(":")[-1]
+                sla_badge = "🔴 **BREACHED**" if r.get("sla_breached") else "🟢 COMPLIANT"
+                response_text += f"| `{c_name}` | {r['dr_tier']} | {r['rto_actual_min']}m | {r['rto_target_min']}m | {r['rpo_actual_min']}m | {r['rpo_target_min']}m | {r['replication_strategy']} | {sla_badge} |\n"
+
+            response_text += """
+#### 2. Technical Debt & Refactoring Hotspots (`ea.gold.tech_debt_hotspots`)
+| Rank | Component | Debt Score | 30d Churn | Cyclomatic Complexity | Architectural Smells |
+| :---: | :--- | :---: | :---: | :---: | :--- |
+"""
+            for d in op_data["top_hotspots"]:
+                c_name = d["component_urn"].split(":")[-1]
+                response_text += f"| #{d['refactoring_roi_rank']} | `{c_name}` | **{d['debt_score']}/100** | {d['git_churn_lines_30d']:,} lines | {d['cyclomatic_complexity']} | {d['architectural_smells']} |\n"
+
+            response_text += """
+#### 3. Zero-Trust Microsegmentation (`ea.gold.security_zero_trust`)
+| Source | Target | Protocol | mTLS | Source Zone | Target Zone | Status |
+| :--- | :--- | :---: | :---: | :--- | :--- | :---: |
+"""
+            for s in op_data["security_records"]:
+                s_name = s["source_urn"].split(":")[-1]
+                t_name = s["target_urn"].split(":")[-1]
+                mtls_icon = "🔒" if s.get("mtls_enforced") else "⚠️"
+                st = s.get("microsegmentation_status", "COMPLIANT")
+                st_badge = "🟢 COMPLIANT" if st == "COMPLIANT" else f"🔴 **{st}**"
+                response_text += f"| `{s_name}` | `{t_name}` | {s['protocol']} | {mtls_icon} | {s['trust_zone_source']} | {s['trust_zone_target']} | {st_badge} |\n"
+
+            response_text += """
+#### 4. Supply Chain SBOM & Licensing (`ea.gold.supply_chain_sbom`)
+| Package Name | Version | Component | License | Compliance | CVE Count | Max Severity |
+| :--- | :---: | :--- | :---: | :---: | :---: | :---: |
+"""
+            for sb in op_data["sbom_records"]:
+                c_name = sb["component_urn"].split(":")[-1]
+                comp_badge = "🟢 APPROVED" if sb["license_compliance"] == "APPROVED" else "🔴 **PROHIBITED**"
+                sev_badge = "🚨 **CRITICAL**" if sb["max_severity"] == "CRITICAL" else ("⚠️ HIGH" if sb["max_severity"] == "HIGH" else "✅ NONE")
+                response_text += f"| `{sb['package_name']}` | {sb['version']} | `{c_name}` | {sb['license']} | {comp_badge} | {sb['cve_count']} | {sev_badge} |\n"
+
+            response_text += """
+#### 5. FinOps Unit Economics & Idle Waste (`ea.gold.finops_unit_economics`)
+| Service | Monthly Spend | Cost / Order | Tag Compliance | Idle Waste / Mo | Optimization Action |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+"""
+            for f in op_data["finops_records"]:
+                c_name = f["service_urn"].split(":")[-1]
+                cost_txn = f"${f['cost_per_transaction']:.3f}" if f['cost_per_transaction'] > 0 else "N/A"
+                waste_str = f"**${f['idle_waste_cost']:,.2f}**" if f['idle_waste_cost'] > 0 else "$0.00"
+                response_text += f"| `{c_name}` | ${f['monthly_spend']:,.2f} | {cost_txn} | {f['tag_compliance_pct']}% | {waste_str} | `{f['optimization_action']}` |\n"
+
+            response_text += """
+#### Priority Operational & Modernization Actions
+"""
+            for act in op_data["operational_actions"]:
+                response_text += f"* **`{act['action']}`** on `{act['component']}` ({act['domain']}): {act['risk']} → *Remediation: {act['remediation']}*\n"
+
+            response_text += f"""
+#### Interactive Resilience, Zero-Trust Perimeter & Operations Map
+* **Living Operations Architecture Map:** [Archify Topology](file://{res_diag['html_path']})
+"""
+            diag = res_diag
+        elif any(k in q for k in ["eu ai act", "ai model", "ml model", "aimodel", "ai governance", "mlflow", "llm", "model registry", "biometric evaluator"]) or re.search(r"\b(ai|ml)\b", q):
             ai_data = self.analyze_ai_governance()
             ai_diag = self.compile_ai_model_lineage_diagram()
             response_text = f"""### 🤖 AI Governance & ML Model Cataloging (EU AI Act)

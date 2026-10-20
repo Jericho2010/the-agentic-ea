@@ -51,6 +51,9 @@ def build_archify_spec(
     if boundary_mode == "ai_lineage":
         layer_order = ["Database", "AIModel", "Microservice"]
         max_cols_per_row = 4
+    elif boundary_mode == "resilience_perimeter":
+        layer_order = ["Application", "Microservice", "Database", "CloudResource"]
+        max_cols_per_row = 3
     else:
         layer_order = ["Application", "Microservice", "Database", "CloudResource", "APIInterface"]
         max_cols_per_row = 3
@@ -132,6 +135,42 @@ def build_archify_spec(
                     sublabel = f"Serving Endpoint • {meta.get('protocol', 'HTTPS/REST')}"
                 else:
                     sublabel = f"{node.get('owner_team', 'unassigned')} • {node.get('lifecycle_status', 'run')}"
+            elif boundary_mode == "resilience_perimeter":
+                if "cassandra" in urn or "cassandra" in cid:
+                    tag = "SPOF / DEBT:92"
+                    comp_type = "security"
+                    sublabel = "Tier-1 SLA Breached • RTO 240m"
+                elif "checkout-service" in urn or "checkout" in cid:
+                    tag = "DEBT:74"
+                    comp_type = "backend"
+                    sublabel = "Core Checkout • Churn 12.4k"
+                elif "payments-service" in urn or "payments_service" in cid:
+                    tag = "GPL-3.0 / CVE"
+                    comp_type = "security"
+                    sublabel = "Core Payments • CVE-2024-4321"
+                elif "customer-pii-stream" in urn or "pii" in cid:
+                    tag = "CROSS-ZONE"
+                    comp_type = "security"
+                    sublabel = "Untagged Idle • $700/mo waste"
+                else:
+                    if kind == "Application":
+                        tag = "DMZ"
+                        comp_type = "frontend"
+                        sublabel = f"Ingress • {node.get('criticality', 'Tier-1')}"
+                    elif kind == "Microservice":
+                        tag = "mTLS"
+                        comp_type = "backend"
+                        sublabel = f"Core Mesh • {node.get('criticality', 'Tier-1')}"
+                    elif kind == "Database":
+                        tag = "VAULT"
+                        comp_type = "database"
+                        sublabel = f"Persistence • {node.get('criticality', 'Tier-1')}"
+                    elif kind == "CloudResource":
+                        tag = "EGRESS"
+                        comp_type = "cloud"
+                        sublabel = f"Cloud Egress • {node.get('criticality', 'Tier-2')}"
+                    else:
+                        sublabel = f"{node.get('owner_team', 'unassigned')} • {node.get('lifecycle_status', 'run')}"
             else:
                 sublabel = f"{node.get('owner_team', 'unassigned')} • {node.get('lifecycle_status', 'run')}"
 
@@ -238,6 +277,48 @@ def build_archify_spec(
                 "kind": "region",
                 "label": "Model Serving & Inference Endpoints",
                 "wraps": serving_wraps,
+            })
+    elif boundary_mode == "resilience_perimeter":
+        dmz_wraps = []
+        mesh_wraps = []
+        vault_wraps = []
+        egress_wraps = []
+        for n in nodes:
+            cid = node_id_map.get(n["urn"])
+            if not cid:
+                continue
+            k = n.get("kind", "")
+            if k == "Application":
+                dmz_wraps.append(cid)
+            elif k == "Microservice":
+                mesh_wraps.append(cid)
+            elif k == "Database":
+                vault_wraps.append(cid)
+            elif k == "CloudResource":
+                egress_wraps.append(cid)
+        if dmz_wraps:
+            boundaries.append({
+                "kind": "region",
+                "label": "DMZ Ingress Perimeter",
+                "wraps": dmz_wraps,
+            })
+        if mesh_wraps:
+            boundaries.append({
+                "kind": "region",
+                "label": "Core Application Mesh",
+                "wraps": mesh_wraps,
+            })
+        if vault_wraps:
+            boundaries.append({
+                "kind": "region",
+                "label": "Secure Data Vault",
+                "wraps": vault_wraps,
+            })
+        if egress_wraps:
+            boundaries.append({
+                "kind": "region",
+                "label": "External Egress & Third-Party",
+                "wraps": egress_wraps,
             })
     else:
         if app_wraps:
@@ -364,6 +445,36 @@ def build_archify_spec(
                     "DECOMMISSION_IMMEDIATELY: Biometric evaluation engine",
                     "ENFORCE_HUMAN_OVERSIGHT: Dual-key fraud risk scoring",
                     "ATTACH_AI_DISCLOSURE: Customer chatbot transparency banner",
+                ],
+            },
+        ]
+    elif boundary_mode == "resilience_perimeter":
+        cards = [
+            {
+                "dot": "rose",
+                "title": "Zero-Trust Perimeter & Micro-Segmentation",
+                "items": [
+                    "Plaintext Transit: payments-service ➔ cassandra (CQL:9042)",
+                    "Unauthorized Cross-Zone: payments-api ➔ customer-pii-stream",
+                    "Enforced mTLS: 60% compliance across active mesh flows",
+                ],
+            },
+            {
+                "dot": "rose",
+                "title": "Disaster Recovery RTO/RPO (SPOF Detected)",
+                "items": [
+                    "Critical SPOF: cassandra-legacy-cluster (Tier-1 SLA Breached)",
+                    "Actual RTO 240m (Target 15m) • Actual RPO 120m (Target 5m)",
+                    "Replication: Single-AZ Unreplicated (Manual Failover Runbook)",
+                ],
+            },
+            {
+                "dot": "orange",
+                "title": "Supply Chain & FinOps Waste Alerts",
+                "items": [
+                    "GPL-3.0 Copyleft & CVE-2024-4321 Critical in payments-service",
+                    "Unit Economics: $0.042 cost per order transaction",
+                    "Idle Waste: $8,400.00/yr ($700/mo) on untagged Cassandra compute",
                 ],
             },
         ]
@@ -1068,6 +1179,42 @@ class ArchifyBridge:
             title=title,
             subtitle=subtitle,
             boundary_mode="ai_lineage",
+        )
+
+    def compile_resilience_and_perimeter_diagram(
+        self,
+        output_html_path: Optional[Path] = None,
+        title: str = "Resilience, Zero-Trust Perimeter & Operations Map",
+        subtitle: str = "Enterprise Architecture DR, Micro-Segmentation, Tech Debt & FinOps Topology",
+    ) -> Tuple[Path, Path]:
+        """Compiles unified operations resilience, zero-trust perimeter, and FinOps topology diagram."""
+        all_nodes = self.client.get_nodes()
+        all_edges = self.client.get_edges()
+
+        # Target nodes: applications, microservices, databases, cloud resources
+        relevant_kinds = {"Application", "Microservice", "Database", "CloudResource"}
+        res_nodes = [n for n in all_nodes if n.get("kind") in relevant_kinds and not n.get("urn", "").startswith("urn:ea:acquired")]
+        res_node_urns = {n["urn"] for n in res_nodes}
+        res_edges = [
+            e for e in all_edges
+            if e["source_urn"] in res_node_urns and e["target_urn"] in res_node_urns
+        ]
+
+        out_base = output_html_path or (ROOT_DIR / "data" / "diagrams" / "resilience_and_perimeter_view.html")
+        highlight_urns = [
+            "urn:ea:database:cassandra-legacy-cluster",
+            "urn:ea:service:checkout-service",
+            "urn:ea:service:payments-service",
+            "urn:ea:cloud:customer-pii-stream",
+        ]
+        return compile_archify_diagram(
+            nodes=res_nodes,
+            edges=res_edges,
+            output_path=Path(out_base),
+            title=title,
+            subtitle=subtitle,
+            highlight_urns=highlight_urns,
+            boundary_mode="resilience_perimeter",
         )
 
 

@@ -104,7 +104,7 @@ with col_h2:
     """, unsafe_allow_html=True)
 
 # Navigation Tabs
-tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time, tab_migration, tab_capabilities, tab_cmdb, tab_ma, tab_compliance, tab_interfaces, tab_process, tab_ai_governance = st.tabs([
+tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time, tab_migration, tab_capabilities, tab_cmdb, tab_ma, tab_compliance, tab_interfaces, tab_process, tab_ai_governance, tab_resilience_finops = st.tabs([
     "🏛️ Estate Catalog",
     "🗺️ Living Architecture Maps",
     "🧭 EA Navigator Cockpit",
@@ -118,6 +118,7 @@ tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time, tab_migration, tab
     "🔌 Interface & Integration Rationalization",
     "⏱️ Business Process Optimization & Customer Journey",
     "🤖 AI Governance & ML Catalog (EU AI Act)",
+    "🛡️ Operations, Resilience & FinOps Hub",
 ])
 
 
@@ -1087,6 +1088,200 @@ with tab_ai_governance:
         st.components.v1.html(html_code, height=650, scrolling=True)
     else:
         st.warning("AI model lineage diagram could not be loaded.")
+
+
+# ==============================================================================
+# TAB 14: OPERATIONS, RESILIENCE & FINOPS HUB (S12–S16)
+# ==============================================================================
+with tab_resilience_finops:
+    st.subheader("🛡️ Enterprise Operations, Resilience & FinOps Hub (S12–S16)")
+    st.caption("Unified telemetry hub synthesizing Disaster Recovery (S12), Technical Debt (S13), Zero-Trust Microsegmentation (S14), Supply Chain SBOM (S15), and FinOps Unit Economics (S16).")
+
+    op_data = navigator.analyze_operations_resilience_finops()
+
+    # 5 KPI Metric Cards
+    kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
+    kpi1.metric("DR SLA Breaches", f"{op_data['sla_breached_count']} Breaches", delta="Cassandra SPOF", delta_color="inverse")
+    kpi2.metric("Avg Tech Debt", f"{op_data['avg_debt_score']}/100", delta="Cassandra #1 (92)", delta_color="inverse")
+    kpi3.metric("Zero-Trust Mesh", f"{op_data['zero_trust_compliance_pct']}%", delta="2 Flagged Flows", delta_color="inverse")
+    kpi4.metric("SBOM Violations", f"{len(op_data['copyleft_violations'])} Copyleft / {len(op_data['critical_cves'])} CVE", delta="GPL-3.0 Flagged", delta_color="inverse")
+    kpi5.metric("FinOps Cost / Order", f"${op_data['unit_cost_per_order']:.3f}", delta=f"${op_data['cassandra_monthly_idle_waste_usd']:,.0f}/mo Idle Waste", delta_color="inverse")
+
+    st.markdown("---")
+
+    subtab_dr, subtab_debt, subtab_zt, subtab_sbom, subtab_finops = st.tabs([
+        "🔥 S12: Disaster Recovery",
+        "📉 S13: Tech Debt Hotspots",
+        "🔒 S14: Zero-Trust Security",
+        "📦 S15: Supply Chain SBOM",
+        "💰 S16: FinOps Unit Economics",
+    ])
+
+    with subtab_dr:
+        st.markdown("#### Disaster Recovery & ICT Resilience Matrix (`ea.gold.resilience_dr`)")
+        st.caption("Evaluates multi-region failover automation and RTO/RPO SLA compliance against DORA ICT standards.")
+        dr_rows = op_data["dr_records"]
+        if dr_rows:
+            df_dr = pd.DataFrame(dr_rows)
+            df_dr_disp = df_dr.copy()
+            df_dr_disp["sla_status"] = df_dr_disp["sla_breached"].apply(lambda b: "🔴 BREACHED" if b else "🟢 COMPLIANT")
+            df_dr_disp["component"] = df_dr_disp["component_urn"].apply(lambda u: u.split(":")[-1])
+            st.dataframe(
+                df_dr_disp[[
+                    "component", "dr_tier", "rto_actual_min", "rto_target_min",
+                    "rpo_actual_min", "rpo_target_min", "replication_strategy",
+                    "failover_automation", "sla_status"
+                ]],
+                use_container_width=True,
+            )
+            st.download_button(
+                label="📥 Export DR Resilience Ledger (CSV)",
+                data=df_dr.to_csv(index=False),
+                file_name="ea_gold_resilience_dr.csv",
+                mime="text/csv",
+            )
+
+    with subtab_debt:
+        st.markdown("#### Technical Debt Hotspots & Refactoring Prioritization (`ea.gold.tech_debt_hotspots`)")
+        st.caption("Correlates 30-day git churn, cyclomatic complexity, and architectural smells to rank refactoring ROI.")
+        debt_rows = op_data["debt_records"]
+        if debt_rows:
+            df_debt = pd.DataFrame(debt_rows)
+            df_debt_disp = df_debt.copy()
+            df_debt_disp["component"] = df_debt_disp["component_urn"].apply(lambda u: u.split(":")[-1])
+            st.dataframe(
+                df_debt_disp[[
+                    "refactoring_roi_rank", "component", "debt_score",
+                    "git_churn_lines_30d", "cyclomatic_complexity", "architectural_smells"
+                ]],
+                use_container_width=True,
+            )
+            st.download_button(
+                label="📥 Export Tech Debt Hotspots (CSV)",
+                data=df_debt.to_csv(index=False),
+                file_name="ea_gold_tech_debt_hotspots.csv",
+                mime="text/csv",
+            )
+
+    with subtab_zt:
+        st.markdown("#### Zero-Trust Microsegmentation & Transit Encryption (`ea.gold.security_zero_trust`)")
+        st.caption("Monitors trust zone crossings, mTLS enforcement, and flags unauthorized cross-zone egress.")
+        sec_rows = op_data["security_records"]
+        if sec_rows:
+            df_sec = pd.DataFrame(sec_rows)
+            df_sec_disp = df_sec.copy()
+            df_sec_disp["source"] = df_sec_disp["source_urn"].apply(lambda u: u.split(":")[-1])
+            df_sec_disp["target"] = df_sec_disp["target_urn"].apply(lambda u: u.split(":")[-1])
+            df_sec_disp["mtls"] = df_sec_disp["mtls_enforced"].apply(lambda b: "🔒 Enforced" if b else "⚠️ None")
+            df_sec_disp["status"] = df_sec_disp["microsegmentation_status"].apply(
+                lambda s: "🟢 COMPLIANT" if s == "COMPLIANT" else f"🔴 {s}"
+            )
+            st.dataframe(
+                df_sec_disp[[
+                    "source", "target", "protocol", "mtls",
+                    "trust_zone_source", "trust_zone_target", "status"
+                ]],
+                use_container_width=True,
+            )
+            st.download_button(
+                label="📥 Export Zero-Trust Registry (CSV)",
+                data=df_sec.to_csv(index=False),
+                file_name="ea_gold_security_zero_trust.csv",
+                mime="text/csv",
+            )
+
+    with subtab_sbom:
+        st.markdown("#### Software Bill of Materials (SBOM) & License Compliance (`ea.gold.supply_chain_sbom`)")
+        st.caption("Tracks third-party package dependencies, copyleft license risks (GPL-3.0), and vulnerability CVE severities.")
+        sbom_rows = op_data["sbom_records"]
+        if sbom_rows:
+            df_sbom = pd.DataFrame(sbom_rows)
+            df_sbom_disp = df_sbom.copy()
+            df_sbom_disp["component"] = df_sbom_disp["component_urn"].apply(lambda u: u.split(":")[-1])
+            df_sbom_disp["compliance"] = df_sbom_disp["license_compliance"].apply(
+                lambda c: "🟢 APPROVED" if c == "APPROVED" else "🔴 PROHIBITED"
+            )
+            df_sbom_disp["severity"] = df_sbom_disp["max_severity"].apply(
+                lambda s: "🚨 CRITICAL" if s == "CRITICAL" else ("⚠️ HIGH" if s == "HIGH" else "✅ NONE")
+            )
+            st.dataframe(
+                df_sbom_disp[[
+                    "package_name", "version", "component", "license",
+                    "compliance", "cve_count", "severity"
+                ]],
+                use_container_width=True,
+            )
+            st.download_button(
+                label="📥 Export SBOM & License Ledger (CSV)",
+                data=df_sbom.to_csv(index=False),
+                file_name="ea_gold_supply_chain_sbom.csv",
+                mime="text/csv",
+            )
+
+    with subtab_finops:
+        st.markdown("#### FinOps Unit Economics & Idle Waste Elimination (`ea.gold.finops_unit_economics`)")
+        st.caption("Attributes cloud spend to business unit transactions ($0.042/order) and detects untagged idle compute waste.")
+        fin_rows = op_data["finops_records"]
+        if fin_rows:
+            df_fin = pd.DataFrame(fin_rows)
+            df_fin_disp = df_fin.copy()
+            df_fin_disp["service"] = df_fin_disp["service_urn"].apply(lambda u: u.split(":")[-1])
+            df_fin_disp["monthly_spend_fmt"] = df_fin_disp["monthly_spend"].apply(lambda v: f"${v:,.2f}")
+            df_fin_disp["cost_per_order"] = df_fin_disp["cost_per_transaction"].apply(lambda v: f"${v:.3f}" if v > 0 else "N/A")
+            df_fin_disp["tag_compliance"] = df_fin_disp["tag_compliance_pct"].apply(lambda v: f"{v:.1f}%")
+            df_fin_disp["waste_fmt"] = df_fin_disp["idle_waste_cost"].apply(lambda v: f"${v:,.2f}" if v > 0 else "$0.00")
+            st.dataframe(
+                df_fin_disp[[
+                    "service", "monthly_spend_fmt", "cost_per_order",
+                    "tag_compliance", "waste_fmt", "optimization_action"
+                ]],
+                use_container_width=True,
+            )
+            st.download_button(
+                label="📥 Export FinOps Unit Economics (CSV)",
+                data=df_fin.to_csv(index=False),
+                file_name="ea_gold_finops_unit_economics.csv",
+                mime="text/csv",
+            )
+
+    st.markdown("---")
+    st.markdown("#### 🛠️ Priority Operations Modernization & Remediation Actions")
+    op_col1, op_col2 = st.columns(2)
+
+    for idx, act in enumerate(op_data["operational_actions"]):
+        target_col = op_col1 if idx % 2 == 0 else op_col2
+        with target_col:
+            st.markdown(f"""
+            <div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 700; color: #f8fafc; font-size: 15px;">{act['component']}</span>
+                    <span style="background: #1e293b; color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;">{act['domain']}</span>
+                </div>
+                <div style="margin-top: 8px; font-size: 13px; color: #f43f5e; font-weight: 600;">
+                    {act['risk']}
+                </div>
+                <div style="margin-top: 6px; font-size: 13px; color: #94a3b8;">
+                    <strong>Action:</strong> <code>{act['action']}</code>
+                </div>
+                <div style="margin-top: 8px; font-size: 12px; color: #38bdf8;">
+                    💡 <em>Remediation: {act['remediation']}</em>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.markdown("#### 🗺️ Interactive Resilience, Zero-Trust Perimeter & Operations Map")
+    st.caption("Interactive Archify vector map displaying perimeter isolation (DMZ Ingress, Core Application Mesh, Secure Data Vault, External Egress), DR failovers, and FinOps waste.")
+
+    res_diag_path = ROOT_DIR / "data" / "diagrams" / "resilience_and_perimeter_view.html"
+    if not res_diag_path.exists():
+        navigator.compile_resilience_and_perimeter_diagram()
+    if res_diag_path.exists():
+        html_code = res_diag_path.read_text(encoding="utf-8")
+        st.components.v1.html(html_code, height=650, scrolling=True)
+    else:
+        st.warning("Resilience and perimeter diagram could not be loaded.")
+
 
 
 

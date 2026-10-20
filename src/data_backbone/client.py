@@ -353,6 +353,68 @@ class UnityCatalogClient:
         );
         """)
 
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS gold_resilience_dr (
+            component_urn TEXT PRIMARY KEY,
+            dr_tier TEXT NOT NULL,
+            rto_actual_min INTEGER NOT NULL,
+            rto_target_min INTEGER NOT NULL,
+            rpo_actual_min INTEGER NOT NULL,
+            rpo_target_min INTEGER NOT NULL,
+            replication_strategy TEXT NOT NULL,
+            failover_automation TEXT NOT NULL,
+            sla_breached INTEGER NOT NULL DEFAULT 0
+        );
+        """)
+
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS gold_tech_debt_hotspots (
+            component_urn TEXT PRIMARY KEY,
+            debt_score INTEGER NOT NULL,
+            git_churn_lines_30d INTEGER NOT NULL,
+            cyclomatic_complexity REAL NOT NULL,
+            architectural_smells TEXT NOT NULL,
+            refactoring_roi_rank INTEGER NOT NULL
+        );
+        """)
+
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS gold_security_zero_trust (
+            id TEXT PRIMARY KEY,
+            source_urn TEXT NOT NULL,
+            target_urn TEXT NOT NULL,
+            protocol TEXT NOT NULL,
+            mtls_enforced INTEGER NOT NULL DEFAULT 0,
+            trust_zone_source TEXT NOT NULL,
+            trust_zone_target TEXT NOT NULL,
+            microsegmentation_status TEXT NOT NULL
+        );
+        """)
+
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS gold_supply_chain_sbom (
+            id TEXT PRIMARY KEY,
+            package_name TEXT NOT NULL,
+            version TEXT NOT NULL,
+            component_urn TEXT NOT NULL,
+            license TEXT NOT NULL,
+            license_compliance TEXT NOT NULL,
+            cve_count INTEGER NOT NULL,
+            max_severity TEXT NOT NULL
+        );
+        """)
+
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS gold_finops_unit_economics (
+            service_urn TEXT PRIMARY KEY,
+            monthly_spend REAL NOT NULL,
+            cost_per_transaction REAL NOT NULL,
+            tag_compliance_pct REAL NOT NULL,
+            idle_waste_cost REAL NOT NULL,
+            optimization_action TEXT NOT NULL
+        );
+        """)
+
         conn.commit()
         conn.close()
 
@@ -1330,6 +1392,246 @@ class UnityCatalogClient:
         conn.close()
         return count
 
+    # =========================================================================
+    # S12: DISASTER RECOVERY & BUSINESS CONTINUITY (RTO/RPO)
+    # =========================================================================
+    def get_resilience_dr(self) -> List[Dict[str, Any]]:
+        """Retrieve conformed Disaster Recovery and RTO/RPO records from ea.gold.resilience_dr."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM gold_resilience_dr ORDER BY dr_tier ASC, component_urn ASC;")
+        rows = []
+        for r in cur.fetchall():
+            d = dict(r)
+            d["sla_breached"] = bool(d.get("sla_breached"))
+            rows.append(d)
+        conn.close()
+        return rows
+
+    def save_resilience_dr(self, records: List[Dict[str, Any]]) -> int:
+        """Upsert Disaster Recovery and RTO/RPO records into ea.gold.resilience_dr."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        count = 0
+        for r in records:
+            cur.execute("""
+            INSERT INTO gold_resilience_dr (
+                component_urn, dr_tier, rto_actual_min, rto_target_min,
+                rpo_actual_min, rpo_target_min, replication_strategy,
+                failover_automation, sla_breached
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(component_urn) DO UPDATE SET
+                dr_tier = excluded.dr_tier,
+                rto_actual_min = excluded.rto_actual_min,
+                rto_target_min = excluded.rto_target_min,
+                rpo_actual_min = excluded.rpo_actual_min,
+                rpo_target_min = excluded.rpo_target_min,
+                replication_strategy = excluded.replication_strategy,
+                failover_automation = excluded.failover_automation,
+                sla_breached = excluded.sla_breached;
+            """, (
+                r["component_urn"],
+                r["dr_tier"],
+                int(r["rto_actual_min"]),
+                int(r["rto_target_min"]),
+                int(r["rpo_actual_min"]),
+                int(r["rpo_target_min"]),
+                r["replication_strategy"],
+                r["failover_automation"],
+                1 if r.get("sla_breached") else 0,
+            ))
+            count += 1
+        conn.commit()
+        conn.close()
+        return count
+
+    # =========================================================================
+    # S13: TECHNICAL DEBT & GIT CHURN HOTSPOTS
+    # =========================================================================
+    def get_tech_debt_hotspots(self) -> List[Dict[str, Any]]:
+        """Retrieve conformed technical debt and git churn records from ea.gold.tech_debt_hotspots."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM gold_tech_debt_hotspots ORDER BY refactoring_roi_rank ASC;")
+        rows = [dict(r) for r in cur.fetchall()]
+        conn.close()
+        return rows
+
+    def save_tech_debt_hotspots(self, records: List[Dict[str, Any]]) -> int:
+        """Upsert technical debt hotspot records into ea.gold.tech_debt_hotspots."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        count = 0
+        for r in records:
+            cur.execute("""
+            INSERT INTO gold_tech_debt_hotspots (
+                component_urn, debt_score, git_churn_lines_30d,
+                cyclomatic_complexity, architectural_smells, refactoring_roi_rank
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(component_urn) DO UPDATE SET
+                debt_score = excluded.debt_score,
+                git_churn_lines_30d = excluded.git_churn_lines_30d,
+                cyclomatic_complexity = excluded.cyclomatic_complexity,
+                architectural_smells = excluded.architectural_smells,
+                refactoring_roi_rank = excluded.refactoring_roi_rank;
+            """, (
+                r["component_urn"],
+                int(r["debt_score"]),
+                int(r["git_churn_lines_30d"]),
+                float(r["cyclomatic_complexity"]),
+                r["architectural_smells"],
+                int(r["refactoring_roi_rank"]),
+            ))
+            count += 1
+        conn.commit()
+        conn.close()
+        return count
+
+    # =========================================================================
+    # S14: ZERO-TRUST SECURITY & NETWORK MICRO-SEGMENTATION
+    # =========================================================================
+    def get_security_zero_trust(self) -> List[Dict[str, Any]]:
+        """Retrieve conformed Zero-Trust microsegmentation flows from ea.gold.security_zero_trust."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM gold_security_zero_trust ORDER BY source_urn ASC, target_urn ASC;")
+        rows = []
+        for r in cur.fetchall():
+            d = dict(r)
+            d["mtls_enforced"] = bool(d.get("mtls_enforced"))
+            rows.append(d)
+        conn.close()
+        return rows
+
+    def save_security_zero_trust(self, records: List[Dict[str, Any]]) -> int:
+        """Upsert Zero-Trust microsegmentation flow records into ea.gold.security_zero_trust."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        count = 0
+        for r in records:
+            flow_id = r.get("id") or f"{r['source_urn']}:{r['target_urn']}:{r['protocol']}"
+            cur.execute("""
+            INSERT INTO gold_security_zero_trust (
+                id, source_urn, target_urn, protocol, mtls_enforced,
+                trust_zone_source, trust_zone_target, microsegmentation_status
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                source_urn = excluded.source_urn,
+                target_urn = excluded.target_urn,
+                protocol = excluded.protocol,
+                mtls_enforced = excluded.mtls_enforced,
+                trust_zone_source = excluded.trust_zone_source,
+                trust_zone_target = excluded.trust_zone_target,
+                microsegmentation_status = excluded.microsegmentation_status;
+            """, (
+                flow_id,
+                r["source_urn"],
+                r["target_urn"],
+                r["protocol"],
+                1 if r.get("mtls_enforced") else 0,
+                r["trust_zone_source"],
+                r["trust_zone_target"],
+                r["microsegmentation_status"],
+            ))
+            count += 1
+        conn.commit()
+        conn.close()
+        return count
+
+    # =========================================================================
+    # S15: SOFTWARE SUPPLY CHAIN & SBOM LICENSE GATE
+    # =========================================================================
+    def get_supply_chain_sbom(self) -> List[Dict[str, Any]]:
+        """Retrieve conformed SBOM package records from ea.gold.supply_chain_sbom."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM gold_supply_chain_sbom ORDER BY max_severity DESC, package_name ASC;")
+        rows = [dict(r) for r in cur.fetchall()]
+        conn.close()
+        return rows
+
+    def save_supply_chain_sbom(self, records: List[Dict[str, Any]]) -> int:
+        """Upsert SBOM package records into ea.gold.supply_chain_sbom."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        count = 0
+        for r in records:
+            pkg_id = r.get("id") or f"{r['package_name']}:{r['component_urn']}"
+            cur.execute("""
+            INSERT INTO gold_supply_chain_sbom (
+                id, package_name, version, component_urn, license,
+                license_compliance, cve_count, max_severity
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                package_name = excluded.package_name,
+                version = excluded.version,
+                component_urn = excluded.component_urn,
+                license = excluded.license,
+                license_compliance = excluded.license_compliance,
+                cve_count = excluded.cve_count,
+                max_severity = excluded.max_severity;
+            """, (
+                pkg_id,
+                r["package_name"],
+                r["version"],
+                r["component_urn"],
+                r["license"],
+                r["license_compliance"],
+                int(r["cve_count"]),
+                r["max_severity"],
+            ))
+            count += 1
+        conn.commit()
+        conn.close()
+        return count
+
+    # =========================================================================
+    # S16: FINOPS CLOUD COST ALLOCATION & UNIT ECONOMICS
+    # =========================================================================
+    def get_finops_unit_economics(self) -> List[Dict[str, Any]]:
+        """Retrieve conformed FinOps unit economics records from ea.gold.finops_unit_economics."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM gold_finops_unit_economics ORDER BY monthly_spend DESC;")
+        rows = [dict(r) for r in cur.fetchall()]
+        conn.close()
+        return rows
+
+    def save_finops_unit_economics(self, records: List[Dict[str, Any]]) -> int:
+        """Upsert FinOps unit economics records into ea.gold.finops_unit_economics."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        count = 0
+        for r in records:
+            cur.execute("""
+            INSERT INTO gold_finops_unit_economics (
+                service_urn, monthly_spend, cost_per_transaction,
+                tag_compliance_pct, idle_waste_cost, optimization_action
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(service_urn) DO UPDATE SET
+                monthly_spend = excluded.monthly_spend,
+                cost_per_transaction = excluded.cost_per_transaction,
+                tag_compliance_pct = excluded.tag_compliance_pct,
+                idle_waste_cost = excluded.idle_waste_cost,
+                optimization_action = excluded.optimization_action;
+            """, (
+                r["service_urn"],
+                float(r["monthly_spend"]),
+                float(r["cost_per_transaction"]),
+                float(r["tag_compliance_pct"]),
+                float(r["idle_waste_cost"]),
+                r["optimization_action"],
+            ))
+            count += 1
+        conn.commit()
+        conn.close()
+        return count
+
     def _normalize_sql(self, sql: str) -> str:
         """Translates Databricks Unity Catalog 3-level namespaces (ea.<schema>.<table>) to local table names."""
         replacements = [
@@ -1351,6 +1653,11 @@ class UnityCatalogClient:
             ("ea.gold.interface_rationalization", "gold_interface_rationalization"),
             ("ea.gold.process_optimization", "gold_process_optimization"),
             ("ea.gold.ai_governance", "gold_ai_governance"),
+            ("ea.gold.resilience_dr", "gold_resilience_dr"),
+            ("ea.gold.tech_debt_hotspots", "gold_tech_debt_hotspots"),
+            ("ea.gold.security_zero_trust", "gold_security_zero_trust"),
+            ("ea.gold.supply_chain_sbom", "gold_supply_chain_sbom"),
+            ("ea.gold.finops_unit_economics", "gold_finops_unit_economics"),
         ]
         res = sql
         for uc, local in replacements:

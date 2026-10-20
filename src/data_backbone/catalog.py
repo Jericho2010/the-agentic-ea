@@ -310,6 +310,71 @@ DDL_STATEMENTS = {
     USING DELTA
     COMMENT 'Conformed AI Governance & EU AI Act Compliance Mart';
     """,
+    "gold_resilience_dr": f"""
+    CREATE TABLE IF NOT EXISTS {SCHEMA_GOLD}.resilience_dr (
+        component_urn STRING NOT NULL COMMENT 'Unique PAM entity URN',
+        dr_tier STRING NOT NULL COMMENT 'Disaster Recovery tier (Tier-1, Tier-2, Tier-3)',
+        rto_actual_min INT NOT NULL COMMENT 'Current actual Recovery Time Objective in minutes',
+        rto_target_min INT NOT NULL COMMENT 'Target agreed Recovery Time Objective in minutes',
+        rpo_actual_min INT NOT NULL COMMENT 'Current actual Recovery Point Objective in minutes',
+        rpo_target_min INT NOT NULL COMMENT 'Target agreed Recovery Point Objective in minutes',
+        replication_strategy STRING NOT NULL COMMENT 'Replication architecture pattern',
+        failover_automation STRING NOT NULL COMMENT 'Failover automation posture (AUTOMATED, MANUAL_RUNBOOK, NONE)',
+        sla_breached BOOLEAN NOT NULL COMMENT 'True if actual RTO/RPO exceeds target SLA'
+    )
+    USING DELTA
+    COMMENT 'Conformed Disaster Recovery, Business Continuity & RTO/RPO Alignment Mart';
+    """,
+    "gold_tech_debt_hotspots": f"""
+    CREATE TABLE IF NOT EXISTS {SCHEMA_GOLD}.tech_debt_hotspots (
+        component_urn STRING NOT NULL COMMENT 'Unique PAM entity URN',
+        debt_score INT NOT NULL COMMENT 'Calculated architectural technical debt score (0-100)',
+        git_churn_lines_30d INT NOT NULL COMMENT 'Git code churn volume in lines over last 30 days',
+        cyclomatic_complexity DOUBLE NOT NULL COMMENT 'Average cyclomatic code complexity index',
+        architectural_smells STRING NOT NULL COMMENT 'Detected structural code and architectural smells',
+        refactoring_roi_rank INT NOT NULL COMMENT 'Prioritized refactoring ROI rank (1 = highest priority)'
+    )
+    USING DELTA
+    COMMENT 'Conformed Technical Debt Quantification & Refactoring Hotspots Mart';
+    """,
+    "gold_security_zero_trust": f"""
+    CREATE TABLE IF NOT EXISTS {SCHEMA_GOLD}.security_zero_trust (
+        source_urn STRING NOT NULL COMMENT 'Source PAM entity URN',
+        target_urn STRING NOT NULL COMMENT 'Target PAM entity URN',
+        protocol STRING NOT NULL COMMENT 'Network / application protocol and port',
+        mtls_enforced BOOLEAN NOT NULL COMMENT 'True if mutual TLS (mTLS) cryptographic identity is enforced',
+        trust_zone_source STRING NOT NULL COMMENT 'Zero-Trust perimeter zone of source',
+        trust_zone_target STRING NOT NULL COMMENT 'Zero-Trust perimeter zone of target',
+        microsegmentation_status STRING NOT NULL COMMENT 'Microsegmentation status: COMPLIANT, UNAUTHORIZED_CROSS_ZONE, PLAINTEXT_TRAFFIC'
+    )
+    USING DELTA
+    COMMENT 'Conformed Zero-Trust Security & Network Micro-Segmentation Mart';
+    """,
+    "gold_supply_chain_sbom": f"""
+    CREATE TABLE IF NOT EXISTS {SCHEMA_GOLD}.supply_chain_sbom (
+        package_name STRING NOT NULL COMMENT 'Third-party open-source or commercial library name',
+        version STRING NOT NULL COMMENT 'Package version string',
+        component_urn STRING NOT NULL COMMENT 'Consuming PAM entity URN',
+        license STRING NOT NULL COMMENT 'Software license (e.g. MIT, Apache-2.0, GPL-3.0)',
+        license_compliance STRING NOT NULL COMMENT 'License gate posture: APPROVED, PROHIBITED_COPYLEFT',
+        cve_count INT NOT NULL COMMENT 'Number of detected known security vulnerabilities',
+        max_severity STRING NOT NULL COMMENT 'Highest vulnerability severity: NONE, LOW, MEDIUM, HIGH, CRITICAL'
+    )
+    USING DELTA
+    COMMENT 'Conformed Software Supply Chain, SBOM & Open Source Licensing Gate Mart';
+    """,
+    "gold_finops_unit_economics": f"""
+    CREATE TABLE IF NOT EXISTS {SCHEMA_GOLD}.finops_unit_economics (
+        service_urn STRING NOT NULL COMMENT 'Unique PAM entity URN',
+        monthly_spend DOUBLE NOT NULL COMMENT 'Total allocated monthly cloud hosting and infrastructure spend in USD',
+        cost_per_transaction DOUBLE NOT NULL COMMENT 'Unit cost per business order / transaction in USD',
+        tag_compliance_pct DOUBLE NOT NULL COMMENT 'Percentage of cloud resources adhering to mandatory FinOps tags',
+        idle_waste_cost DOUBLE NOT NULL COMMENT 'Identified monthly idle waste or overprovisioned compute cost in USD',
+        optimization_action STRING NOT NULL COMMENT 'Recommended FinOps action (RIGHTSIZE_COMPUTE, DECOMMISSION_AND_ELIMINATE, RETAIN)'
+    )
+    USING DELTA
+    COMMENT 'Conformed FinOps Cloud Cost Allocation & Unit Economics Alignment Mart';
+    """,
 }
 
 
