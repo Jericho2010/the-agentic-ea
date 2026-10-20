@@ -26,7 +26,7 @@ DDL_STATEMENTS = {
         name STRING NOT NULL COMMENT 'Canonical architectural entity name',
         kind STRING NOT NULL COMMENT 'Entity kind (Application, Microservice, Database, CloudResource, APIInterface)',
         owner_team STRING NOT NULL COMMENT 'Owning engineering or platform team',
-        lifecycle_status STRING NOT NULL DEFAULT 'run' COMMENT 'Lifecycle phase (plan, build, run, phase-out, retired)',
+        lifecycle_status STRING NOT NULL COMMENT 'Lifecycle phase (plan, build, run, phase-out, retired)',
         criticality STRING NOT NULL COMMENT 'Architectural criticality (Tier-0, Tier-1, Tier-2, Tier-3)',
         metadata STRING COMMENT 'JSON string containing configuration, runtime, framework, and tags',
         last_updated TIMESTAMP NOT NULL COMMENT 'Timestamp of last update or reconciliation'
@@ -40,7 +40,7 @@ DDL_STATEMENTS = {
         target_urn STRING NOT NULL COMMENT 'Target entity URN',
         relation STRING NOT NULL COMMENT 'ArchiMate relation (serves, accesses, flows_to, deploys_to, realizes, depends_on)',
         protocol STRING COMMENT 'Communication transport protocol (e.g. HTTPS/JSON, gRPC/mTLS, PostgreSQL/TLS)',
-        contains_pii BOOLEAN DEFAULT false COMMENT 'True if personal identifiable or sensitive data flows across edge',
+        contains_pii BOOLEAN COMMENT 'True if personal identifiable or sensitive data flows across edge',
         transit_encryption STRING COMMENT 'In-transit encryption: tls_1_3, tls_1_2, plaintext',
         transferred_classification STRING COMMENT 'Data classification in flight: PII:High, PII:Medium, Internal, Public',
         last_updated TIMESTAMP NOT NULL COMMENT 'Timestamp of last reconciliation'

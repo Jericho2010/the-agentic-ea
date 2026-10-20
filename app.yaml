@@ -1,0 +1,4 @@
+command:
+  - "streamlit"
+  - "run"
+  - "apps/ea_navigator/app.py"

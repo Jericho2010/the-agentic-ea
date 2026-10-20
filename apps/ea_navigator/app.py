@@ -20,6 +20,13 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 from src.archify.bridge import ArchifyBridge
+from src.connectors import (
+    BackstageConnector,
+    ConnectorManager,
+    GitHubConnector,
+    JiraConnector,
+    ServiceNowConnector,
+)
 from src.data_backbone.client import get_unity_catalog_client
 from src.navigator.engine import EstateIntelligenceEngine
 from src.sentinel.gate import EASentinelGate, POLICIES
@@ -898,11 +905,12 @@ elif workspace == "🛡️ Autonomous Governance & Compliance":
 # WORKSPACE 3: ENGINEERING MODERNIZATION
 # ==============================================================================
 elif workspace == "⚡ Engineering Modernization":
-    tab_catalog, tab_maps, tab_navigator, tab_interfaces = st.tabs([
+    tab_catalog, tab_maps, tab_navigator, tab_interfaces, tab_ecosystem = st.tabs([
         "🏛️ Estate Catalog",
         "🗺️ Living Architecture Maps",
         "🧭 EA Navigator Cockpit",
         "🔌 Interface & Integration Rationalization",
+        "🔌 Ecosystem Connectors & Backstage Sync",
     ])
 
     # ==============================================================================
@@ -1166,6 +1174,171 @@ elif workspace == "⚡ Engineering Modernization":
                 st.components.v1.html(seq_code, height=650, scrolling=True)
             else:
                 st.warning("Interface sequence diagram could not be loaded.")
+
+    # ==============================================================================
+    # TAB 5: ECOSYSTEM CONNECTORS & BACKSTAGE SYNC
+    # ==============================================================================
+    with tab_ecosystem:
+        st.subheader("🔌 Enterprise Ecosystem Connectors & Backstage Sync")
+        st.caption("Live integration backbone connecting The Agentic EA Platform to Git repositories, ITSM change management, architecture backlog, and developer service portals.")
+
+        if st.button("🔄 Test All Ecosystem Connections", use_container_width=True):
+            conn_mgr = ConnectorManager()
+            with st.spinner("Executing health checks across GitHub, ServiceNow, Jira, and Backstage..."):
+                st.session_state["connector_health"] = conn_mgr.test_all_connections()
+
+        health = st.session_state.get("connector_health")
+        if not health:
+            conn_mgr = ConnectorManager()
+            health = conn_mgr.test_all_connections()
+            st.session_state["connector_health"] = health
+
+        st.markdown("#### Live Connector Telemetry")
+        c1, c2, c3, c4 = st.columns(4)
+
+        connector_meta = [
+            ("github", "🐙 GitHub REST API", c1),
+            ("servicenow", "📋 ServiceNow CMDB", c2),
+            ("jira", "🎯 Atlassian Jira", c3),
+            ("backstage", "🎭 Spotify Backstage", c4),
+        ]
+
+        status_styles = {
+            "CONNECTED": ("🟢", "#10b981", "Connected & Healthy"),
+            "AUTH_ERROR": ("🔴", "#ef4444", "Authentication Failed"),
+            "UNREACHABLE": ("🟠", "#f59e0b", "Endpoint Unreachable"),
+            "UNCONFIGURED": ("⚪", "#64748b", "Not Configured"),
+        }
+
+        for key, title, col in connector_meta:
+            res = health.get(key, {})
+            st_code = res.get("status", "UNCONFIGURED")
+            icon, color, label = status_styles.get(st_code, ("⚪", "#64748b", "Unknown"))
+            latency = res.get("latency_ms", 0.0)
+
+            with col:
+                st.markdown(f"""
+                <div style="background: #131b2e; border: 1px solid #1e293b; border-radius: 8px; padding: 14px; margin-bottom: 10px;">
+                    <div style="font-weight: 600; font-size: 1.05rem; margin-bottom: 4px;">{title}</div>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                        <span style="font-size: 1.1rem;">{icon}</span>
+                        <span style="color: {color}; font-weight: 600; font-size: 0.9rem;">{st_code}</span>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Latency: <strong>{latency:.1f} ms</strong></div>
+                    <div style="font-size: 0.75rem; color: #cbd5e1; line-height: 1.3;">{res.get('message', '')[:90]}</div>
+                </div>
+                """, unsafe_allow_html=True)
+
+        st.markdown("---")
+        b_col1, b_col2 = st.columns([3, 2])
+
+        with b_col1:
+            st.markdown("### 🎭 Spotify Backstage Catalog Conformance")
+            st.caption("Bidirectional translation between Platform Architecture Metamodel (PAM) nodes and Backstage catalog-info.yaml entities.")
+
+            bs_conn = BackstageConnector()
+            pam_nodes = client.get_nodes()
+            exported_entities = bs_conn.export_pam_nodes_to_backstage_entities(pam_nodes)
+
+            catalog_preview = []
+            for e in exported_entities:
+                catalog_preview.append({
+                    "Name": e.get("metadata", {}).get("name"),
+                    "Kind": e.get("kind"),
+                    "Type": e.get("spec", {}).get("type"),
+                    "Lifecycle": e.get("spec", {}).get("lifecycle"),
+                    "Owner": e.get("spec", {}).get("owner"),
+                    "URN": e.get("metadata", {}).get("annotations", {}).get("ea.governance/urn"),
+                })
+            st.dataframe(pd.DataFrame(catalog_preview), use_container_width=True, height=280)
+
+        with b_col2:
+            st.markdown("### 📦 Backstage TechDocs Publishing")
+            st.caption("Generate complete Markdown TechDocs bundles with Archify diagram embeds and Architectural Decision Records (MADRs).")
+
+            if st.button("🚀 Generate Backstage TechDocs Package", use_container_width=True):
+                bs_conn = BackstageConnector()
+                adrs = [
+                    {
+                        "number": "0001",
+                        "title": "Adopt CockroachDB for Distributed Orders",
+                        "status": "Accepted",
+                        "date": "2026-10-20",
+                        "context": "Need multi-region transactional consistency without SPOF.",
+                        "decision": "Migrate to managed CockroachDB cluster.",
+                    },
+                    {
+                        "number": "0002",
+                        "title": "Standardize Unity Catalog as Master Source of Truth",
+                        "status": "Accepted",
+                        "date": "2026-10-20",
+                        "context": "S06 CMDB and S17 MDM golden record governance.",
+                        "decision": "Enforce Unity Catalog Delta tables for all metamodel telemetry.",
+                    },
+                ]
+                bundle = bs_conn.generate_techdocs_bundle("enterprise-architecture-estate", adrs=adrs)
+
+                # Write bundle to data/backstage/
+                backstage_dir = ROOT_DIR / "data" / "backstage"
+                (backstage_dir / "docs" / "adrs").mkdir(parents=True, exist_ok=True)
+
+                for file_path, content in bundle.items():
+                    out_file = backstage_dir / file_path
+                    out_file.parent.mkdir(parents=True, exist_ok=True)
+                    out_file.write_text(content, encoding="utf-8")
+
+                # Also write catalog-info.yaml
+                import yaml
+                try:
+                    cat_yaml = yaml.dump_all(exported_entities, sort_keys=False)
+                except Exception:
+                    cat_yaml = json.dumps(exported_entities, indent=2)
+                (backstage_dir / "catalog-info.yaml").write_text(cat_yaml, encoding="utf-8")
+
+                st.success(f"✓ Backstage TechDocs package compiled ({len(bundle)} files + catalog-info.yaml) in `data/backstage/`!")
+
+            backstage_dir = ROOT_DIR / "data" / "backstage"
+            mkdocs_file = backstage_dir / "mkdocs.yml"
+            if mkdocs_file.exists():
+                with st.expander("📄 View Generated mkdocs.yml"):
+                    st.code(mkdocs_file.read_text(encoding="utf-8"), language="yaml")
+
+            cat_file = backstage_dir / "catalog-info.yaml"
+            if cat_file.exists():
+                with st.expander("📄 View Generated catalog-info.yaml"):
+                    st.code(cat_file.read_text(encoding="utf-8")[:1500], language="yaml")
+
+        st.markdown("---")
+        st.markdown("### 🛡️ GitHub EA Sentinel Commit Status & PR Gate")
+        st.caption("Automated pre-merge gating integrating EA Sentinel policy evaluations with GitHub commit status checks.")
+
+        pr_col1, pr_col2 = st.columns([2, 3])
+        with pr_col1:
+            gh_repo = st.text_input("GitHub Target Repository", value="enterprise/checkout-service")
+            gh_sha = st.text_input("Commit SHA", value="e8f49a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f")
+            sim_gate = st.selectbox("Simulate PR Gate Outcome", ["Approved Clean Patch", "Violating Patch (Cassandra / PII)"])
+
+        with pr_col2:
+            if st.button("🧪 Simulate GitHub Commit Status Dispatch", use_container_width=True):
+                if "Clean" in sim_gate:
+                    state = "success"
+                    desc = "All EA Sentinel architectural governance policies passed."
+                    comment_preview = "### ✅ EA Sentinel Pre-Merge Gate: APPROVED\\n* **EA-POL-001**: Passed\\n* **EA-POL-002**: Passed\\n* **EA-POL-003**: Passed"
+                else:
+                    state = "failure"
+                    desc = "EA Sentinel: 3 policy violations detected (EA-POL-001, 002, 003)."
+                    comment_preview = "### ❌ EA Sentinel Pre-Merge Gate: REJECTED\\n* **EA-POL-001**: Unapproved datastore `cassandra`.\\n* **EA-POL-002**: Unencrypted customer PII flow.\\n* **EA-POL-003**: Missing mandatory OwnerTeam/Tier tags."
+
+                st.markdown(f"""
+                <div style="background: #1e293b; border-left: 4px solid {'#10b981' if state == 'success' else '#ef4444'}; padding: 12px; border-radius: 4px; margin-bottom: 10px;">
+                    <strong>GitHub Status Payload:</strong><br/>
+                    <code>POST /repos/{gh_repo}/statuses/{gh_sha[:10]}</code><br/>
+                    State: <strong>{state.upper()}</strong> | Context: <code>ea/sentinel-gate</code><br/>
+                    Description: <em>{desc}</em>
+                </div>
+                """, unsafe_allow_html=True)
+                with st.expander("View PR Markdown Comment"):
+                    st.markdown(comment_preview)
 
 
 
