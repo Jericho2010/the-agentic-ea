@@ -1984,6 +1984,205 @@ SEED_FINOPS_UNIT_ECONOMICS: List[Dict[str, Any]] = [
     },
 ]
 
+# ==============================================================================
+# S17: MASTER DATA MANAGEMENT (MDM) & GOLDEN RECORDS
+# ==============================================================================
+SEED_MDM_GOLDEN_RECORDS: List[Dict[str, Any]] = [
+    {
+        "entity_name": "CustomerProfile",
+        "golden_record_urn": "urn:ea:entity:customer-golden-record",
+        "authoritative_source": "billing-db",
+        "competing_sources": "cassandra-legacy-cluster, billing-db",
+        "divergence_detected": True,
+        "data_contract_status": "SCHEMA_DRIFT",
+        "scd2_active": True,
+    },
+    {
+        "entity_name": "ProductCatalog",
+        "golden_record_urn": "urn:ea:entity:product-catalog-golden-record",
+        "authoritative_source": "catalog-clickstream-mart",
+        "competing_sources": "web-storefront, catalog-clickstream-mart",
+        "divergence_detected": False,
+        "data_contract_status": "COMPLIANT",
+        "scd2_active": True,
+    },
+    {
+        "entity_name": "OrderTransaction",
+        "golden_record_urn": "urn:ea:entity:order-transaction-golden-record",
+        "authoritative_source": "payments-ledger-db",
+        "competing_sources": "checkout-service, payments-ledger-db",
+        "divergence_detected": False,
+        "data_contract_status": "COMPLIANT",
+        "scd2_active": True,
+    },
+    {
+        "entity_name": "PaymentLedger",
+        "golden_record_urn": "urn:ea:entity:payment-ledger-golden-record",
+        "authoritative_source": "payments-ledger-db",
+        "competing_sources": "payments-service, billing-db",
+        "divergence_detected": False,
+        "data_contract_status": "COMPLIANT",
+        "scd2_active": True,
+    },
+    {
+        "entity_name": "CustomerEventStream",
+        "golden_record_urn": "urn:ea:entity:customer-event-golden-record",
+        "authoritative_source": "customer-pii-stream",
+        "competing_sources": "customer-pii-stream",
+        "divergence_detected": True,
+        "data_contract_status": "UNCONTRACTED",
+        "scd2_active": False,
+    },
+]
+
+# ==============================================================================
+# S18: ESG & GREEN IT CARBON ACCOUNTING
+# ==============================================================================
+SEED_ESG_CARBON_ACCOUNTING: List[Dict[str, Any]] = [
+    {
+        "service_urn": "urn:ea:database:cassandra-legacy-cluster",
+        "region": "us-east-1",
+        "monthly_kwh": 1105.26,
+        "grid_carbon_intensity_gco2_kwh": 380.0,
+        "monthly_emissions_kgco2": 420.00,
+        "green_tier": "HIGH_CARBON",
+        "reduction_recommendation": "RIGHTSIZE_OR_MIGRATE_RENEWABLE",
+    },
+    {
+        "service_urn": "urn:ea:microservice:checkout-service",
+        "region": "eu-west-1",
+        "monthly_kwh": 850.00,
+        "grid_carbon_intensity_gco2_kwh": 120.0,
+        "monthly_emissions_kgco2": 102.00,
+        "green_tier": "RENEWABLE_CLEAN",
+        "reduction_recommendation": "RETAIN",
+    },
+    {
+        "service_urn": "urn:ea:microservice:payments-service",
+        "region": "eu-west-1",
+        "monthly_kwh": 920.00,
+        "grid_carbon_intensity_gco2_kwh": 120.0,
+        "monthly_emissions_kgco2": 110.40,
+        "green_tier": "RENEWABLE_CLEAN",
+        "reduction_recommendation": "RETAIN",
+    },
+    {
+        "service_urn": "urn:ea:application:web-storefront",
+        "region": "eu-west-1",
+        "monthly_kwh": 450.00,
+        "grid_carbon_intensity_gco2_kwh": 120.0,
+        "monthly_emissions_kgco2": 54.00,
+        "green_tier": "RENEWABLE_CLEAN",
+        "reduction_recommendation": "RETAIN",
+    },
+    {
+        "service_urn": "urn:ea:cloudresource:customer-pii-stream",
+        "region": "us-east-1",
+        "monthly_kwh": 250.00,
+        "grid_carbon_intensity_gco2_kwh": 380.0,
+        "monthly_emissions_kgco2": 95.00,
+        "green_tier": "MODERATE",
+        "reduction_recommendation": "MIGRATE_TO_EU_WEST",
+    },
+]
+
+# ==============================================================================
+# S19: TEAM TOPOLOGIES & CONWAY'S LAW
+# ==============================================================================
+SEED_TEAM_TOPOLOGIES: List[Dict[str, Any]] = [
+    {
+        "team_name": "team-checkout",
+        "team_type": "STREAM_ALIGNED",
+        "owned_components": "checkout-service",
+        "codeowners_match": False,
+        "commit_co_change_friction": 0.84,
+        "conways_law_alignment": "MONOLITHIC_FRICTION",
+    },
+    {
+        "team_name": "team-payments",
+        "team_type": "STREAM_ALIGNED",
+        "owned_components": "payments-service, payments-api, checkout-service",
+        "codeowners_match": False,
+        "commit_co_change_friction": 0.78,
+        "conways_law_alignment": "MONOLITHIC_FRICTION",
+    },
+    {
+        "team_name": "team-storefront",
+        "team_type": "STREAM_ALIGNED",
+        "owned_components": "web-storefront, checkout-service",
+        "codeowners_match": False,
+        "commit_co_change_friction": 0.72,
+        "conways_law_alignment": "MONOLITHIC_FRICTION",
+    },
+    {
+        "team_name": "team-data-platform",
+        "team_type": "PLATFORM",
+        "owned_components": "billing-db, payments-ledger-db",
+        "codeowners_match": True,
+        "commit_co_change_friction": 0.15,
+        "conways_law_alignment": "ALIGNED",
+    },
+    {
+        "team_name": "team-cloud-infra",
+        "team_type": "PLATFORM",
+        "owned_components": "customer-pii-stream",
+        "codeowners_match": True,
+        "commit_co_change_friction": 0.10,
+        "conways_law_alignment": "ALIGNED",
+    },
+]
+
+# ==============================================================================
+# S20: STRATEGIC VENDOR LOCK-IN & OPEN EXIT PLANNING
+# ==============================================================================
+SEED_VENDOR_LOCKIN_EXIT: List[Dict[str, Any]] = [
+    {
+        "component_urn": "urn:ea:cloudresource:customer-pii-stream",
+        "cloud_provider": "AWS",
+        "proprietary_services_used": "AWS Kinesis Stream SDK, Proprietary Sharding",
+        "lockin_risk_score": 85,
+        "open_alternative": "Delta Live Tables / Apache Kafka (Portable Event Stream)",
+        "exit_effort_weeks": 6,
+        "exit_strategy_action": "MIGRATE_TO_OPEN_DELTA_LAKEHOUSE",
+    },
+    {
+        "component_urn": "urn:ea:database:cassandra-legacy-cluster",
+        "cloud_provider": "Apache / Self-Managed EC2",
+        "proprietary_services_used": "Cassandra Proprietary CQL Driver, SSTables On-Disk",
+        "lockin_risk_score": 90,
+        "open_alternative": "Databricks Unity Catalog Delta Lake (Parquet/Open Catalog)",
+        "exit_effort_weeks": 8,
+        "exit_strategy_action": "MIGRATE_TO_OPEN_DELTA_LAKEHOUSE",
+    },
+    {
+        "component_urn": "urn:ea:microservice:checkout-service",
+        "cloud_provider": "AWS",
+        "proprietary_services_used": "AWS EKS / Fargate Custom IAM Roles",
+        "lockin_risk_score": 45,
+        "open_alternative": "OCI Container / Standard Kubernetes Deployment",
+        "exit_effort_weeks": 3,
+        "exit_strategy_action": "STANDARDIZE_CONTAINER_RUNTIME",
+    },
+    {
+        "component_urn": "urn:ea:database:billing-db",
+        "cloud_provider": "AWS",
+        "proprietary_services_used": "AWS Aurora Postgres Proprietary Storage",
+        "lockin_risk_score": 60,
+        "open_alternative": "Open Source PostgreSQL / Delta Conformed Mirror",
+        "exit_effort_weeks": 4,
+        "exit_strategy_action": "ESTABLISH_OPEN_REPLICATION_MIRROR",
+    },
+    {
+        "component_urn": "urn:ea:application:web-storefront",
+        "cloud_provider": "Vercel / Edge",
+        "proprietary_services_used": "Vercel Edge Functions Runtime",
+        "lockin_risk_score": 40,
+        "open_alternative": "Standard Node.js / Dockerized Next.js Container",
+        "exit_effort_weeks": 2,
+        "exit_strategy_action": "CONTAINERIZE_PORTABLE_BUILD",
+    },
+]
+
 
 def seed_database() -> Dict[str, int]:
     """Seed the Unity Catalog conformed tables."""
@@ -2008,6 +2207,10 @@ def seed_database() -> Dict[str, int]:
     zt_count = client.save_security_zero_trust(SEED_SECURITY_ZERO_TRUST)
     sbom_count = client.save_supply_chain_sbom(SEED_SUPPLY_CHAIN_SBOM)
     finops_count = client.save_finops_unit_economics(SEED_FINOPS_UNIT_ECONOMICS)
+    mdm_count = client.save_mdm_golden_records(SEED_MDM_GOLDEN_RECORDS)
+    esg_count = client.save_esg_carbon_accounting(SEED_ESG_CARBON_ACCOUNTING)
+    tt_count = client.save_team_topologies(SEED_TEAM_TOPOLOGIES)
+    vl_count = client.save_vendor_lockin_exit(SEED_VENDOR_LOCKIN_EXIT)
     return {
         "nodes": n_count,
         "edges": e_count,
@@ -2029,6 +2232,10 @@ def seed_database() -> Dict[str, int]:
         "security_zero_trust": zt_count,
         "supply_chain_sbom": sbom_count,
         "finops_unit_economics": finops_count,
+        "mdm_golden_records": mdm_count,
+        "esg_carbon_accounting": esg_count,
+        "team_topologies": tt_count,
+        "vendor_lockin_exit": vl_count,
     }
 
 

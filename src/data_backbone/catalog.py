@@ -375,6 +375,57 @@ DDL_STATEMENTS = {
     USING DELTA
     COMMENT 'Conformed FinOps Cloud Cost Allocation & Unit Economics Alignment Mart';
     """,
+    "gold_mdm_golden_records": f"""
+    CREATE TABLE IF NOT EXISTS {SCHEMA_GOLD}.mdm_golden_records (
+        entity_name STRING NOT NULL COMMENT 'Canonical master data entity name (e.g. CustomerProfile)',
+        golden_record_urn STRING NOT NULL COMMENT 'Unique Golden Record URN',
+        authoritative_source STRING NOT NULL COMMENT 'Authoritative system or datastore of record',
+        competing_sources STRING NOT NULL COMMENT 'Competing or secondary source datastores',
+        divergence_detected BOOLEAN NOT NULL COMMENT 'True if competing sources diverge in schema or state',
+        data_contract_status STRING NOT NULL COMMENT 'Data contract compliance status: COMPLIANT, SCHEMA_DRIFT, UNCONTRACTED',
+        scd2_active BOOLEAN NOT NULL COMMENT 'True if slowly changing dimension type 2 lineage tracking is active'
+    )
+    USING DELTA
+    COMMENT 'Conformed Master Data Management (MDM) Golden Records & Schema Contract Mart';
+    """,
+    "gold_esg_carbon_accounting": f"""
+    CREATE TABLE IF NOT EXISTS {SCHEMA_GOLD}.esg_carbon_accounting (
+        service_urn STRING NOT NULL COMMENT 'Unique PAM entity URN',
+        region STRING NOT NULL COMMENT 'Hosting cloud region (e.g. us-east-1, eu-west-1)',
+        monthly_kwh DOUBLE NOT NULL COMMENT 'Estimated monthly electricity consumption in kWh',
+        grid_carbon_intensity_gco2_kwh DOUBLE NOT NULL COMMENT 'Regional grid carbon intensity in gCO2/kWh',
+        monthly_emissions_kgco2 DOUBLE NOT NULL COMMENT 'Monthly carbon emissions in kgCO2e',
+        green_tier STRING NOT NULL COMMENT 'Green IT tier: RENEWABLE_CLEAN, MODERATE, HIGH_CARBON',
+        reduction_recommendation STRING NOT NULL COMMENT 'Actionable emissions reduction recommendation'
+    )
+    USING DELTA
+    COMMENT 'Conformed ESG & Green IT Regional Carbon Accounting Mart';
+    """,
+    "gold_team_topologies": f"""
+    CREATE TABLE IF NOT EXISTS {SCHEMA_GOLD}.team_topologies (
+        team_name STRING NOT NULL COMMENT 'Engineering or product team name',
+        team_type STRING NOT NULL COMMENT 'Team Topologies archetype: STREAM_ALIGNED, PLATFORM, ENABLING, COMPLICATED_SUBSYSTEM',
+        owned_components STRING NOT NULL COMMENT 'Comma-separated owned PAM components',
+        codeowners_match BOOLEAN NOT NULL COMMENT 'True if CODEOWNERS declarations match real commit ownership',
+        commit_co_change_friction DOUBLE NOT NULL COMMENT 'Commit co-change coupling friction index (0.0 to 1.0)',
+        conways_law_alignment STRING NOT NULL COMMENT 'Conway alignment posture: ALIGNED, MONOLITHIC_FRICTION, ORPHAN_SERVICE'
+    )
+    USING DELTA
+    COMMENT 'Conformed Team Topologies & Conways Law Organizational Alignment Mart';
+    """,
+    "gold_vendor_lockin_exit": f"""
+    CREATE TABLE IF NOT EXISTS {SCHEMA_GOLD}.vendor_lockin_exit (
+        component_urn STRING NOT NULL COMMENT 'Unique PAM entity URN',
+        cloud_provider STRING NOT NULL COMMENT 'Target cloud or platform provider',
+        proprietary_services_used STRING NOT NULL COMMENT 'Proprietary APIs, SDKs, or cloud services used',
+        lockin_risk_score INT NOT NULL COMMENT 'Strategic vendor lock-in risk score (0-100)',
+        open_alternative STRING NOT NULL COMMENT 'Open standard / portable architectural alternative',
+        exit_effort_weeks INT NOT NULL COMMENT 'Estimated migration effort to exit vendor in weeks',
+        exit_strategy_action STRING NOT NULL COMMENT 'Strategic exit planning recommendation'
+    )
+    USING DELTA
+    COMMENT 'Conformed Strategic Vendor Lock-In Assessment & Open Exit Planning Mart';
+    """,
 }
 
 

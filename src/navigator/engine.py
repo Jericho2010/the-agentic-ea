@@ -2075,6 +2075,167 @@ Graph traversal reveals **{blast['upstream_count']} upstream callers** directly 
             "svg_path": str(svg_p),
         }
 
+    def analyze_strategic_governance_ecosystem(self, tenant_id: str = "core") -> Dict[str, Any]:
+        """
+        Executes unified audit across 4 synthesized strategic governance disciplines:
+          - S17: Master Data Management (MDM) & Golden Record Lineage
+          - S18: ESG & Green IT Regional Carbon Accounting
+          - S19: Team Topologies & Conway's Law Organizational Alignment
+          - S20: Strategic Vendor Lock-In Assessment & Open Exit Planning
+        Populates and queries conformed Databricks Unity Catalog gold tables:
+          - ea.gold.mdm_golden_records
+          - ea.gold.esg_carbon_accounting
+          - ea.gold.team_topologies
+          - ea.gold.vendor_lockin_exit
+        """
+        # 1. MDM Golden Records
+        mdm_records = self.client.get_mdm_golden_records()
+        if not mdm_records:
+            from src.data_backbone.seed import SEED_MDM_GOLDEN_RECORDS
+            self.client.save_mdm_golden_records(SEED_MDM_GOLDEN_RECORDS)
+            mdm_records = self.client.get_mdm_golden_records()
+
+        divergent_records = [r for r in mdm_records if r.get("divergence_detected")]
+        schema_drift_records = [r for r in mdm_records if r.get("data_contract_status") == "SCHEMA_DRIFT"]
+        uncontracted_records = [r for r in mdm_records if r.get("data_contract_status") == "UNCONTRACTED"]
+        compliant_mdm = [r for r in mdm_records if r.get("data_contract_status") == "COMPLIANT"]
+        customer_golden = next((r for r in mdm_records if "CustomerProfile" in r.get("entity_name", "")), {})
+
+        # 2. ESG & Carbon Accounting
+        esg_records = self.client.get_esg_carbon_accounting()
+        if not esg_records:
+            from src.data_backbone.seed import SEED_ESG_CARBON_ACCOUNTING
+            self.client.save_esg_carbon_accounting(SEED_ESG_CARBON_ACCOUNTING)
+            esg_records = self.client.get_esg_carbon_accounting()
+
+        total_monthly_emissions = round(sum(r.get("monthly_emissions_kgco2", 0.0) for r in esg_records), 2)
+        total_annual_emissions = round(total_monthly_emissions * 12, 2)
+        cassandra_carbon = next((r for r in esg_records if "cassandra" in r.get("service_urn", "")), {})
+        avoidable_monthly_carbon = cassandra_carbon.get("monthly_emissions_kgco2", 420.0)
+        avoidable_annual_carbon = round(avoidable_monthly_carbon * 12, 2)
+        high_carbon_services = [r for r in esg_records if r.get("green_tier") == "HIGH_CARBON"]
+        clean_carbon_services = [r for r in esg_records if r.get("green_tier") == "RENEWABLE_CLEAN"]
+
+        # 3. Team Topologies & Conway's Law
+        tt_records = self.client.get_team_topologies()
+        if not tt_records:
+            from src.data_backbone.seed import SEED_TEAM_TOPOLOGIES
+            self.client.save_team_topologies(SEED_TEAM_TOPOLOGIES)
+            tt_records = self.client.get_team_topologies()
+
+        stream_aligned = [r for r in tt_records if r.get("team_type") == "STREAM_ALIGNED"]
+        platform_teams = [r for r in tt_records if r.get("team_type") == "PLATFORM"]
+        friction_teams = [r for r in tt_records if r.get("conways_law_alignment") == "MONOLITHIC_FRICTION"]
+        aligned_teams = [r for r in tt_records if r.get("conways_law_alignment") == "ALIGNED"]
+        conways_alignment_pct = round(len(aligned_teams) / len(tt_records) * 100, 1) if tt_records else 0.0
+        checkout_teams = [r for r in tt_records if "checkout-service" in r.get("owned_components", "")]
+
+        # 4. Vendor Lock-In & Exit Planning
+        lockin_records = self.client.get_vendor_lockin_exit()
+        if not lockin_records:
+            from src.data_backbone.seed import SEED_VENDOR_LOCKIN_EXIT
+            self.client.save_vendor_lockin_exit(SEED_VENDOR_LOCKIN_EXIT)
+            lockin_records = self.client.get_vendor_lockin_exit()
+
+        high_lockin = [r for r in lockin_records if r.get("lockin_risk_score", 0) >= 80]
+        kinesis_lockin = next((r for r in lockin_records if "customer-pii-stream" in r.get("component_urn", "")), {})
+        cassandra_lockin = next((r for r in lockin_records if "cassandra" in r.get("component_urn", "")), {})
+        avg_exit_effort = round(sum(r.get("exit_effort_weeks", 0) for r in lockin_records) / len(lockin_records), 1) if lockin_records else 0.0
+        avg_lockin_score = round(sum(r.get("lockin_risk_score", 0) for r in lockin_records) / len(lockin_records), 1) if lockin_records else 0.0
+
+        strategic_actions = [
+            {
+                "domain": "Master Data Management (S17)",
+                "component": "CustomerProfile (cassandra vs billing-db)",
+                "action": "ESTABLISH_UNITY_CATALOG_GOLDEN_RECORD",
+                "risk": "SCHEMA_DRIFT & Competing Uncontracted Records",
+                "remediation": "Deploy Lakehouse conformed Delta SCD2 table as authoritative golden customer entity.",
+            },
+            {
+                "domain": "ESG & Green IT Carbon (S18)",
+                "component": "cassandra-legacy-cluster",
+                "action": "RIGHTSIZE_OR_MIGRATE_RENEWABLE",
+                "risk": f"High Carbon Intensity ({cassandra_carbon.get('grid_carbon_intensity_gco2_kwh', 380)} gCO2/kWh in us-east-1, {avoidable_monthly_carbon} kgCO2/mo avoidable)",
+                "remediation": "Decommission standalone EC2 cluster; migrate workloads to 100% renewable Databricks region (eu-west-1).",
+            },
+            {
+                "domain": "Team Topologies (S19)",
+                "component": "checkout-service",
+                "action": "DECOUPLE_SERVICE_OWNERSHIP",
+                "risk": "Monolithic Friction across 3 Stream-Aligned Teams (Friction index: 0.84)",
+                "remediation": "Carve cart, payments, and checkout into independently deployable domain microservices with single CODEOWNERS.",
+            },
+            {
+                "domain": "Vendor Lock-In (S20)",
+                "component": "customer-pii-stream & cassandra-legacy-cluster",
+                "action": "MIGRATE_TO_OPEN_DELTA_LAKEHOUSE",
+                "risk": "High Proprietary API Lock-In (Kinesis 85/100, Cassandra CQL 90/100)",
+                "remediation": "Standardize on open Delta Lake / Apache Kafka APIs to eliminate proprietary cloud vendor lock-in.",
+            },
+        ]
+
+        return {
+            "tenant_id": tenant_id,
+            # MDM
+            "total_mdm_entities": len(mdm_records),
+            "mdm_records": mdm_records,
+            "divergent_records": divergent_records,
+            "divergent_count": len(divergent_records),
+            "schema_drift_count": len(schema_drift_records),
+            "uncontracted_count": len(uncontracted_records),
+            "compliant_mdm_count": len(compliant_mdm),
+            "customer_golden": customer_golden,
+            # ESG
+            "total_monitored_services": len(esg_records),
+            "esg_records": esg_records,
+            "total_monthly_emissions_kgco2": total_monthly_emissions,
+            "total_annual_emissions_kgco2": total_annual_emissions,
+            "cassandra_carbon": cassandra_carbon,
+            "avoidable_monthly_carbon_kgco2": avoidable_monthly_carbon,
+            "avoidable_annual_carbon_kgco2": avoidable_annual_carbon,
+            "high_carbon_services": high_carbon_services,
+            "clean_carbon_services": clean_carbon_services,
+            # Team Topologies
+            "total_teams": len(tt_records),
+            "team_records": tt_records,
+            "stream_aligned_teams": stream_aligned,
+            "platform_teams": platform_teams,
+            "friction_teams": friction_teams,
+            "aligned_teams": aligned_teams,
+            "conways_alignment_pct": conways_alignment_pct,
+            "checkout_teams": checkout_teams,
+            # Lock-In
+            "total_evaluated_components": len(lockin_records),
+            "lockin_records": lockin_records,
+            "high_lockin_components": high_lockin,
+            "kinesis_lockin": kinesis_lockin,
+            "cassandra_lockin": cassandra_lockin,
+            "avg_exit_effort_weeks": avg_exit_effort,
+            "avg_lockin_score": avg_lockin_score,
+            # Strategic Actions
+            "strategic_actions": strategic_actions,
+        }
+
+    def compile_strategic_governance_diagram(self) -> Dict[str, str]:
+        """
+        Compiles Archify living architecture diagram visualizing golden record lineage,
+        ESG regional carbon footprints, Team Topologies boundaries, and vendor lock-in exit plans.
+        Writes to data/diagrams/strategic_governance_and_ecosystem_view.html and .svg.
+        """
+        output_html = ROOT_DIR / "data" / "diagrams" / "strategic_governance_and_ecosystem_view.html"
+        output_svg = ROOT_DIR / "data" / "diagrams" / "strategic_governance_and_ecosystem_view.svg"
+        output_html.parent.mkdir(parents=True, exist_ok=True)
+
+        html_p, svg_p = self.archify_bridge.compile_strategic_governance_diagram(
+            output_html_path=output_html,
+            title="Strategic Governance, MDM & Ecosystem Map",
+            subtitle="Enterprise Architecture Golden Data, ESG Carbon, Team Topologies & Vendor Exit Topology",
+        )
+        return {
+            "html_path": str(html_p),
+            "svg_path": str(svg_p),
+        }
+
     def get_codriving_actions(self, target_identifier: str) -> List[Dict[str, str]]:
         """Returns contextual interactive co-driving action chips for UI and EA Navigator interactions."""
         blast = self.calculate_blast_radius(target_identifier)
@@ -2125,6 +2286,11 @@ Graph traversal reveals **{blast['upstream_count']} upstream callers** directly 
                 "label": "🛡️ Operations & FinOps Audit",
                 "action": "resilience_finops",
                 "query": "Audit DR RTO/RPO SLAs, technical debt hotspots, zero-trust microsegmentation, SBOM licenses, and FinOps unit economics",
+            },
+            {
+                "label": "🌐 Strategic Governance & Ecosystem Audit",
+                "action": "strategic_ecosystem",
+                "query": "Audit MDM golden records divergence, ESG carbon footprints, Team Topologies friction, and vendor lock-in exit strategies",
             },
             {
                 "label": f"🗺️ Generate Living Blast Map",
@@ -2544,6 +2710,71 @@ Interactive M&A landscape map compiled distinguishing acquired vs core assets:
 * **EU AI Act Living Lineage Map:** [Archify Lineage](file://{ai_diag['html_path']})
 """
             diag = ai_diag
+        elif any(k in q for k in ["mdm", "golden record", "esg", "carbon", "green it", "team topologies", "conway", "conways law", "vendor lock-in", "lock-in", "exit plan", "exit strategy"]):
+            strat_data = self.analyze_strategic_governance_ecosystem()
+            strat_diag = self.compile_strategic_governance_diagram()
+            response_text = f"""### 🌐 Strategic Enterprise Governance & Ecosystem Hub Audit (S17–S20)
+
+* **Master Data Management (S17):** **{strat_data['divergent_count']}** entity divergence detected across **{strat_data['total_mdm_entities']}** monitored golden records. Critical entity: `{strat_data['customer_golden'].get('entity_name')}` has competing sources (`{strat_data['customer_golden'].get('competing_sources')}`) and **{strat_data['customer_golden'].get('data_contract_status')}** contract status.
+* **ESG & Green IT Carbon (S18):** Total portfolio emissions: **{strat_data['total_monthly_emissions_kgco2']:,.2f} kgCO2/mo** (**{strat_data['total_annual_emissions_kgco2']:,.2f} kgCO2/yr**). Avoidable carbon: **{strat_data['avoidable_monthly_carbon_kgco2']:,.2f} kgCO2/mo** from idle legacy Cassandra in `us-east-1` (380 gCO2/kWh vs 120 gCO2/kWh in renewable `eu-west-1`).
+* **Team Topologies & Conway's Law (S19):** **{strat_data['conways_alignment_pct']}%** organizational alignment across **{strat_data['total_teams']}** engineering teams. Monolithic friction detected: **{len(strat_data['checkout_teams'])}** stream-aligned teams editing monolithic `checkout-service` (friction index: 0.84, PR bottleneck).
+* **Vendor Lock-In & Open Exit Planning (S20):** **{len(strat_data['high_lockin_components'])}** high lock-in proprietary components (Avg Lock-In Score: **{strat_data['avg_lockin_score']}/100**). Highest risk: `{strat_data['cassandra_lockin'].get('component_urn', '').split(':')[-1]}` (Score: **{strat_data['cassandra_lockin'].get('lockin_risk_score')}**) and `{strat_data['kinesis_lockin'].get('component_urn', '').split(':')[-1]}` (Score: **{strat_data['kinesis_lockin'].get('lockin_risk_score')}**). Avg exit effort: **{strat_data['avg_exit_effort_weeks']} weeks**.
+
+#### 1. Master Data Management & Golden Records (`ea.gold.mdm_golden_records`)
+| Entity Name | Authoritative Source | Competing Sources | Divergence | Data Contract | SCD2 Active |
+| :--- | :--- | :--- | :---: | :---: | :---: |
+"""
+            for m in strat_data["mdm_records"]:
+                div_badge = "🔴 **DIVERGENT**" if m.get("divergence_detected") else "🟢 IN_SYNC"
+                scd_icon = "✅" if m.get("scd2_active") else "❌"
+                status = m.get("data_contract_status", "COMPLIANT")
+                status_badge = "🟢 COMPLIANT" if status == "COMPLIANT" else f"🔴 **{status}**"
+                response_text += f"| `{m['entity_name']}` | `{m['authoritative_source']}` | `{m['competing_sources']}` | {div_badge} | {status_badge} | {scd_icon} |\n"
+
+            response_text += """
+#### 2. ESG & Green IT Carbon Accounting (`ea.gold.esg_carbon_accounting`)
+| Monitored Service | Region | Monthly kWh | Carbon Intensity | Monthly Emissions | Green Tier |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+"""
+            for e in strat_data["esg_records"]:
+                s_name = e["service_urn"].split(":")[-1]
+                tier = e.get("green_tier", "MODERATE")
+                tier_badge = "🟢 RENEWABLE_CLEAN" if tier == "RENEWABLE_CLEAN" else ("🔴 **HIGH_CARBON**" if tier == "HIGH_CARBON" else "🟡 MODERATE")
+                response_text += f"| `{s_name}` | `{e['region']}` | {e['monthly_kwh']:,} kWh | {e['grid_carbon_intensity_gco2_kwh']} gCO2/kWh | **{e['monthly_emissions_kgco2']:,.2f} kgCO2** | {tier_badge} |\n"
+
+            response_text += """
+#### 3. Team Topologies & Conway's Law (`ea.gold.team_topologies`)
+| Team Name | Team Type | Owned Components | Codeowners Match | Commit Friction | Conway Alignment |
+| :--- | :---: | :--- | :---: | :---: | :---: |
+"""
+            for t in strat_data["team_records"]:
+                co_icon = "✅" if t.get("codeowners_match") else "⚠️ MISMATCH"
+                align = t.get("conways_law_alignment", "ALIGNED")
+                align_badge = "🟢 ALIGNED" if align == "ALIGNED" else f"🔴 **{align}**"
+                response_text += f"| `{t['team_name']}` | {t['team_type']} | `{t['owned_components']}` | {co_icon} | {t['commit_co_change_friction']:.2f} | {align_badge} |\n"
+
+            response_text += """
+#### 4. Strategic Vendor Lock-In & Exit Planning (`ea.gold.vendor_lockin_exit`)
+| Component | Cloud Provider | Proprietary Services | Lock-In Score | Open Alternative | Exit Effort | Exit Action |
+| :--- | :---: | :--- | :---: | :--- | :---: | :--- |
+"""
+            for l in strat_data["lockin_records"]:
+                c_name = l["component_urn"].split(":")[-1]
+                score = l.get("lockin_risk_score", 0)
+                score_badge = f"🔴 **{score}/100**" if score >= 80 else (f"🟡 {score}/100" if score >= 50 else f"🟢 {score}/100")
+                response_text += f"| `{c_name}` | {l['cloud_provider']} | `{l['proprietary_services_used']}` | {score_badge} | {l['open_alternative']} | {l['exit_effort_weeks']} wks | `{l['exit_strategy_action']}` |\n"
+
+            response_text += """
+#### Strategic Governance & Remediation Action Plan
+"""
+            for act in strat_data["strategic_actions"]:
+                response_text += f"* **`{act['action']}`** on `{act['component']}` ({act['domain']}): {act['risk']} → *Remediation: {act['remediation']}*\n"
+
+            response_text += f"""
+#### Interactive Strategic Governance & Ecosystem Map
+* **Living Architecture & Ecosystem Map:** [Archify Topology](file://{strat_diag['html_path']})
+"""
+            diag = strat_diag
         else:
             # Blast Radius & Impact Analysis
             callers_str = ", ".join([f"`{c['name']}` ({c['criticality']})" for c in blast.get("upstream_callers", [])]) or "None (Edge consumer)"

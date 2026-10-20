@@ -415,6 +415,53 @@ class UnityCatalogClient:
         );
         """)
 
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS gold_mdm_golden_records (
+            entity_name TEXT PRIMARY KEY,
+            golden_record_urn TEXT NOT NULL,
+            authoritative_source TEXT NOT NULL,
+            competing_sources TEXT NOT NULL,
+            divergence_detected INTEGER NOT NULL DEFAULT 0,
+            data_contract_status TEXT NOT NULL,
+            scd2_active INTEGER NOT NULL DEFAULT 1
+        );
+        """)
+
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS gold_esg_carbon_accounting (
+            service_urn TEXT PRIMARY KEY,
+            region TEXT NOT NULL,
+            monthly_kwh REAL NOT NULL,
+            grid_carbon_intensity_gco2_kwh REAL NOT NULL,
+            monthly_emissions_kgco2 REAL NOT NULL,
+            green_tier TEXT NOT NULL,
+            reduction_recommendation TEXT NOT NULL
+        );
+        """)
+
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS gold_team_topologies (
+            team_name TEXT PRIMARY KEY,
+            team_type TEXT NOT NULL,
+            owned_components TEXT NOT NULL,
+            codeowners_match INTEGER NOT NULL DEFAULT 1,
+            commit_co_change_friction REAL NOT NULL,
+            conways_law_alignment TEXT NOT NULL
+        );
+        """)
+
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS gold_vendor_lockin_exit (
+            component_urn TEXT PRIMARY KEY,
+            cloud_provider TEXT NOT NULL,
+            proprietary_services_used TEXT NOT NULL,
+            lockin_risk_score INTEGER NOT NULL,
+            open_alternative TEXT NOT NULL,
+            exit_effort_weeks INTEGER NOT NULL,
+            exit_strategy_action TEXT NOT NULL
+        );
+        """)
+
         conn.commit()
         conn.close()
 
@@ -1632,6 +1679,194 @@ class UnityCatalogClient:
         conn.close()
         return count
 
+    # =========================================================================
+    # S17: MASTER DATA MANAGEMENT (MDM) & GOLDEN RECORDS
+    # =========================================================================
+    def get_mdm_golden_records(self) -> List[Dict[str, Any]]:
+        """Retrieve conformed MDM golden records from ea.gold.mdm_golden_records."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM gold_mdm_golden_records ORDER BY entity_name ASC;")
+        rows = []
+        for r in cur.fetchall():
+            d = dict(r)
+            d["divergence_detected"] = bool(d["divergence_detected"])
+            d["scd2_active"] = bool(d["scd2_active"])
+            rows.append(d)
+        conn.close()
+        return rows
+
+    def save_mdm_golden_records(self, records: List[Dict[str, Any]]) -> int:
+        """Upsert MDM golden records into ea.gold.mdm_golden_records."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        count = 0
+        for r in records:
+            cur.execute("""
+            INSERT INTO gold_mdm_golden_records (
+                entity_name, golden_record_urn, authoritative_source,
+                competing_sources, divergence_detected, data_contract_status, scd2_active
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(entity_name) DO UPDATE SET
+                golden_record_urn = excluded.golden_record_urn,
+                authoritative_source = excluded.authoritative_source,
+                competing_sources = excluded.competing_sources,
+                divergence_detected = excluded.divergence_detected,
+                data_contract_status = excluded.data_contract_status,
+                scd2_active = excluded.scd2_active;
+            """, (
+                r["entity_name"],
+                r["golden_record_urn"],
+                r["authoritative_source"],
+                r["competing_sources"],
+                1 if r.get("divergence_detected") else 0,
+                r["data_contract_status"],
+                1 if r.get("scd2_active", True) else 0,
+            ))
+            count += 1
+        conn.commit()
+        conn.close()
+        return count
+
+    # =========================================================================
+    # S18: ESG & GREEN IT CARBON ACCOUNTING
+    # =========================================================================
+    def get_esg_carbon_accounting(self) -> List[Dict[str, Any]]:
+        """Retrieve conformed ESG carbon records from ea.gold.esg_carbon_accounting."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM gold_esg_carbon_accounting ORDER BY monthly_emissions_kgco2 DESC;")
+        rows = [dict(r) for r in cur.fetchall()]
+        conn.close()
+        return rows
+
+    def save_esg_carbon_accounting(self, records: List[Dict[str, Any]]) -> int:
+        """Upsert ESG carbon records into ea.gold.esg_carbon_accounting."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        count = 0
+        for r in records:
+            cur.execute("""
+            INSERT INTO gold_esg_carbon_accounting (
+                service_urn, region, monthly_kwh,
+                grid_carbon_intensity_gco2_kwh, monthly_emissions_kgco2,
+                green_tier, reduction_recommendation
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(service_urn) DO UPDATE SET
+                region = excluded.region,
+                monthly_kwh = excluded.monthly_kwh,
+                grid_carbon_intensity_gco2_kwh = excluded.grid_carbon_intensity_gco2_kwh,
+                monthly_emissions_kgco2 = excluded.monthly_emissions_kgco2,
+                green_tier = excluded.green_tier,
+                reduction_recommendation = excluded.reduction_recommendation;
+            """, (
+                r["service_urn"],
+                r["region"],
+                float(r["monthly_kwh"]),
+                float(r["grid_carbon_intensity_gco2_kwh"]),
+                float(r["monthly_emissions_kgco2"]),
+                r["green_tier"],
+                r["reduction_recommendation"],
+            ))
+            count += 1
+        conn.commit()
+        conn.close()
+        return count
+
+    # =========================================================================
+    # S19: TEAM TOPOLOGIES & CONWAY'S LAW
+    # =========================================================================
+    def get_team_topologies(self) -> List[Dict[str, Any]]:
+        """Retrieve conformed Team Topologies records from ea.gold.team_topologies."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM gold_team_topologies ORDER BY commit_co_change_friction DESC;")
+        rows = []
+        for r in cur.fetchall():
+            d = dict(r)
+            d["codeowners_match"] = bool(d["codeowners_match"])
+            rows.append(d)
+        conn.close()
+        return rows
+
+    def save_team_topologies(self, records: List[Dict[str, Any]]) -> int:
+        """Upsert Team Topologies records into ea.gold.team_topologies."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        count = 0
+        for r in records:
+            cur.execute("""
+            INSERT INTO gold_team_topologies (
+                team_name, team_type, owned_components,
+                codeowners_match, commit_co_change_friction, conways_law_alignment
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(team_name) DO UPDATE SET
+                team_type = excluded.team_type,
+                owned_components = excluded.owned_components,
+                codeowners_match = excluded.codeowners_match,
+                commit_co_change_friction = excluded.commit_co_change_friction,
+                conways_law_alignment = excluded.conways_law_alignment;
+            """, (
+                r["team_name"],
+                r["team_type"],
+                r["owned_components"],
+                1 if r.get("codeowners_match", True) else 0,
+                float(r["commit_co_change_friction"]),
+                r["conways_law_alignment"],
+            ))
+            count += 1
+        conn.commit()
+        conn.close()
+        return count
+
+    # =========================================================================
+    # S20: VENDOR LOCK-IN & EXIT PLANNING
+    # =========================================================================
+    def get_vendor_lockin_exit(self) -> List[Dict[str, Any]]:
+        """Retrieve conformed vendor lock-in exit records from ea.gold.vendor_lockin_exit."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM gold_vendor_lockin_exit ORDER BY lockin_risk_score DESC;")
+        rows = [dict(r) for r in cur.fetchall()]
+        conn.close()
+        return rows
+
+    def save_vendor_lockin_exit(self, records: List[Dict[str, Any]]) -> int:
+        """Upsert vendor lock-in exit records into ea.gold.vendor_lockin_exit."""
+        conn = self._get_local_connection()
+        cur = conn.cursor()
+        count = 0
+        for r in records:
+            cur.execute("""
+            INSERT INTO gold_vendor_lockin_exit (
+                component_urn, cloud_provider, proprietary_services_used,
+                lockin_risk_score, open_alternative, exit_effort_weeks, exit_strategy_action
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(component_urn) DO UPDATE SET
+                cloud_provider = excluded.cloud_provider,
+                proprietary_services_used = excluded.proprietary_services_used,
+                lockin_risk_score = excluded.lockin_risk_score,
+                open_alternative = excluded.open_alternative,
+                exit_effort_weeks = excluded.exit_effort_weeks,
+                exit_strategy_action = excluded.exit_strategy_action;
+            """, (
+                r["component_urn"],
+                r["cloud_provider"],
+                r["proprietary_services_used"],
+                int(r["lockin_risk_score"]),
+                r["open_alternative"],
+                int(r["exit_effort_weeks"]),
+                r["exit_strategy_action"],
+            ))
+            count += 1
+        conn.commit()
+        conn.close()
+        return count
+
     def _normalize_sql(self, sql: str) -> str:
         """Translates Databricks Unity Catalog 3-level namespaces (ea.<schema>.<table>) to local table names."""
         replacements = [
@@ -1658,6 +1893,10 @@ class UnityCatalogClient:
             ("ea.gold.security_zero_trust", "gold_security_zero_trust"),
             ("ea.gold.supply_chain_sbom", "gold_supply_chain_sbom"),
             ("ea.gold.finops_unit_economics", "gold_finops_unit_economics"),
+            ("ea.gold.mdm_golden_records", "gold_mdm_golden_records"),
+            ("ea.gold.esg_carbon_accounting", "gold_esg_carbon_accounting"),
+            ("ea.gold.team_topologies", "gold_team_topologies"),
+            ("ea.gold.vendor_lockin_exit", "gold_vendor_lockin_exit"),
         ]
         res = sql
         for uc, local in replacements:

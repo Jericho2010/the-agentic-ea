@@ -104,7 +104,7 @@ with col_h2:
     """, unsafe_allow_html=True)
 
 # Navigation Tabs
-tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time, tab_migration, tab_capabilities, tab_cmdb, tab_ma, tab_compliance, tab_interfaces, tab_process, tab_ai_governance, tab_resilience_finops = st.tabs([
+tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time, tab_migration, tab_capabilities, tab_cmdb, tab_ma, tab_compliance, tab_interfaces, tab_process, tab_ai_governance, tab_resilience_finops, tab_strategic_ecosystem = st.tabs([
     "🏛️ Estate Catalog",
     "🗺️ Living Architecture Maps",
     "🧭 EA Navigator Cockpit",
@@ -119,6 +119,7 @@ tab_catalog, tab_maps, tab_navigator, tab_sentinel, tab_time, tab_migration, tab
     "⏱️ Business Process Optimization & Customer Journey",
     "🤖 AI Governance & ML Catalog (EU AI Act)",
     "🛡️ Operations, Resilience & FinOps Hub",
+    "🌐 Strategic Enterprise Governance & Ecosystem Hub",
 ])
 
 
@@ -1281,6 +1282,184 @@ with tab_resilience_finops:
         st.components.v1.html(html_code, height=650, scrolling=True)
     else:
         st.warning("Resilience and perimeter diagram could not be loaded.")
+
+
+# ==============================================================================
+# TAB 15: STRATEGIC ENTERPRISE GOVERNANCE & ECOSYSTEM HUB (S17-S20)
+# ==============================================================================
+with tab_strategic_ecosystem:
+    st.subheader("🌐 Strategic Enterprise Governance & Ecosystem Hub (Scenarios S17–S20)")
+    st.caption("Synthesized executive intelligence across Master Data Management (MDM), ESG & Green IT Carbon Accounting, Team Topologies / Conway's Law, and Strategic Vendor Lock-In & Open Exit Planning.")
+
+    strat_data = navigator.analyze_strategic_governance_ecosystem()
+
+    # Executive KPI Metric Cards
+    kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
+    kpi1.metric("MDM Divergence", f"{strat_data['divergent_count']} Divergent / {strat_data['total_mdm_entities']}", delta="CustomerProfile Drift", delta_color="inverse")
+    kpi2.metric("ESG Carbon Footprint", f"{strat_data['total_monthly_emissions_kgco2']:,.1f} kgCO2/mo", delta=f"{strat_data['avoidable_monthly_carbon_kgco2']:,.0f} kgCO2 Avoidable", delta_color="inverse")
+    kpi3.metric("Conway Alignment", f"{strat_data['conways_alignment_pct']}%", delta=f"{len(strat_data['friction_teams'])} Monolithic Friction", delta_color="inverse")
+    kpi4.metric("High Lock-In Assets", f"{len(strat_data['high_lockin_components'])} / {strat_data['total_evaluated_components']}", delta=f"Avg Score: {strat_data['avg_lockin_score']:.0f}/100", delta_color="inverse")
+    kpi5.metric("Avg Exit Effort", f"{strat_data['avg_exit_effort_weeks']:.1f} Weeks", delta="Cassandra (8wks) / Kinesis (6wks)", delta_color="off")
+
+    st.markdown("---")
+
+    subtab_mdm, subtab_esg, subtab_tt, subtab_lockin = st.tabs([
+        "🧬 S17: Master Data Management (MDM)",
+        "🌱 S18: ESG & Green IT Carbon Footprint",
+        "👥 S19: Team Topologies & Conway's Law",
+        "🔓 S20: Vendor Lock-In & Exit Planning",
+    ])
+
+    with subtab_mdm:
+        st.markdown("#### Master Data Management & Golden Record Lineage (`ea.gold.mdm_golden_records`)")
+        st.caption("Reconciles core master entities against competing siloed stores, enforcing schema contracts and SCD2 delta history.")
+        mdm_rows = strat_data["mdm_records"]
+        if mdm_rows:
+            df_mdm = pd.DataFrame(mdm_rows)
+            df_mdm_disp = df_mdm.copy()
+            df_mdm_disp["divergence_status"] = df_mdm_disp["divergence_detected"].apply(
+                lambda d: "🔴 DIVERGENT" if d else "🟢 IN_SYNC"
+            )
+            df_mdm_disp["contract_status"] = df_mdm_disp["data_contract_status"].apply(
+                lambda s: "🟢 COMPLIANT" if s == "COMPLIANT" else f"🔴 {s}"
+            )
+            df_mdm_disp["scd2_status"] = df_mdm_disp["scd2_active"].apply(
+                lambda b: "✅ Active" if b else "❌ Inactive"
+            )
+            st.dataframe(
+                df_mdm_disp[[
+                    "entity_name", "authoritative_source", "competing_sources",
+                    "divergence_status", "contract_status", "scd2_status"
+                ]],
+                use_container_width=True,
+            )
+            st.download_button(
+                label="📥 Export MDM Golden Records (CSV)",
+                data=df_mdm.to_csv(index=False),
+                file_name="ea_gold_mdm_golden_records.csv",
+                mime="text/csv",
+            )
+
+    with subtab_esg:
+        st.markdown("#### ESG & Green IT Carbon Footprint Accounting (`ea.gold.esg_carbon_accounting`)")
+        st.caption("Calculates regional energy consumption (kWh) and grid carbon intensity (gCO2/kWh) to isolate idle, high-emission legacy workloads.")
+        esg_rows = strat_data["esg_records"]
+        if esg_rows:
+            df_esg = pd.DataFrame(esg_rows)
+            df_esg_disp = df_esg.copy()
+            df_esg_disp["service"] = df_esg_disp["service_urn"].apply(lambda u: u.split(":")[-1])
+            df_esg_disp["monthly_kwh_fmt"] = df_esg_disp["monthly_kwh"].apply(lambda v: f"{v:,} kWh")
+            df_esg_disp["grid_intensity"] = df_esg_disp["grid_carbon_intensity_gco2_kwh"].apply(lambda v: f"{v} gCO2/kWh")
+            df_esg_disp["monthly_emissions_fmt"] = df_esg_disp["monthly_emissions_kgco2"].apply(lambda v: f"{v:,.2f} kgCO2")
+            df_esg_disp["green_tier_badge"] = df_esg_disp["green_tier"].apply(
+                lambda t: "🟢 RENEWABLE_CLEAN" if t == "RENEWABLE_CLEAN" else ("🔴 HIGH_CARBON" if t == "HIGH_CARBON" else "🟡 MODERATE")
+            )
+            st.dataframe(
+                df_esg_disp[[
+                    "service", "region", "monthly_kwh_fmt", "grid_intensity",
+                    "monthly_emissions_fmt", "green_tier_badge", "reduction_recommendation"
+                ]],
+                use_container_width=True,
+            )
+            st.download_button(
+                label="📥 Export ESG Carbon Accounting Ledger (CSV)",
+                data=df_esg.to_csv(index=False),
+                file_name="ea_gold_esg_carbon_accounting.csv",
+                mime="text/csv",
+            )
+
+    with subtab_tt:
+        st.markdown("#### Team Topologies & Conway's Law Alignment (`ea.gold.team_topologies`)")
+        st.caption("Audits stream-aligned and platform team boundaries against monolithic repositories to eliminate commit contention and cognitive overload.")
+        tt_rows = strat_data["team_records"]
+        if tt_rows:
+            df_tt = pd.DataFrame(tt_rows)
+            df_tt_disp = df_tt.copy()
+            df_tt_disp["codeowners_status"] = df_tt_disp["codeowners_match"].apply(
+                lambda b: "✅ Match" if b else "⚠️ Mismatch"
+            )
+            df_tt_disp["friction_idx"] = df_tt_disp["commit_co_change_friction"].apply(lambda v: f"{v:.2f}")
+            df_tt_disp["conway_badge"] = df_tt_disp["conways_law_alignment"].apply(
+                lambda a: "🟢 ALIGNED" if a == "ALIGNED" else f"🔴 {a}"
+            )
+            st.dataframe(
+                df_tt_disp[[
+                    "team_name", "team_type", "owned_components",
+                    "codeowners_status", "friction_idx", "conway_badge"
+                ]],
+                use_container_width=True,
+            )
+            st.download_button(
+                label="📥 Export Team Topologies Ledger (CSV)",
+                data=df_tt.to_csv(index=False),
+                file_name="ea_gold_team_topologies.csv",
+                mime="text/csv",
+            )
+
+    with subtab_lockin:
+        st.markdown("#### Strategic Vendor Lock-In Assessment & Open Exit Planning (`ea.gold.vendor_lockin_exit`)")
+        st.caption("Quantifies reliance on proprietary cloud services and specifies open lakehouse migration paths with estimated exit efforts.")
+        lockin_rows = strat_data["lockin_records"]
+        if lockin_rows:
+            df_lockin = pd.DataFrame(lockin_rows)
+            df_lockin_disp = df_lockin.copy()
+            df_lockin_disp["component"] = df_lockin_disp["component_urn"].apply(lambda u: u.split(":")[-1])
+            df_lockin_disp["lockin_badge"] = df_lockin_disp["lockin_risk_score"].apply(
+                lambda s: f"🔴 {s}/100" if s >= 80 else (f"🟡 {s}/100" if s >= 50 else f"🟢 {s}/100")
+            )
+            df_lockin_disp["effort_weeks"] = df_lockin_disp["exit_effort_weeks"].apply(lambda w: f"{w} wks")
+            st.dataframe(
+                df_lockin_disp[[
+                    "component", "cloud_provider", "proprietary_services_used",
+                    "lockin_badge", "open_alternative", "effort_weeks", "exit_strategy_action"
+                ]],
+                use_container_width=True,
+            )
+            st.download_button(
+                label="📥 Export Vendor Lock-In & Exit Register (CSV)",
+                data=df_lockin.to_csv(index=False),
+                file_name="ea_gold_vendor_lockin_exit.csv",
+                mime="text/csv",
+            )
+
+    st.markdown("---")
+    st.markdown("#### 🛠️ Priority Strategic Governance & Remediation Actions")
+    strat_col1, strat_col2 = st.columns(2)
+
+    for idx, act in enumerate(strat_data["strategic_actions"]):
+        target_col = strat_col1 if idx % 2 == 0 else strat_col2
+        with target_col:
+            st.markdown(f"""
+            <div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 700; color: #f8fafc; font-size: 15px;">{act['component']}</span>
+                    <span style="background: #1e293b; color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;">{act['domain']}</span>
+                </div>
+                <div style="margin-top: 8px; font-size: 13px; color: #f43f5e; font-weight: 600;">
+                    {act['risk']}
+                </div>
+                <div style="margin-top: 6px; font-size: 13px; color: #94a3b8;">
+                    <strong>Action:</strong> <code>{act['action']}</code>
+                </div>
+                <div style="margin-top: 8px; font-size: 12px; color: #38bdf8;">
+                    💡 <em>Remediation: {act['remediation']}</em>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.markdown("#### 🗺️ Interactive Strategic Governance & Ecosystem Map")
+    st.caption("Interactive Archify vector map displaying golden data core lineage, stream-aligned application boundaries, and proprietary cloud vendor lock-in heatmaps.")
+
+    strat_diag_path = ROOT_DIR / "data" / "diagrams" / "strategic_governance_and_ecosystem_view.html"
+    if not strat_diag_path.exists():
+        navigator.compile_strategic_governance_diagram()
+    if strat_diag_path.exists():
+        html_code = strat_diag_path.read_text(encoding="utf-8")
+        st.components.v1.html(html_code, height=650, scrolling=True)
+    else:
+        st.warning("Strategic governance and ecosystem diagram could not be loaded.")
+
 
 
 

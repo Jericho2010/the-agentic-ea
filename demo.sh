@@ -102,6 +102,7 @@ echo -e "  • Master Living Map:         file://${SCRIPT_DIR}/data/diagrams/arc
 echo -e "  • Sentinel Visual Delta:     file://${SCRIPT_DIR}/data/diagrams/diagram_delta.html"
 echo -e "  • Navigator Blast Radius:    file://${SCRIPT_DIR}/data/diagrams/blast_radius_payments-api.html"
 echo -e "  • Operations & FinOps Map:   file://${SCRIPT_DIR}/data/diagrams/resilience_and_perimeter_view.html"
+echo -e "  • Strategic Ecosystem Map:   file://${SCRIPT_DIR}/data/diagrams/strategic_governance_and_ecosystem_view.html"
 echo -e "\n${BOLD}Launch UI Cockpit:${NC} ${YELLOW}streamlit run apps/ea_navigator/app.py${NC}"
 echo -e "${CYAN}══════════════════════════════════════════════════════════════════════════════${NC}\n"
 

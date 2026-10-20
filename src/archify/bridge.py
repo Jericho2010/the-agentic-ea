@@ -51,7 +51,7 @@ def build_archify_spec(
     if boundary_mode == "ai_lineage":
         layer_order = ["Database", "AIModel", "Microservice"]
         max_cols_per_row = 4
-    elif boundary_mode == "resilience_perimeter":
+    elif boundary_mode in ("resilience_perimeter", "strategic_ecosystem"):
         layer_order = ["Application", "Microservice", "Database", "CloudResource"]
         max_cols_per_row = 3
     else:
@@ -169,6 +169,46 @@ def build_archify_spec(
                         tag = "EGRESS"
                         comp_type = "cloud"
                         sublabel = f"Cloud Egress • {node.get('criticality', 'Tier-2')}"
+                    else:
+                        sublabel = f"{node.get('owner_team', 'unassigned')} • {node.get('lifecycle_status', 'run')}"
+            elif boundary_mode == "strategic_ecosystem":
+                if "cassandra" in urn or "cassandra" in cid:
+                    tag = "LOCK-IN:90 / 420kg"
+                    comp_type = "security"
+                    sublabel = "CQL Lock-In • 420 kgCO2/mo"
+                elif "customer-pii-stream" in urn or "pii" in cid:
+                    tag = "LOCK-IN:85 / DLT"
+                    comp_type = "security"
+                    sublabel = "Kinesis SDK • 95 kgCO2/mo"
+                elif "checkout-service" in urn or "checkout" in cid:
+                    tag = "CONWAY:3-TEAMS"
+                    comp_type = "backend"
+                    sublabel = "Friction 0.84 • 102 kgCO2/mo"
+                elif "billing-db" in urn or "billing" in cid:
+                    tag = "GOLDEN-SOURCE"
+                    comp_type = "database"
+                    sublabel = "Authoritative Customer • SCD2"
+                elif "payments-ledger-db" in urn or "ledger" in cid:
+                    tag = "GOLDEN-SOURCE"
+                    comp_type = "database"
+                    sublabel = "Authoritative Order & Ledger"
+                else:
+                    if kind == "Application":
+                        tag = "STREAM"
+                        comp_type = "frontend"
+                        sublabel = f"Team Storefront • {node.get('criticality', 'Tier-1')}"
+                    elif kind == "Microservice":
+                        tag = "CORE"
+                        comp_type = "backend"
+                        sublabel = f"Team Payments • {node.get('criticality', 'Tier-1')}"
+                    elif kind == "Database":
+                        tag = "VAULT"
+                        comp_type = "database"
+                        sublabel = f"Team Data Platform • {node.get('criticality', 'Tier-1')}"
+                    elif kind == "CloudResource":
+                        tag = "INFRA"
+                        comp_type = "cloud"
+                        sublabel = f"Team Cloud Infra • {node.get('criticality', 'Tier-2')}"
                     else:
                         sublabel = f"{node.get('owner_team', 'unassigned')} • {node.get('lifecycle_status', 'run')}"
             else:
@@ -319,6 +359,48 @@ def build_archify_spec(
                 "kind": "region",
                 "label": "External Egress & Third-Party",
                 "wraps": egress_wraps,
+            })
+    elif boundary_mode == "strategic_ecosystem":
+        app_wraps_eco = []
+        mesh_wraps_eco = []
+        data_wraps_eco = []
+        infra_wraps_eco = []
+        for n in nodes:
+            cid = node_id_map.get(n["urn"])
+            if not cid:
+                continue
+            k = n.get("kind", "")
+            if k == "Application":
+                app_wraps_eco.append(cid)
+            elif k == "Microservice":
+                mesh_wraps_eco.append(cid)
+            elif k == "Database":
+                data_wraps_eco.append(cid)
+            elif k == "CloudResource":
+                infra_wraps_eco.append(cid)
+        if data_wraps_eco:
+            boundaries.append({
+                "kind": "region",
+                "label": "Master Golden Data Core",
+                "wraps": data_wraps_eco,
+            })
+        if mesh_wraps_eco:
+            boundaries.append({
+                "kind": "region",
+                "label": "Stream-Aligned Application Mesh",
+                "wraps": mesh_wraps_eco,
+            })
+        if app_wraps_eco:
+            boundaries.append({
+                "kind": "region",
+                "label": "Ingress & Digital Touchpoints",
+                "wraps": app_wraps_eco,
+            })
+        if infra_wraps_eco:
+            boundaries.append({
+                "kind": "region",
+                "label": "Proprietary Cloud & Egress Fabric",
+                "wraps": infra_wraps_eco,
             })
     else:
         if app_wraps:
@@ -475,6 +557,36 @@ def build_archify_spec(
                     "GPL-3.0 Copyleft & CVE-2024-4321 Critical in payments-service",
                     "Unit Economics: $0.042 cost per order transaction",
                     "Idle Waste: $8,400.00/yr ($700/mo) on untagged Cassandra compute",
+                ],
+            },
+        ]
+    elif boundary_mode == "strategic_ecosystem":
+        cards = [
+            {
+                "dot": "rose",
+                "title": "MDM Golden Record Lineage (SCD2 Drift Detected)",
+                "items": [
+                    "Divergence: Cassandra vs billing-db (CustomerProfile)",
+                    "Status: SCHEMA_DRIFT (Competing sources without contract)",
+                    "Action: ESTABLISH_UNITY_CATALOG_GOLDEN_RECORD",
+                ],
+            },
+            {
+                "dot": "rose",
+                "title": "ESG & Green IT Carbon Footprint",
+                "items": [
+                    "Avoidable Carbon: 420.00 kgCO2/mo on idle Cassandra (us-east-1)",
+                    "Regional Intensity: us-east-1 (380 g/kWh) vs eu-west-1 (120 g/kWh)",
+                    "Action: RIGHTSIZE_OR_MIGRATE_RENEWABLE (Save 5,040 kgCO2/yr)",
+                ],
+            },
+            {
+                "dot": "orange",
+                "title": "Team Topologies & Vendor Lock-In Exit Plan",
+                "items": [
+                    "Conway's Law: 3 Stream Teams editing monolithic checkout-service",
+                    "Lock-In: AWS Kinesis (85/100) & Cassandra CQL (90/100)",
+                    "Action: MIGRATE_TO_OPEN_DELTA_LAKEHOUSE (Exit: 6-8 weeks)",
                 ],
             },
         ]
@@ -1215,6 +1327,41 @@ class ArchifyBridge:
             subtitle=subtitle,
             highlight_urns=highlight_urns,
             boundary_mode="resilience_perimeter",
+        )
+
+    def compile_strategic_governance_diagram(
+        self,
+        output_html_path: Optional[Path] = None,
+        title: str = "Strategic Governance, MDM & Ecosystem Map",
+        subtitle: str = "Enterprise Architecture Golden Data, ESG Carbon, Team Topologies & Vendor Exit Topology",
+    ) -> Tuple[Path, Path]:
+        """Compiles unified strategic governance, MDM golden records, ESG carbon, and vendor exit diagram."""
+        all_nodes = self.client.get_nodes()
+        all_edges = self.client.get_edges()
+
+        relevant_kinds = {"Application", "Microservice", "Database", "CloudResource"}
+        strat_nodes = [n for n in all_nodes if n.get("kind") in relevant_kinds and not n.get("urn", "").startswith("urn:ea:acquired")]
+        strat_node_urns = {n["urn"] for n in strat_nodes}
+        strat_edges = [
+            e for e in all_edges
+            if e["source_urn"] in strat_node_urns and e["target_urn"] in strat_node_urns
+        ]
+
+        out_base = output_html_path or (ROOT_DIR / "data" / "diagrams" / "strategic_governance_and_ecosystem_view.html")
+        highlight_urns = [
+            "urn:ea:database:cassandra-legacy-cluster",
+            "urn:ea:cloud:customer-pii-stream",
+            "urn:ea:service:checkout-service",
+            "urn:ea:database:billing-db",
+        ]
+        return compile_archify_diagram(
+            nodes=strat_nodes,
+            edges=strat_edges,
+            output_path=Path(out_base),
+            title=title,
+            subtitle=subtitle,
+            highlight_urns=highlight_urns,
+            boundary_mode="strategic_ecosystem",
         )
 
 
