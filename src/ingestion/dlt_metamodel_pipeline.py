@@ -9,9 +9,27 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+import os
+
+# Add project root to sys.path for local runtime
+if "__file__" in globals():
+    PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+    if str(PROJECT_ROOT) not in sys.path:
+        sys.path.insert(0, str(PROJECT_ROOT))
+else:
+    PROJECT_ROOT = Path(os.getcwd())
+    if str(PROJECT_ROOT) not in sys.path:
+        sys.path.insert(0, str(PROJECT_ROOT))
+
+# Conformed catalog schemas
+SCHEMA_BRONZE = "ea.bronze"
+SCHEMA_METAMODEL = "ea.metamodel"
+SCHEMA_GOLD = "ea.gold"
 
 # Databricks DLT runtime check
 try:
@@ -21,12 +39,10 @@ except ImportError:
     dlt = None
     DLT_AVAILABLE = False
 
-from src.data_backbone.client import get_unity_catalog_client
-from src.data_backbone.catalog import (
-    SCHEMA_BRONZE,
-    SCHEMA_METAMODEL,
-    SCHEMA_GOLD,
-)
+try:
+    from src.data_backbone.client import get_unity_catalog_client
+except ImportError:
+    get_unity_catalog_client = None
 
 logger = logging.getLogger("dlt_metamodel_pipeline")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -37,38 +53,182 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 # ==============================================================================
 if DLT_AVAILABLE:
     @dlt.table(
-        name="nodes",
-        comment="Conformed PAM nodes from Bronze Git and Cloud telemetry",
-        path=f"{SCHEMA_METAMODEL}.nodes"
+        name="silver_nodes",
+        comment="Conformed Silver PAM nodes from Bronze Git and CMDB telemetry",
     )
     @dlt.expect_or_drop("valid_urn", "urn IS NOT NULL AND urn LIKE 'urn:ea:%'")
     @dlt.expect_or_drop("valid_name", "name IS NOT NULL AND length(name) > 0")
     def silver_nodes():
-        from pyspark.sql.functions import from_json, col, explode, current_timestamp
-        # DLT transform implementation in PySpark
-        bronze_git = dlt.read("git_repos")
-        # In DLT, parse ast_nodes JSON and explode
-        return bronze_git.select(
-            col("repo_name").alias("name"),
-            current_timestamp().alias("last_updated")
+        from pyspark.sql.functions import col, coalesce, concat, current_timestamp, explode, from_json, lit
+        from pyspark.sql.types import ArrayType, StringType, StructField, StructType
+
+        ast_schema = ArrayType(
+            StructType([
+                StructField("urn", StringType(), True),
+                StructField("name", StringType(), True),
+                StructField("kind", StringType(), True),
+                StructField("owner_team", StringType(), True),
+                StructField("lifecycle_status", StringType(), True),
+                StructField("criticality", StringType(), True),
+                StructField("metadata", StringType(), True),
+            ])
+        )
+
+        git_df = spark.read.table("ea.bronze.git_repos")
+        git_exploded = (
+            git_df
+            .withColumn("parsed_ast", from_json(col("ast_nodes"), ast_schema))
+            .select(explode(col("parsed_ast")).alias("n"))
+            .select(
+                coalesce(col("n.urn"), concat(lit("urn:ea:application:"), col("n.name"))).alias("urn"),
+                col("n.name").alias("name"),
+                coalesce(col("n.kind"), lit("Microservice")).alias("kind"),
+                coalesce(col("n.owner_team"), lit("unassigned")).alias("owner_team"),
+                coalesce(col("n.lifecycle_status"), lit("run")).alias("lifecycle_status"),
+                coalesce(col("n.criticality"), lit("Tier-1")).alias("criticality"),
+                coalesce(col("n.metadata"), lit("{}")).alias("metadata"),
+                current_timestamp().alias("last_updated"),
+            )
+        )
+
+        cmdb_df = spark.read.table("ea.bronze.cmdb_ci")
+        cmdb_projected = (
+            cmdb_df
+            .select(
+                concat(lit("urn:ea:cmdb:"), col("name")).alias("urn"),
+                col("name").alias("name"),
+                coalesce(col("ci_class"), lit("ConfigurationItem")).alias("kind"),
+                coalesce(col("owner_team"), lit("Enterprise Architecture")).alias("owner_team"),
+                coalesce(col("operational_status"), lit("run")).alias("lifecycle_status"),
+                coalesce(col("tier"), lit("Tier-2")).alias("criticality"),
+                coalesce(col("raw_attributes"), lit("{}")).alias("metadata"),
+                current_timestamp().alias("last_updated"),
+            )
+        )
+
+        return git_exploded.unionByName(cmdb_projected).dropDuplicates(["urn"])
+
+    @dlt.table(
+        name="silver_edges",
+        comment="Conformed Silver PAM edges representing ArchiMate relations",
+    )
+    @dlt.expect_or_drop("valid_source", "source_urn IS NOT NULL")
+    @dlt.expect_or_drop("valid_target", "target_urn IS NOT NULL")
+    def silver_edges():
+        from pyspark.sql.functions import col, coalesce, current_timestamp, explode, from_json, lit
+        from pyspark.sql.types import ArrayType, BooleanType, StringType, StructField, StructType
+
+        edge_schema = ArrayType(
+            StructType([
+                StructField("source_urn", StringType(), True),
+                StructField("target_urn", StringType(), True),
+                StructField("relation", StringType(), True),
+                StructField("protocol", StringType(), True),
+                StructField("contains_pii", BooleanType(), True),
+                StructField("transit_encryption", StringType(), True),
+                StructField("transferred_classification", StringType(), True),
+            ])
+        )
+
+        git_df = spark.read.table("ea.bronze.git_repos")
+        edges_df = (
+            git_df
+            .withColumn("parsed_edges", from_json(col("discovered_edges"), edge_schema))
+            .select(explode(col("parsed_edges")).alias("e"))
+            .select(
+                col("e.source_urn").alias("source_urn"),
+                col("e.target_urn").alias("target_urn"),
+                coalesce(col("e.relation"), lit("accesses")).alias("relation"),
+                coalesce(col("e.protocol"), lit("HTTPS/JSON")).alias("protocol"),
+                coalesce(col("e.contains_pii"), lit(False)).alias("contains_pii"),
+                coalesce(col("e.transit_encryption"), lit("tls_1_3")).alias("transit_encryption"),
+                coalesce(col("e.transferred_classification"), lit("Internal")).alias("transferred_classification"),
+                current_timestamp().alias("last_updated"),
+            )
+            .dropDuplicates(["source_urn", "target_urn", "relation"])
+        )
+        return edges_df
+
+    @dlt.table(
+        name="gold_time_matrix",
+        comment="Executive TIME Matrix calculated from cloud costs and estate health",
+    )
+    @dlt.expect_or_drop("valid_disposition", "disposition IN ('Invest', 'Tolerate', 'Migrate', 'Eliminate')")
+    def gold_time_matrix():
+        from pyspark.sql.functions import col, concat, lit, round, to_date, when
+
+        cloud_df = spark.read.table("ea.bronze.cloud_resources")
+        return (
+            cloud_df
+            .select(
+                col("resource_name").alias("name"),
+                concat(lit("urn:ea:resource:"), col("resource_name")).alias("urn"),
+                when(col("resource_name").contains("cassandra"), "Eliminate")
+                .when(col("resource_name").contains("customer-pii") | col("resource_name").contains("kinesis"), "Migrate")
+                .when(col("resource_name").contains("auth"), "Tolerate")
+                .otherwise("Invest").alias("disposition"),
+                round(col("monthly_cost_usd") * 12.0, 2).alias("annual_run_cost"),
+                when(col("resource_name").contains("cassandra"), 85)
+                .when(col("resource_name").contains("customer-pii") | col("resource_name").contains("kinesis"), 65)
+                .when(col("resource_name").contains("auth"), 45)
+                .otherwise(15).cast("int").alias("tech_debt_score"),
+                when(col("resource_name").contains("cassandra"), to_date(lit("2024-04-30")))
+                .when(col("resource_name").contains("customer-pii"), to_date(lit("2025-06-30")))
+                .when(col("resource_name").contains("auth"), to_date(lit("2025-12-31")))
+                .otherwise(to_date(lit("2029-12-31"))).alias("eol_date"),
+            )
         )
 
     @dlt.table(
-        name="edges",
-        comment="Conformed PAM edges representing ArchiMate relations",
-        path=f"{SCHEMA_METAMODEL}.edges"
+        name="gold_drift_reconciled",
+        comment="Reconciled architecture and CMDB drift between declared manifests and cloud telemetry",
     )
-    def silver_edges():
-        bronze_git = dlt.read("git_repos")
-        return bronze_git
+    @dlt.expect_or_drop("valid_drift_type", "drift_type IN ('ORPHAN_CI', 'SHADOW_IT', 'ATTRIBUTE_DRIFT', 'POLICY_VIOLATION')")
+    def gold_drift_reconciled():
+        from pyspark.sql.functions import col, concat, current_timestamp, lit, struct, to_json, when
 
-    @dlt.table(
-        name="time_matrix",
-        comment="Executive TIME Matrix calculated from cloud costs and estate health",
-        path=f"{SCHEMA_GOLD}.time_matrix"
-    )
-    def gold_time_matrix():
-        pass
+        cmdb_df = spark.read.table("ea.bronze.cmdb_ci").alias("c")
+        cloud_df = spark.read.table("ea.bronze.cloud_resources").alias("cl")
+
+        # 1. Orphan CIs: In CMDB but absent from Cloud
+        orphan_df = (
+            cmdb_df
+            .join(cloud_df, col("c.name") == col("cl.resource_name"), "left_anti")
+            .select(
+                concat(lit("drift-orphan-"), col("c.name")).alias("drift_id"),
+                concat(lit("urn:ea:cmdb:"), col("c.name")).alias("urn"),
+                col("c.name").alias("ci_name"),
+                lit("ORPHAN_CI").alias("drift_type"),
+                when(col("c.tier").isin("Tier-0", "Tier-1"), "HIGH").otherwise("MEDIUM").alias("severity"),
+                concat(lit("CMDB Active: "), col("c.operational_status")).alias("declared_state"),
+                lit("Terminated / Not Discovered in Cloud").alias("runtime_state"),
+                lit("Orphan CI: Decommissioned asset retained in CMDB").alias("discrepancy_type"),
+                lit("RETIRE_CMDB_RECORD").alias("remediation_action"),
+                to_json(struct(col("c.sys_id").alias("sys_id"), lit("Retired").alias("operational_status"))).alias("remediation_payload"),
+                current_timestamp().alias("reconciled_at"),
+            )
+        )
+
+        # 2. Shadow IT: In Cloud but absent from CMDB
+        shadow_df = (
+            cloud_df
+            .join(cmdb_df, col("cl.resource_name") == col("c.name"), "left_anti")
+            .select(
+                concat(lit("drift-shadow-"), col("cl.resource_name")).alias("drift_id"),
+                concat(lit("urn:ea:cloud:"), col("cl.resource_name")).alias("urn"),
+                col("cl.resource_name").alias("ci_name"),
+                lit("SHADOW_IT").alias("drift_type"),
+                when(col("cl.monthly_cost_usd") > 1000.0, "HIGH").otherwise("MEDIUM").alias("severity"),
+                lit("Unregistered in CMDB").alias("declared_state"),
+                concat(lit("Active Cloud Resource: $"), col("cl.monthly_cost_usd"), lit("/mo")).alias("runtime_state"),
+                lit("Undocumented Asset: Active cloud resource unmanaged in CMDB").alias("discrepancy_type"),
+                lit("REGISTER_CMDB_CI").alias("remediation_action"),
+                to_json(struct(col("cl.resource_name").alias("name"), col("cl.resource_type").alias("ci_class"))).alias("remediation_payload"),
+                current_timestamp().alias("reconciled_at"),
+            )
+        )
+
+        return orphan_df.unionByName(shadow_df)
 
 
 # ==============================================================================
@@ -81,7 +241,11 @@ class StandaloneConformancePipeline:
     """
 
     def __init__(self):
-        self.client = get_unity_catalog_client()
+        if get_unity_catalog_client is not None:
+            self.client = get_unity_catalog_client()
+        else:
+            from src.data_backbone.client import get_unity_catalog_client as _get_client
+            self.client = _get_client()
 
     def conform_bronze_git_repos(self) -> Dict[str, int]:
         """Extract nodes, edges, and evidence from ea.bronze.git_repos."""
@@ -550,7 +714,7 @@ class StandaloneConformancePipeline:
 def main():
     parser = argparse.ArgumentParser(description="DLT & Standalone Conformance Pipeline")
     parser.add_argument("--mode", default="standalone", choices=["standalone", "dlt"], help="Execution mode")
-    args = parser.parse_args()
+    args, _ = parser.parse_known_args()
 
     if args.mode == "standalone":
         pipeline = StandaloneConformancePipeline()
@@ -558,5 +722,5 @@ def main():
         print(f"Conformance Pipeline Finished: {json.dumps(summary, indent=2)}")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__" and not DLT_AVAILABLE:
     main()
