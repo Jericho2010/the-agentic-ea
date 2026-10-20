@@ -698,6 +698,210 @@ def extract_svg_from_html(html_path: Path) -> Optional[str]:
     return svg_chunk
 
 
+def _generate_fallback_architecture_html(
+    nodes: List[Dict[str, Any]],
+    edges: List[Dict[str, Any]],
+    title: str = "Enterprise Architecture Living Map",
+    subtitle: str = "Databricks Unity Catalog Conformed Metamodel Topology",
+) -> str:
+    """Generate a clean, responsive standalone SVG/CSS HTML fallback visualization."""
+    cols = 4
+    card_w = 220
+    card_h = 90
+    gap_x = 40
+    gap_y = 50
+    start_x = 50
+    start_y = 120
+
+    node_coords = {}
+    node_elements = []
+
+    color_map = {
+        "Application": ("#38bdf8", "#0369a1"),
+        "Microservice": ("#a78bfa", "#6d28d9"),
+        "Database": ("#34d399", "#047857"),
+        "CloudResource": ("#fbbf24", "#b45309"),
+        "APIInterface": ("#f472b6", "#be185d"),
+        "BusinessCapability": ("#60a5fa", "#1d4ed8"),
+        "AIModel": ("#c084fc", "#7e22ce"),
+    }
+
+    for i, n in enumerate(nodes[:28]):
+        col = i % cols
+        row = i // cols
+        x = start_x + col * (card_w + gap_x)
+        y = start_y + row * (card_h + gap_y)
+        node_coords[n.get("urn", str(i))] = (x + card_w // 2, y + card_h // 2)
+        node_coords[n.get("name", str(i))] = (x + card_w // 2, y + card_h // 2)
+
+        kind = n.get("kind", "Microservice")
+        accent, stroke_color = color_map.get(kind, ("#94a3b8", "#475569"))
+        name = n.get("name", "Unknown")
+        crit = n.get("criticality", "Tier-2")
+
+        node_elements.append(f"""
+        <g class="arch-node" transform="translate({x},{y})">
+            <rect width="{card_w}" height="{card_h}" rx="8" fill="#131d2e" stroke="{stroke_color}" stroke-width="1.5"/>
+            <rect x="0" y="0" width="6" height="{card_h}" rx="3" fill="{accent}"/>
+            <text x="16" y="24" fill="{accent}" font-family="system-ui, sans-serif" font-size="10" font-weight="700" letter-spacing="0.5">{kind.upper()}</text>
+            <text x="16" y="46" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="13" font-weight="600">{name[:24]}</text>
+            <text x="16" y="68" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="11">{crit} • {n.get('lifecycle_status', 'run')}</text>
+        </g>
+        """)
+
+    edge_elements = []
+    for e in edges[:35]:
+        s_coord = node_coords.get(e.get("source_urn")) or node_coords.get(e.get("source"))
+        t_coord = node_coords.get(e.get("target_urn")) or node_coords.get(e.get("target"))
+        if s_coord and t_coord:
+            x1, y1 = s_coord
+            x2, y2 = t_coord
+            edge_elements.append(f"""
+            <g class="arch-edge">
+                <line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="#334155" stroke-width="1.5" stroke-dasharray="4,4" marker-end="url(#arrow)"/>
+            </g>
+            """)
+
+    total_rows = (min(len(nodes), 28) + cols - 1) // cols
+    svg_height = max(700, start_y + total_rows * (card_h + gap_y) + 60)
+    svg_width = start_x * 2 + cols * card_w + (cols - 1) * gap_x
+
+    svg_markup = f"""
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {svg_width} {svg_height}" width="100%" height="100%">
+        <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+            </marker>
+        </defs>
+        <rect width="100%" height="100%" fill="#080c16"/>
+        <g transform="translate(50, 45)">
+            <text x="0" y="0" fill="#38bdf8" font-family="system-ui, sans-serif" font-size="20" font-weight="700">{title}</text>
+            <text x="0" y="24" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="13">{subtitle} • {len(nodes)} conformed nodes • {len(edges)} relations</text>
+        </g>
+        <g id="edges">{''.join(edge_elements)}</g>
+        <g id="nodes">{''.join(node_elements)}</g>
+    </svg>
+    """
+
+    return f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>{title}</title>
+    <style>
+        body, html {{ margin: 0; padding: 0; width: 100%; height: 100%; background: #080c16; font-family: system-ui, sans-serif; overflow: auto; }}
+        .arch-node {{ transition: transform 0.2s ease; cursor: pointer; }}
+        .arch-node:hover {{ transform: scale(1.02); }}
+        .arch-edge {{ opacity: 0.6; }}
+    </style>
+</head>
+<body>
+    {svg_markup}
+</body>
+</html>"""
+
+
+def _generate_fallback_sequence_html(
+    participants: Optional[List[Dict[str, Any]]] = None,
+    messages: Optional[List[Dict[str, Any]]] = None,
+    title: str = "Checkout & Payment Sequence Flow",
+    subtitle: str = "Enterprise API Gateway & Inter-Service Transaction Trace",
+) -> str:
+    participants = participants or []
+    messages = messages or []
+    svg_width = max(800, len(participants) * 160 + 100)
+    svg_height = max(500, len(messages) * 45 + 180)
+
+    part_elements = []
+    part_lines = []
+    part_x = {}
+    for i, p in enumerate(participants):
+        x = 80 + i * 160
+        part_x[p.get("id")] = x
+        part_elements.append(f"""
+        <g transform="translate({x - 60}, 60)">
+            <rect width="120" height="40" rx="6" fill="#131d2e" stroke="#38bdf8" stroke-width="1.5"/>
+            <text x="60" y="25" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="12" font-weight="600" text-anchor="middle">{p.get('label', p.get('id'))}</text>
+        </g>
+        """)
+        part_lines.append(f'<line x1="{x}" y1="100" x2="{x}" y2="{svg_height - 40}" stroke="#1e293b" stroke-width="1.5" stroke-dasharray="4,4"/>')
+
+    msg_elements = []
+    for i, m in enumerate(messages):
+        y = 130 + i * 40
+        x1 = part_x.get(m.get("from"), 80)
+        x2 = part_x.get(m.get("to"), 240)
+        color = "#38bdf8" if m.get("variant") == "emphasis" else ("#34d399" if m.get("variant") == "return" else "#f59e0b")
+        msg_elements.append(f"""
+        <g>
+            <line x1="{x1}" y1="{y}" x2="{x2}" y2="{y}" stroke="{color}" stroke-width="1.5" marker-end="url(#arrow)"/>
+            <text x="{(x1 + x2) / 2}" y="{y - 6}" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle">{m.get('label', '')}</text>
+        </g>
+        """)
+
+    svg_markup = f"""
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {svg_width} {svg_height}" width="100%" height="100%">
+        <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#38bdf8"/>
+            </marker>
+        </defs>
+        <rect width="100%" height="100%" fill="#080c16"/>
+        <text x="40" y="35" fill="#38bdf8" font-family="system-ui, sans-serif" font-size="18" font-weight="700">{title}</text>
+        {''.join(part_lines)}
+        {''.join(part_elements)}
+        {''.join(msg_elements)}
+    </svg>
+    """
+    return f"<!DOCTYPE html><html><body style='margin:0;background:#080c16;'>{svg_markup}</body></html>"
+
+
+def _generate_fallback_workflow_html(
+    steps: Optional[List[Dict[str, Any]]] = None,
+    title: str = "Order-to-Cash Customer Journey Workflow",
+    subtitle: str = "Interactive Stage Latency, Bottleneck Identification & Target-State Replatforming",
+) -> str:
+    steps = steps or []
+    svg_width = max(900, len(steps) * 180 + 100)
+    svg_height = 400
+    step_elements = []
+    for i, s in enumerate(steps):
+        x = 60 + i * 180
+        y = 120
+        is_bn = s.get("is_bottleneck", False)
+        stroke = "#ef4444" if is_bn else "#38bdf8"
+        bg = "#1e131d" if is_bn else "#131d2e"
+        badge = "⚠️ BOTTLENECK" if is_bn else "STAGE"
+        step_elements.append(f"""
+        <g transform="translate({x}, {y})">
+            <rect width="150" height="100" rx="8" fill="{bg}" stroke="{stroke}" stroke-width="1.5"/>
+            <text x="12" y="24" fill="{stroke}" font-family="system-ui, sans-serif" font-size="9" font-weight="700">{badge}</text>
+            <text x="12" y="46" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="12" font-weight="600">{s.get('name', f'Step {i+1}')[:18]}</text>
+            <text x="12" y="70" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="10">{s.get('service', '')[:18]}</text>
+            <text x="12" y="88" fill="{stroke}" font-family="system-ui, sans-serif" font-size="11" font-weight="700">{s.get('latency_p95_ms', 0)}ms p95</text>
+        </g>
+        """)
+        if i < len(steps) - 1:
+            step_elements.append(f"""
+            <line x1="{x + 150}" y1="{y + 50}" x2="{x + 180}" y2="{y + 50}" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+            """)
+
+    svg_markup = f"""
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {svg_width} {svg_height}" width="100%" height="100%">
+        <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#38bdf8"/>
+            </marker>
+        </defs>
+        <rect width="100%" height="100%" fill="#080c16"/>
+        <text x="40" y="40" fill="#38bdf8" font-family="system-ui, sans-serif" font-size="18" font-weight="700">{title}</text>
+        <text x="40" y="65" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="12">{subtitle}</text>
+        {''.join(step_elements)}
+    </svg>
+    """
+    return f"<!DOCTYPE html><html><body style='margin:0;background:#080c16;'>{svg_markup}</body></html>"
+
+
 def compile_archify_diagram(
     nodes: List[Dict[str, Any]],
     edges: List[Dict[str, Any]],
@@ -739,23 +943,27 @@ def compile_archify_diagram(
     with open(temp_json, "w", encoding="utf-8") as f:
         json.dump(spec, f, indent=2)
 
-    # Invoke Archify CLI
-    cmd = [
-        "node",
-        str(ARCHIFY_CLI),
-        "finalize",
-        "architecture",
-        str(temp_json),
-        str(temp_html),
-        "--quality",
-        "standard",
-        "--json",
-    ]
-    res = subprocess.run(cmd, cwd=str(ROOT_DIR), capture_output=True, text=True)
-    if res.returncode != 0:
-        print(f"[Archify Bridge] Warning: Archify CLI exited with {res.returncode}:\n{res.stderr or res.stdout}", file=sys.stderr)
-        if not temp_html.exists():
-            raise RuntimeError(f"Archify CLI failed to generate HTML: {res.stderr or res.stdout}")
+    # Invoke Archify CLI if available
+    cli_available = ARCHIFY_CLI.exists()
+    if cli_available:
+        cmd = [
+            "node",
+            str(ARCHIFY_CLI),
+            "finalize",
+            "architecture",
+            str(temp_json),
+            str(temp_html),
+            "--quality",
+            "standard",
+            "--json",
+        ]
+        res = subprocess.run(cmd, cwd=str(ROOT_DIR), capture_output=True, text=True)
+        if res.returncode != 0:
+            print(f"[Archify Bridge] Warning: Archify CLI exited with {res.returncode}:\n{res.stderr or res.stdout}", file=sys.stderr)
+
+    if not temp_html.exists():
+        fallback_html = _generate_fallback_architecture_html(nodes=nodes, edges=edges, title=title, subtitle=subtitle)
+        temp_html.write_text(fallback_html, encoding="utf-8")
 
     # Copy HTML
     html_content = temp_html.read_text(encoding="utf-8")
@@ -928,23 +1136,27 @@ def compile_archify_sequence_diagram(
     with open(temp_json, "w", encoding="utf-8") as f:
         json.dump(spec, f, indent=2)
 
-    # Invoke Archify CLI for sequence
-    cmd = [
-        "node",
-        str(ARCHIFY_CLI),
-        "finalize",
-        "sequence",
-        str(temp_json),
-        str(temp_html),
-        "--quality",
-        "standard",
-        "--json",
-    ]
-    res = subprocess.run(cmd, cwd=str(ROOT_DIR), capture_output=True, text=True)
-    if res.returncode != 0:
-        print(f"[Archify Bridge] Warning: Archify CLI sequence exited with {res.returncode}:\n{res.stderr or res.stdout}", file=sys.stderr)
-        if not temp_html.exists():
-            raise RuntimeError(f"Archify CLI failed to generate sequence HTML: {res.stderr or res.stdout}")
+    # Invoke Archify CLI for sequence if available
+    cli_available = ARCHIFY_CLI.exists()
+    if cli_available:
+        cmd = [
+            "node",
+            str(ARCHIFY_CLI),
+            "finalize",
+            "sequence",
+            str(temp_json),
+            str(temp_html),
+            "--quality",
+            "standard",
+            "--json",
+        ]
+        res = subprocess.run(cmd, cwd=str(ROOT_DIR), capture_output=True, text=True)
+        if res.returncode != 0:
+            print(f"[Archify Bridge] Warning: Archify CLI sequence exited with {res.returncode}:\n{res.stderr or res.stdout}", file=sys.stderr)
+
+    if not temp_html.exists():
+        fallback_html = _generate_fallback_sequence_html(participants=participants, messages=messages, title=title, subtitle=subtitle)
+        temp_html.write_text(fallback_html, encoding="utf-8")
 
     # Copy HTML
     html_content = temp_html.read_text(encoding="utf-8")
@@ -1147,22 +1359,26 @@ def compile_archify_workflow_diagram(
     with open(temp_json, "w", encoding="utf-8") as f:
         json.dump(spec, f, indent=2)
 
-    cmd = [
-        "node",
-        str(ARCHIFY_CLI),
-        "finalize",
-        "workflow",
-        str(temp_json),
-        str(temp_html),
-        "--quality",
-        "standard",
-        "--json",
-    ]
-    res = subprocess.run(cmd, cwd=str(ROOT_DIR), capture_output=True, text=True)
-    if res.returncode != 0:
-        print(f"[Archify Bridge] Warning: Archify CLI workflow exited with {res.returncode}:\n{res.stderr or res.stdout}", file=sys.stderr)
-        if not temp_html.exists():
-            raise RuntimeError(f"Archify CLI failed to generate workflow HTML: {res.stderr or res.stdout}")
+    cli_available = ARCHIFY_CLI.exists()
+    if cli_available:
+        cmd = [
+            "node",
+            str(ARCHIFY_CLI),
+            "finalize",
+            "workflow",
+            str(temp_json),
+            str(temp_html),
+            "--quality",
+            "standard",
+            "--json",
+        ]
+        res = subprocess.run(cmd, cwd=str(ROOT_DIR), capture_output=True, text=True)
+        if res.returncode != 0:
+            print(f"[Archify Bridge] Warning: Archify CLI workflow exited with {res.returncode}:\n{res.stderr or res.stdout}", file=sys.stderr)
+
+    if not temp_html.exists():
+        fallback_html = _generate_fallback_workflow_html(steps=steps, title=title, subtitle=subtitle)
+        temp_html.write_text(fallback_html, encoding="utf-8")
 
     # Copy HTML
     html_content = temp_html.read_text(encoding="utf-8")

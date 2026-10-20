@@ -38,7 +38,11 @@ ENV/
 *.swo
 .DS_Store
 *.log
-data/
+data/*
+!data/diagrams/
+!data/diagrams/**
+!data/backstage/
+!data/backstage/**
 .archify/
 .pytest_cache/
 

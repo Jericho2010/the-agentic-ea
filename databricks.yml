@@ -1,6 +1,11 @@
 bundle:
   name: the-agentic-ea
 
+sync:
+  include:
+    - "data/diagrams/**"
+    - "data/backstage/**"
+
 targets:
   dev:
     default: true
