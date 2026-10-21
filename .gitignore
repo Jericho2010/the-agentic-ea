@@ -43,6 +43,15 @@ data/*
 !data/diagrams/**
 !data/backstage/
 !data/backstage/**
+!data/video/
+!data/video/the_agentic_ea_launch.mp4
+!data/video/frames/
+!data/video/frames/**
+data/video/raw/
+data/video/intermediate/
+data/video/overlays/
+data/video/audio/
+data/video/test/
 .archify/
 .pytest_cache/
 

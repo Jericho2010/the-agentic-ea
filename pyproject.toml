@@ -16,6 +16,8 @@ dependencies = [
     "pyyaml>=6.0",
     "fastapi>=0.151.0",
     "uvicorn[standard]>=0.54.0",
+    "edge-tts>=7.3.1",
+    "playwright>=1.64.0",
 ]
 
 [project.optional-dependencies]
