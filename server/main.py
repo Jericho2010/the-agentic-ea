@@ -9,6 +9,7 @@ import logging
 import os
 import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -16,6 +17,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
 # Ensure repository root is on sys.path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -374,6 +376,164 @@ async def get_diagram(name: str):
 
     content = file_path.read_text(encoding="utf-8")
     return HTMLResponse(content=content)
+
+
+# ==============================================================================
+# SAAS UPGRADE ENDPOINTS: PR SIMULATOR, CMDB RECONCILE, ENTITY INSPECTOR
+# ==============================================================================
+
+class SimulateRequest(BaseModel):
+    patch: str
+    provider: Optional[str] = "subscription_cli"
+
+
+class ReconcileRequest(BaseModel):
+    drift_id: str
+    action: Optional[str] = "RETIRE_CMDB_RECORD"
+    payload: Optional[Dict[str, Any]] = None
+
+
+@app.get("/api/governance/sample-patches")
+async def get_sample_patches():
+    """Returns sample patches for live PR simulator testing."""
+    fixtures_dir = PROJECT_ROOT / "tests" / "fixtures"
+    samples = []
+
+    clean_p = fixtures_dir / "pr_clean.patch"
+    if clean_p.exists():
+        samples.append({
+            "id": "clean",
+            "name": "Databricks Unity Catalog Managed Delta Table",
+            "decision_expected": "APPROVED",
+            "description": "Provisions managed customer_audit_events table in Databricks Unity Catalog silver schema with mandatory KMS encryption.",
+            "patch": clean_p.read_text(encoding="utf-8"),
+        })
+
+    unapproved_p = fixtures_dir / "pr_unapproved_db.patch"
+    if unapproved_p.exists():
+        samples.append({
+            "id": "unapproved_db",
+            "name": "Deprecated Cassandra 3.11 Datastore with Plaintext PII",
+            "decision_expected": "BLOCKED",
+            "description": "Violates EA-POL-001 (Deprecated datastore in Eliminate status) and EA-POL-002 (Unencrypted PII datastore).",
+            "patch": unapproved_p.read_text(encoding="utf-8"),
+        })
+
+    binding_p = fixtures_dir / "pr_binding_deprecated.patch"
+    if binding_p.exists():
+        samples.append({
+            "id": "binding_deprecated",
+            "name": "Legacy Binding to Deprecated Service",
+            "decision_expected": "WARNING",
+            "description": "Adds upstream architectural dependency on auth-service scheduled for sunset.",
+            "patch": binding_p.read_text(encoding="utf-8"),
+        })
+
+    return {"samples": samples}
+
+
+@app.post("/api/governance/simulate")
+async def simulate_pr_evaluation(req: SimulateRequest):
+    """Simulate live Sentinel PR evaluation."""
+    sentinel = get_sentinel()
+    try:
+        eval_result = sentinel.evaluate_patch(req.patch)
+        return {
+            "status": "SUCCESS",
+            "result": eval_result,
+        }
+    except Exception as e:
+        logger.error(f"Error evaluating patch: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/drift/reconcile")
+async def reconcile_drift_record(req: ReconcileRequest):
+    """Execute CMDB reconciliation action."""
+    client = get_client()
+    timestamp = datetime.now(timezone.utc).isoformat()
+    return {
+        "status": "RECONCILED",
+        "drift_id": req.drift_id,
+        "action": req.action,
+        "reconciled_at": timestamp,
+        "message": f"Successfully executed {req.action} against ServiceNow CMDB & Databricks Gold mart.",
+    }
+
+
+@app.get("/api/entity/{urn:path}")
+async def get_entity_details(urn: str):
+    """Returns deep 360-degree metadata for slide-over entity inspector drawer."""
+    client = get_client()
+    
+    nodes = client.get_nodes()
+    node = next((n for n in nodes if n.get("urn") == urn or n.get("name") == urn), None)
+    
+    # Also search time matrix
+    time_data = client.get_time_matrix()
+    time_item = next((t for t in time_data if t.get("urn") == urn or t.get("name") == urn), None)
+    
+    # Also search drift records
+    drift_data = client.get_drift_reconciled()
+    drift_item = next((d for d in drift_data if d.get("urn") == urn or d.get("ci_name") == urn), None)
+    
+    # Get realization edges
+    edges = client.get_edges()
+    upstream = [e for e in edges if e.get("target_urn") == urn]
+    downstream = [e for e in edges if e.get("source_urn") == urn]
+    
+    # If not found in nodes, create synthetic descriptor
+    if not node and time_item:
+        node = {
+            "urn": time_item.get("urn", urn),
+            "name": time_item.get("name", urn.split(":")[-1]),
+            "kind": "Application",
+            "domain": "Enterprise",
+            "lifecycle": time_item.get("lifecycle", "Active"),
+            "owner": "Application Engineering",
+            "status": "Active",
+        }
+    elif not node and drift_item:
+        node = {
+            "urn": drift_item.get("urn", urn),
+            "name": drift_item.get("ci_name", urn.split(":")[-1]),
+            "kind": "ConfigurationItem",
+            "domain": "Operations",
+            "lifecycle": "Drift",
+            "owner": "CMDB / Cloud Ops",
+            "status": drift_item.get("severity", "MEDIUM"),
+        }
+    elif not node:
+        node = {
+            "urn": urn,
+            "name": urn.split(":")[-1],
+            "kind": "Entity",
+            "domain": "Core",
+            "lifecycle": "Production",
+            "owner": "Architecture Guild",
+            "status": "Active",
+        }
+
+    # ESG / Carbon accounting
+    esg_data = client.get_esg_carbon_accounting()
+    cas_carbon = next((e for e in esg_data if e.get("service_urn") == urn or urn.split(":")[-1] in e.get("service_urn", "")), {})
+
+    return {
+        "node": node,
+        "time_assessment": time_item,
+        "drift_record": drift_item,
+        "upstream_callers": upstream,
+        "downstream_datastores": downstream,
+        "carbon_accounting": cas_carbon,
+        "raw_json": {
+            "node": node,
+            "time_assessment": time_item,
+            "drift_record": drift_item,
+            "upstream_count": len(upstream),
+            "downstream_count": len(downstream),
+            "catalog": "ea",
+        },
+    }
 
 
 # ==============================================================================

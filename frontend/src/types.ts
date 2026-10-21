@@ -29,6 +29,7 @@ export interface TimeItem {
   business_value_score?: number;
   eol_date?: string;
   lifecycle?: string;
+  domain?: string;
 }
 
 export interface LifecycleRisk {
@@ -105,11 +106,16 @@ export interface GovernanceData {
 
 export interface DriftItem {
   urn: string;
+  ci_name?: string;
   discrepancy_type: string;
   severity: string;
   declared_state: string;
   runtime_state: string;
   reconciled_at: string;
+  drift_id?: string;
+  drift_type?: string;
+  remediation_action?: string;
+  remediation_payload?: string;
 }
 
 export interface DriftData {
@@ -141,4 +147,42 @@ export interface DiagramInfo {
   name: string;
   title: string;
   size_bytes: number;
+}
+
+export interface SamplePatch {
+  id: string;
+  name: string;
+  decision_expected: string;
+  description: string;
+  patch: string;
+}
+
+export interface SimulationResult {
+  audit_id?: string;
+  pr_id?: string;
+  decision: string;
+  passed: boolean;
+  policy_status?: string;
+  violations_count: number;
+  violations?: Array<{
+    policy_id: string;
+    rule_name: string;
+    resource_type?: string;
+    resource_name?: string;
+    severity: string;
+    description: string;
+    recommendation?: string;
+  }>;
+  markdown_report?: string;
+  diagrams?: Record<string, string>;
+}
+
+export interface EntityDetail {
+  node: MetamodelNode;
+  time_assessment?: TimeItem | null;
+  drift_record?: DriftItem | null;
+  upstream_callers: MetamodelEdge[];
+  downstream_datastores: MetamodelEdge[];
+  carbon_accounting?: Record<string, any>;
+  raw_json: Record<string, any>;
 }
