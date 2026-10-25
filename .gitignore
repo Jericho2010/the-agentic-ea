@@ -52,6 +52,7 @@ data/video/intermediate/
 data/video/overlays/
 data/video/audio/
 data/video/test/
+data/video/conformed/
 .archify/
 .pytest_cache/
 
