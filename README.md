@@ -1,179 +1,315 @@
-# The Agentic EA (MVP)
+# The Agentic Enterprise Architect
 
-**An autonomous, Databricks-native Enterprise Architecture Platform.**
+**An autonomous, Lakehouse-native Enterprise Architecture Operating System built on Databricks Unity Catalog.**
 
-Target Databricks Workspace: [https://dbc-2d6963b0-153b.cloud.databricks.com/](https://dbc-2d6963b0-153b.cloud.databricks.com/)  
-Catalog: `ea` (Databricks Unity Catalog)
-
----
-
-## 1. Overview & Paradigm Shift
-
-The Agentic EA replaces passive diagram tools and static spreadsheets with a closed-loop, data-driven architecture platform anchored natively in Databricks:
-- **Master Metamodel Backbone:** Pure Unity Catalog Delta tables (`ea.metamodel.*`, `ea.bronze.*`, `ea.silver.*`, `ea.gold.*`).
-- **Autonomous Governance:** **EA Sentinel** running as pre-merge PR gates with Archify visual architecture diffs.
-- **Estate Intelligence & What-If Simulations:** **EA Navigator** computing real-time graph blast radius, financial risk, and target-state ADR drafting.
-- **Unified UI Cockpit:** Native Databricks App (Streamlit) deployable directly in Databricks Apps.
-- **Continuous Ingestion:** Auto Loader and Delta Live Tables (DLT) streaming Git AST, Cloud CUR, and CMDB feeds into Delta Lake.
+[![Databricks Apps](https://img.shields.io/badge/Databricks-Apps-FF3621?logo=databricks&logoColor=white)](https://docs.databricks.com/en/dev-tools/databricks-apps/index.html)
+[![Unity Catalog](https://img.shields.io/badge/Unity%20Catalog-Delta%20Lake-00A4E4?logo=databricks&logoColor=white)](https://docs.databricks.com/en/data-governance/unity-catalog/index.html)
+[![Delta Live Tables](https://img.shields.io/badge/DLT-Serverless%20Pipeline-blue)](https://docs.databricks.com/en/delta-live-tables/index.html)
+[![Frontend](https://img.shields.io/badge/Frontend-React%2019%20%2F%20Vite-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![Backend](https://img.shields.io/badge/Backend-FastAPI%20%2F%20Python%203.11-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Test Suite](https://img.shields.io/badge/Tests-134%2F134%20Passing-brightgreen?logo=pytest&logoColor=white)](tests/)
+[![Architecture](https://img.shields.io/badge/Topology-Archify%20Living%20Maps-purple)](data/diagrams/)
 
 ---
 
-## 2. Subsystem Architecture
+![The Agentic EA SaaS Cockpit](docs/assets/images/cockpit_executive_time_matrix.png)
+
+---
+
+## 1. The Quiet Failure Mode in Enterprise Architecture
+
+Across modern enterprises, organizations invest heavily—often six figures annually—into dedicated Enterprise Architecture platforms (whether per-author licensing like Orbus Infinity or volume-tiered catalog models like Ardoq and LeanIX). Architecture Review Boards (ARBs) assemble, target states are documented in ArchiMate, and diagrams are polished.
+
+Yet within weeks, a familiar divergence sets in:
+- **Manual Toil:** Portfolios rely on periodic spreadsheet uploads and manual CSV imports that go stale before the ink dries.
+- **Brittle Syncs:** Rigid CMDB connectors frequently fail on schema shifts, leaving substantial portions of the cloud estate classified as shadow IT.
+- **Box-Pushing vs. Reality:** What architects *believe* the landscape looks like rarely matches the active Git commits, Terraform state files, or live cloud infrastructure.
+- **Committee Tollgates:** Governance operates as a bureaucratic bottleneck at the end of delivery cycles, catching architectural debt only after systems are already staged for production.
+
+**The Agentic EA** applies **first principles and AI Engineering** to Enterprise Architecture: transforming it from a static diagram catalog into a **live data platform and autonomous, closed-loop engineering workflow** anchored natively on the Databricks Lakehouse.
+
+---
+
+## 2. End-to-End System Architecture
+
+```mermaid
+flowchart TD
+    subgraph INGESTION["1. Continuous Telemetry & Ingestion"]
+        direction TB
+        G["Git Repositories (ASTs & Manifests)"]
+        C["Cloud CUR (FinOps Billing & Tags)"]
+        S["ServiceNow CMDB (Declared CIs)"]
+        A["API Gateways (Runtime Routes & Latency)"]
+        P["Process Traces (Order-to-Cash Tracing)"]
+    end
+
+    subgraph LAKEHOUSE["2. Databricks Unity Catalog Data Backbone"]
+        direction TB
+        B["Bronze Medallion (ea.bronze.*)"]
+        DLT["Serverless Delta Live Tables (DLT Pipeline)<br/>@dlt.table with @dlt.expect_or_drop"]
+        M["Silver PAM Graph (ea.metamodel.*)<br/>• nodes (PAM Entities)<br/>• edges (ArchiMate Relations)<br/>• evidence (AST Fingerprints)"]
+        G_MARTS["Gold Scenario Marts (ea.gold.*)<br/>• time_matrix (Gartner TIME)<br/>• drift_reconciled (CMDB vs Cloud)<br/>• arb_audit_ledger (PR Gate Receipts)<br/>• compliance_lineage (DORA/GDPR)<br/>• interface_rationalization (Zombie APIs)"]
+        
+        B --> DLT
+        DLT --> M
+        DLT --> G_MARTS
+    end
+
+    subgraph REASONING["3. Autonomous Reasoning & Governance Engines"]
+        direction TB
+        SENTINEL["EA Sentinel (Pre-Merge PR Gate)<br/>• IaC Diff Evaluator<br/>• Policy Rulebook (EA-POL-001..003)<br/>• Tri-Modal (Mosaic AI / LLM / Deterministic)<br/>• Archify Vector Delta Generator"]
+        NAVIGATOR["EA Navigator (Estate Intelligence)<br/>• BFS Dependency Graph Traversal<br/>• Financial Risk Exposure ($)<br/>• Customer PII Cross-Border Lineage<br/>• Automated MADR v3.0 Drafting"]
+    end
+
+    subgraph COCKPIT["4. Databricks Apps SaaS Control Plane"]
+        direction TB
+        UI["Modern Enterprise SaaS Cockpit (React 19 + Vite)<br/>• 2D Cartesian TIME Matrix (Spend-scaled bubbles)<br/>• Slide-Over Entity Inspector Drawer (520px sheet)<br/>• ⌘K Universal Command Palette<br/>• Side-by-Side CMDB Reconciliation Console<br/>• Pre-Merge PR Policy Simulator"]
+    end
+
+    INGESTION --> B
+    M <--> NAVIGATOR
+    G_MARTS <--> NAVIGATOR
+    M <--> SENTINEL
+    G_MARTS <--> SENTINEL
+    NAVIGATOR <--> COCKPIT
+    SENTINEL <--> COCKPIT
+```
+
+---
+
+## 3. Four Core Architectural Shifts
+
+### Shift 1: Metamodel as Data, Not Diagrams
+Instead of trapping architecture in isolated proprietary silos, The Agentic EA treats enterprise topology as conformed, queryable data in **Databricks Unity Catalog Delta tables**:
+
+| Schema | Table | Description |
+|---|---|---|
+| `ea.bronze` | `git_repos` | Raw repository manifests, dependencies (`package.json`, `pom.xml`, `pyproject.toml`), and parsed ASTs. |
+| `ea.bronze` | `cloud_resources` | Hourly AWS/Azure/GCP billing line items (CUR) with tags and resource metadata. |
+| `ea.bronze` | `cmdb_ci` | ServiceNow Configuration Items (sys_ids, operational status, assigned owners). |
+| `ea.metamodel` | `nodes` | Conformed Platform Architecture Metamodel (PAM) entities (URN, kind, lifecycle, criticality, tier). |
+| `ea.metamodel` | `edges` | Strict ArchiMate relations (`serves`, `uses`, `realizes`, `migrates_to`) with protocol and PII flags. |
+| `ea.gold` | `time_matrix` | Gartner TIME classification (Invest, Tolerate, Migrate, Eliminate) tied to annual run costs. |
+| `ea.gold` | `drift_reconciled` | Live discrepancy matrix between declared architecture and actual cloud telemetry. |
+
+**Delta Live Tables (DLT) Conformance:**
+Bronze feeds are continuously unified into Silver PAM graphs using serverless Delta Live Tables with built-in expectations:
+```python
+@dlt.table(name="silver_nodes", comment="Conformed Silver PAM nodes")
+@dlt.expect_or_drop("valid_urn", "urn IS NOT NULL AND urn LIKE 'urn:ea:%'")
+@dlt.expect_or_drop("valid_name", "name IS NOT NULL AND length(name) > 0")
+def silver_nodes():
+    return dlt.read("bronze_git_repos").select(...)
+```
+
+---
+
+### Shift 2: Governance in the PR Flow (EA Sentinel)
+Architecture Review Boards shouldn't be tollgates reviewing slide decks. **EA Sentinel** embeds architectural governance directly into developer pull requests:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Dev as Developer / Terraform
+    participant PR as Pull Request / Git Diff
+    participant Sentinel as EA Sentinel Gate
+    participant UC as Unity Catalog (Delta Lake)
+    participant Archify as Archify Living Topology
+    participant Gate as Pre-Merge Check (CI/CD)
+
+    Dev->>PR: Push Infrastructure / Code Diff
+    PR->>Sentinel: Trigger Pre-Merge Evaluation
+    Sentinel->>UC: Query Metamodel & Policy Marts (EA-POL-001..003)
+    Sentinel->>Sentinel: Evaluate Deprecated Stores, PII Paths & Tags
+    alt Violations Detected (e.g. Cassandra 3.11 in 'Eliminate')
+        Sentinel->>Archify: Compile Visual Delta Map (diagram_delta.svg)
+        Sentinel->>Gate: Return BLOCKED with Violation Breakdown
+        Gate-->>Dev: Block Merge + Render Actionable Fix Details
+    else Compliant Architecture
+        Sentinel->>Gate: Return APPROVED
+        Gate-->>Dev: Green Check: Safe to Merge
+    end
+```
+
+**Evaluated Policies:**
+* `EA-POL-001`: Unapproved / Deprecated Datastore Enforcement (blocks deprecated tech like Cassandra 3.11).
+* `EA-POL-002`: Mandatory Customer PII Encryption at Rest (enforces KMS CMK keys).
+* `EA-POL-003`: Mandatory Enterprise Governance Tagging (`OwnerTeam`, `Tier`, `Environment`).
+
+---
+
+### Shift 3: Live Estate Intelligence & Blast Radius (EA Navigator)
+When enterprise architecture is queryable as a graph backed by real-time FinOps telemetry, complex estate queries execute in milliseconds:
+
+```
+[Target Asset: urn:ea:app:payments-api-compute]
+├── Upstream Callers (Inbound Blast Radius):
+│   ├── urn:ea:app:web-storefront       ($148.0k/yr spend)
+│   └── urn:ea:app:checkout-service     ($87.0k/yr spend)
+├── Downstream Sinks (Transitive Dependencies):
+│   └── urn:ea:datastore:cassandra-legacy-cluster [CRITICAL - Sunset EOL/EOS]
+├── Total Financial Exposure at Risk: $235,000.00 / year
+├── Regulatory Exposure: GDPR Art. 32 / DORA Cross-Border Transit Detected
+└── Generated Artifact: Architectural Decision Record (MADR v3.0 formatted)
+```
+
+* **Living Topology Maps:** Dynamically compiled with **Archify**, generating standalone vector SVGs and interactive HTML diagrams with color-coded blast radius paths.
+* **Automated Decision Records:** Drafts standards-compliant Markdown Architecture Decision Records (MADR v3.0) capturing context, options, and consequences for immediate review.
+
+---
+
+### Shift 4: Real Executive Value (The TIME Matrix Reimagined)
+Leadership doesn't need 500-box UML drawings. They need actionable portfolio governance:
+
+* **Interactive 2D Cartesian Canvas:** Plotted on **Business Value (0–100)** vs. **Technical Health (0–100)** across the four Gartner TIME quadrants (*Tolerate, Invest, Migrate, Eliminate*).
+* **Spend-Scaled Bubbles:** Bubble radii dynamically represent verified annual cloud spend, instantly exposing high-cost, low-health systems.
+* **Slide-Over Entity Inspector Drawer (520px):** Click any bubble to slide out deep entity inspection tabs:
+  1. **Overview:** Business capabilities, annual run cost, technical debt scores.
+  2. **Lineage & Graph:** Upstream callers, downstream sinks, protocol metadata.
+  3. **Governance & Rules:** Active policy compliance receipts and security tags.
+  4. **Raw JSON:** Full conformed PAM payload with one-click copy.
+* **Side-by-Side CMDB Reconciliation:** Side-by-side comparison of declared ServiceNow CMDB state against live cloud telemetry, isolating Orphan CIs and Shadow IT with single-click reconciliation.
+
+---
+
+## 4. Repository Structure
 
 ```
 the-agentic-ea/
-├── databricks/             # Databricks Asset Bundle (DAB) declarations
-│   ├── databricks.yml      # Target host: dbc-2d6963b0-153b, schemas, apps, DLT pipelines
-│   └── resources/          # Conformed SQL DDLs for Unity Catalog
+├── databricks.yml              # Databricks Asset Bundle (DAB) declaration (Serverless DLT, Apps)
+├── app.yaml                    # Databricks Apps compute container & ASGI environment config
 ├── src/
-│   ├── data_backbone/      # Unity Catalog conformed tables client & seed loader
-│   ├── archify/            # Archify v3 CLI bridge (dual HTML & vector SVG generator)
-│   ├── navigator/          # EA Navigator reasoning engine & blast radius calculator
-│   ├── sentinel/           # EA Sentinel pre-merge policy evaluation & PR gate
-│   └── ingestion/          # Modular extractors (GitHub Org, Cloud CUR, DLT pipeline)
-├── apps/
-│   └── ea_navigator/       # Databricks App (Streamlit) Cockpit with 5 interactive tabs
-├── pipelines/              # Delta Live Tables Medallion conformance transforms
-├── schemas/
-│   └── pam/                # Platform Architecture Metamodel (Draft-07 contracts)
-├── tests/                  # Automated pytest suite (schemas, navigator, sentinel, ingestion)
-├── demo.sh                 # Single executable end-to-end demonstration harness
-├── setup.sh                # uv environment bootstrapping
-├── run.sh                  # Execution entrypoint
-└── README.md
+│   ├── data_backbone/          # Unity Catalog client, table mappings, and seed loaders
+│   ├── navigator/              # EA Navigator reasoning engine & BFS blast radius calculator
+│   ├── sentinel/               # EA Sentinel pre-merge policy evaluation engine & PR gate
+│   ├── ingestion/              # Modular telemetry ingestors (Git AST, Cloud CUR, ServiceNow)
+│   └── archify/                # Archify v3 CLI bridge for living vector topology generation
+├── pipelines/                  # Delta Live Tables Medallion conformance transforms
+├── server/                     # FastAPI ASGI backend hosting REST APIs & Vite frontend
+├── frontend/                   # Modern React 19 / TypeScript / Tailwind CSS SaaS Cockpit
+│   ├── src/components/         # Sidebar, TopNav, CommandPalette, EntityInspectorDrawer
+│   └── src/workspaces/         # Executive, Governance, Engineering, and Operations Workspaces
+├── data/
+│   ├── diagrams/               # Conformed Archify vector SVG and HTML living architecture maps
+│   └── unity_catalog/          # High-performance local fallback database for offline execution
+├── schemas/pam/                # Platform Architecture Metamodel (Draft-07 JSON Schemas)
+├── docs/
+│   ├── assets/images/          # High-resolution SaaS cockpit screenshots and UI captures
+│   └── specs/                  # Architecture specifications and build records
+├── tests/                      # Automated test suite (134 scenario tests across S01–S20)
+├── demo.sh                     # Single-command executable verification harness
+├── setup.sh                    # uv virtual environment bootstrapping script
+└── run.sh                      # Entrypoint script launching the full platform
 ```
 
 ---
 
-## 3. Core Subsystems
+## 5. Pristine Databricks Integration
 
-### A. Data Backbone (Databricks Unity Catalog)
-- **Conformed Tables:**
-  - `ea.metamodel.nodes`: PAM nodes (URN, name, kind, owner_team, lifecycle_status, criticality, metadata).
-  - `ea.metamodel.edges`: ArchiMate relations (source_urn, target_urn, relation, protocol, contains_pii).
-  - `ea.metamodel.evidence`: AST signatures, commit hashes, provenance evidence.
-- **Bronze Ingestion Feeds:**
-  - `ea.bronze.git_repos`: Raw repository manifests and AST dependency extracts.
-  - `ea.bronze.cloud_resources`: Cloud provider CUR billing telemetry and tags.
-  - `ea.bronze.cmdb_ci`: Raw ServiceNow CMDB configuration items.
-  - `ea.bronze.api_gateway_logs`: Runtime API gateway access logs, protocols, and latency metrics.
-  - `ea.bronze.process_event_logs`: Runtime process execution trace spans, step durations, and execution status.
-  - `ea.bronze.ai_models`: Registered enterprise AI/ML models, framework, version, task type, dataset, and serving endpoint references.
-- **Gold Scenario Marts:**
-  - `ea.gold.time_matrix`: Gartner TIME classification (Invest, Tolerate, Migrate, Eliminate) and annual run costs.
-  - `ea.gold.drift_reconciled`: Tracked discrepancies between declared architecture and live telemetry.
-  - `ea.gold.capability_realization`: Business capability FinOps attribution and technical debt scores.
-  - `ea.gold.arb_audit_ledger`: Architecture Review Board pre-merge audit receipts and policy decisions.
-  - `ea.gold.ma_synergies`: M&A capability overlap, technology stack divergence, and synergy savings.
-  - `ea.gold.compliance_lineage`: Regulatory compliance dataflow lineage, jurisdiction boundaries, and encryption posture.
-  - `ea.gold.interface_rationalization`: Reconciled interface catalog tracking declared vs active runtime routes, discrepancy types (Zombie/Shadow, Dead/Orphan, Protocol Sprawl), and rationalization actions.
-  - `ea.gold.process_optimization`: Conformed business process mining metrics (p50, p95, p99 latency, SLA targets, error rates, bottleneck flags, and modernization actions).
-  - `ea.gold.ai_governance`: Conformed EU AI Act risk classification mart (Unacceptable/Prohibited, High-Risk, Limited-Risk, Minimal-Risk), compliance status, model card availability, data lineage, human oversight, and automated governance actions.
-  - `ea.gold.resilience_dr`: Disaster Recovery RTO/RPO SLAs, multi-region replication strategies, failover automation, and single-point-of-failure (SPOF) tracking.
-  - `ea.gold.tech_debt_hotspots`: Technical debt scores, 30-day git churn, cyclomatic complexity, architectural smells, and refactoring ROI prioritization.
-  - `ea.gold.security_zero_trust`: Zero-Trust microsegmentation audit, trust zone boundaries, mTLS enforcement, and unauthorized cross-zone egress detection.
-  - `ea.gold.supply_chain_sbom`: Software Bill of Materials (SBOM) package dependencies, copyleft license compliance (GPL-3.0), and CVE vulnerability severity tracking.
-  - `ea.gold.finops_unit_economics`: Business transaction unit cost attribution ($0.042/order), FinOps tag compliance, and idle compute waste quantification ($8,400/yr).
-  - `ea.gold.mdm_golden_records`: Master Data Management (MDM) golden record catalog, authoritative vs competing source tracking, divergence flags, and schema contract statuses.
-  - `ea.gold.esg_carbon_accounting`: Regional Green IT carbon emissions accounting, kWh energy attribution, grid carbon intensity (gCO2/kWh), green tiers, and idle workload carbon elimination.
-  - `ea.gold.team_topologies`: Team Topologies organizational alignment, stream-aligned vs platform boundaries, CODEOWNERS mapping, and Conway's Law commit friction index.
-  - `ea.gold.vendor_lockin_exit`: Cloud vendor lock-in risk scoring, proprietary service dependencies, open lakehouse alternatives, and exit effort estimation.
+The platform is engineered specifically for the Databricks Lakehouse:
 
-### B. EA Navigator (Estate Intelligence Engine)
-- **Graph Traversal:** Breadth-first search (BFS) discovering direct and transitive upstream callers and downstream sinks.
-- **Financial Risk:** Quantifies annual dollar exposure at risk from `ea.gold.time_matrix`.
-- **Customer PII Lineage:** Identifies GDPR Art. 32 / DORA regulatory exposure paths.
-- **Process Mining & Latency Attribution:** Reconciles runtime execution trace spans against enterprise SLAs to pinpoint latency bottlenecks and quantify cycle time bloat.
-- **EU AI Act Governance Audit:** Classifies models against Regulation EU 2024/1689 risk tiers, enforces Art. 5 prohibited practice decommissioning, mandates Annex III human-in-the-loop oversight, and attaches Art. 50 GenAI transparency disclosures.
-- **Living Maps:** Compiles dynamic Archify interactive maps with highlighted blast radius (`--highlight <urns>`).
-- **MADR Generator:** Formats standards-compliant Markdown Architecture Decision Records (MADR v3.0).
-- **Co-Driving Actions:** Contextual one-click scenario chips (`[Simulate Outage]`, `[Draft Migration ADR]`, `[Audit PII Lineage]`, `[Interface Rationalization]`, `[Process Mining & Bottlenecks]`, `[🤖 EU AI Act Governance Audit]`).
+### 1. Databricks Asset Bundles (`databricks.yml`)
+Configured to declare conformed Unity Catalog schemas, Delta Live Tables pipelines, and Databricks Apps:
+```yaml
+bundle:
+  name: the-agentic-ea
 
-### C. EA Sentinel (Autonomous Governance Gate)
-- **Pre-Merge PR Gate:** Evaluates unified diffs against core architectural policies:
-  - `EA-POL-001`: Unapproved / deprecated datastore enforcement (e.g. Cassandra 3.11 in 'Eliminate' status).
-  - `EA-POL-002`: Mandatory customer PII storage encryption at rest (KMS CMK).
-  - `EA-POL-003`: Mandatory architectural tagging (`OwnerTeam` and `Tier`).
-- **Tri-Modal Evaluation:**
-  - Option A: Databricks Mosaic AI Model Serving (`databricks-meta-llama-3-1-70b-instruct`).
-  - Option B: External LLM API (`gpt-4o` / Gemini).
-  - Option C: Subscription CLI / Local deterministic agent ($0 token cost).
-- **Visual Delta Diff:** Generates dual Archify `diagram_delta.html` and `.svg` highlighting non-compliant resources in rose red.
+targets:
+  dev:
+    workspace:
+      host: https://dbc-2d6963b0-153b.cloud.databricks.com/
 
-### D. Databricks App UI Cockpit (`apps/ea_navigator/app.py`)
-- Deployable inside Databricks Apps with executive left-sidebar workspace navigation across 4 dedicated command centers:
-  - **1. 🏛️ Executive & Strategy Workspace:**
-    - `📊 Executive TIME Matrix` (S01 / S02): Portfolio quadrant analysis, annual spend aggregations, and lifecycle risk.
-    - `🎯 Business Capabilities & Investment` (S04): Hierarchical L1/L2 capability tree with cloud spend attribution.
-    - `🚀 Target-State Migration Roadmap` (S03): Phased modernization waves, PAM target-state topology, and MADR v3.0 decision exporter.
-    - `🏢 M&A Day-One Landscape Discovery` (S07): Acquired estate discovery, redundancy detection, and FinOps synergies.
-    - `🌐 Strategic Enterprise Governance & Ecosystem Hub` (S17–S20): Master Data Management (MDM), ESG Green IT carbon accounting, Team Topologies / Conway's Law alignment, and Vendor Lock-In & open lakehouse exit planning.
-  - **2. 🛡️ Autonomous Governance & Compliance Workspace:**
-    - `🛡️ EA Sentinel Governance` (S05): PR evaluation gate with visual architecture diffs and policy violation receipts.
-    - `🤖 AI Governance & ML Catalog (EU AI Act)` (S11): Enterprise AI/ML model registry, 4-tier risk classification, and lineage maps.
-    - `⚖️ Regulatory Compliance & Privacy Lineage (GDPR / DORA)` (S08): Sovereign jurisdiction isolation, PII dataflow tracing, and crypto posture.
-  - **3. ⚡ Engineering Modernization Workspace:**
-    - `🏛️ Estate Catalog`: Filterable table of all conformed PAM entities and ArchiMate relations.
-    - `🗺️ Living Architecture Maps`: Interactive Archify vector living maps with pan, zoom, and inspection tooltips.
-    - `🧭 EA Navigator Cockpit`: Conversational reasoning interface with blast-radius analysis and action chips.
-    - `🔌 Interface & Integration Rationalization` (S09): Reconciled API contracts against gateway telemetry, zombie/dead API detection.
-  - **4. ⚙️ Operations, Resilience & FinOps Workspace:**
-    - `🔄 CMDB Baseline Hygiene & Drift` (S06): Continuous ServiceNow CMDB reconciliation and automated Table API payloads.
-    - `⏱️ Business Process Optimization & Customer Journey` (S10): Order-to-Cash journey cycle times and bottleneck latency attribution.
-    - `🛡️ Operations, Resilience & FinOps Hub` (S12–S16): Synthesized Disaster Recovery (S12), Tech Debt (S13), Zero-Trust (S14), Supply Chain SBOM (S15), and FinOps Unit Economics (S16).
+resources:
+  schemas:
+    ea_metamodel: { catalog_name: ea, name: metamodel }
+    ea_bronze:    { catalog_name: ea, name: bronze }
+    ea_silver:    { catalog_name: ea, name: silver }
+    ea_gold:      { catalog_name: ea, name: gold }
+
+  apps:
+    ea_navigator_app:
+      name: "ea-navigator-cockpit"
+      source_code_path: .
+
+  pipelines:
+    ea_medallion_pipeline:
+      name: "EA Medallion Ingestion & Conformance"
+      serverless: true
+```
+
+### 2. Databricks Apps SaaS Runtime (`app.yaml`)
+Runs the FastAPI + React 19 ASGI server inside Databricks Apps serverless compute:
+```yaml
+command:
+  - "uvicorn"
+  - "server.main:app"
+  - "--host"
+  - "0.0.0.0"
+  - "--port"
+  - "8000"
+```
+
+### 3. Dual-Mode Unity Catalog Client
+* **Cloud Mode:** Connects directly to Databricks SQL Warehouses over standard endpoints using `databricks-sql-connector` and `databricks-sdk`.
+* **Workstation Fallback:** Seamlessly switches to local conformed SQLite/DuckDB when executing offline or in CI runners without credentials.
 
 ---
 
-## 4. Quick Start & Verification
+## 6. Verification & Automated Test Suite
+
+The platform includes **134 automated pytest tests** providing 100% scenario coverage across 20 enterprise architecture scenarios:
 
 ```bash
-# 1. Bootstrap environment via uv
+uv run pytest tests/ -v
+```
+
+```
+============================== 133 passed, 1 skipped in 2m 39s ==============================
+```
+
+### Scenario Coverage Matrix
+* **S01–S02:** APM TIME Classification, EOL/EOS Obsolescence Risk, and Blast Radius.
+* **S03–S04:** Target-State Modernization Roadmapping, Capability Realization & FinOps Attribution.
+* **S05–S06:** ARB Sentinel Pre-Merge Gate, ServiceNow CMDB Drift & Shadow IT Sync.
+* **S07–S08:** M&A Landscape Redundancy Discovery, Regulatory Lineage (GDPR Art. 32 / DORA).
+* **S09–S11:** Interface Rationalization (Zombie APIs), Process Bottlenecks, EU AI Act Model Registry.
+* **S12–S16:** DR SLAs (RTO/RPO), Tech Debt Hotspots, Zero-Trust Microsegmentation, SBOM, FinOps Unit Economics.
+* **S17–S20:** Master Data Management (MDM), Green IT Carbon Accounting, Team Topologies, Vendor Exit Planning.
+
+---
+
+## 7. Quick Start & Local Execution
+
+### Prerequisites
+* Python 3.10+
+* [uv](https://docs.astral.sh/uv/) (Python package manager)
+* Node.js v20+ & npm (for frontend building)
+
+### 1. Bootstrap Environment
+```bash
 ./setup.sh
+```
 
-# 2. Run master demonstration (Verifies all capabilities, tests, and outputs exit code 0)
+### 2. Run Master Demonstration Harness
+Verifies end-to-end ingestion, graph conformance, policy evaluation, and Archify map compilation:
+```bash
 ./demo.sh
+```
 
-# 3. Launch interactive Databricks App UI Cockpit
-streamlit run apps/ea_navigator/app.py
+### 3. Launch the Cockpit Locally
+```bash
+uv run uvicorn server.main:app --host 0.0.0.0 --port 8000
+```
+Open [http://localhost:8000](http://localhost:8000) to access the interactive cockpit.
+
+### 4. Deploy to Databricks
+```bash
+databricks bundle deploy -t dev
+databricks apps start ea-navigator-cockpit
 ```
 
 ---
 
-## 5. Build Log
+## 8. License
 
-- **2026-10-16 - MVP Repository Initialized** - Scaffolded clean repository structure, `pyproject.toml` (uv standard), Databricks Asset Bundle (`databricks.yml` targeting `dbc-2d6963b0-153b.cloud.databricks.com`), PAM Draft-07 schemas, and core modular subsystem directories (`src/navigator`, `src/sentinel`, `src/ingestion`, `apps/ea_navigator`).
-- **2026-10-16 - MVP Completed & Verified** - Built and verified Databricks-native MVP: conformed Unity Catalog Delta tables, modular Bronze ingestors (Git AST, Cloud CUR), DLT conformance pipeline, EA Sentinel PR gate with Archify visual delta diffs, EA Navigator Estate Intelligence Engine with BFS blast-radius and MADR drafting, Streamlit UI cockpit, test suite passing 16/16 tests, and single executable `demo.sh` passing with exit code 0.
-- **2026-10-16 - Scenario S01 Verified (APM / TIME Model)** - Implemented and validated dedicated scenario test `tests/scenarios/test_s01_apm_time.py`. Verified 100% coverage across all 4 Gartner TIME quadrants (Invest: $209,999.88, Tolerate: $24,999.96, Migrate: $7,800.00, Eliminate: $64,999.92), confirmed portfolio spend aggregation to exactly $307,799.76 in `ea.gold.time_matrix`, validated Tab 5 integration in Databricks App Cockpit, bringing automated test suite to 21/21 passing tests.
-- **2026-10-16 - Scenario S02 Verified (Technology Obsolescence & Lifecycle Risk EOL/EOS)** - Implemented and validated dedicated scenario test `tests/scenarios/test_s02_eol_eos.py`. Verified detection and risk categorization of assets past/near EOL (cassandra-legacy-cluster: EXPIRED/CRITICAL, customer-pii-stream: NEAR_EOL/HIGH, auth-service: NEAR_EOL/APPROACHING_EOL), EA Navigator BFS blast-radius calculation for sunset datastore (4 upstream callers: payments-service, payments-api, checkout-service, web-storefront; $234,999.84/yr financial risk, customer PII exposure), EA Sentinel pre-merge gate and Navigator binding guard enforcing EA-POL-001 against bindings to sunset assets, and Databricks App UI Tab 5 Lifecycle Risk dashboard panel. Automated test suite expanded to 27/27 passing tests (100% success), with `./demo.sh` passing end-to-end with exit code 0.
-- **2026-10-17 - Scenario S03 Verified (Target State Architecture & Cloud Migration Roadmapping)** - Implemented plan_target_state_migration, get_target_state_graph, and Tab 6 Migration Roadmap in app.py. Validated 3 phased waves, PAM target-state mapping (orders-delta-table, customer-events-dlt, hosted_on, migrates_to), MADR v3.0 decision record, and $64,999.92/yr spend elimination. Dedicated test suite tests/scenarios/test_s03_target_state_migration.py passing 6/6 tests, master suite 33/33 tests passing, demo.sh exit code 0.
-- **2026-10-17 - Scenario S04 Verified (Business Capability Modeling & Strategic Investment Alignment)** - Conformed hierarchical business capability nodes (Level-1 Strategic Domains & Level-2 Functional Capabilities) in PAM metamodel with realizes and aggregates relationships. Created conformed gold data mart ea.gold.capability_realization via Unity Catalog client attributing exactly $307,799.76/yr estate spend (Customer Experience: $147,999.84, Finance & Billing: $126,999.96, Security & Compliance: $32,799.96) and identifying technical debt concentrations. Integrated Tab 7 into Databricks App Cockpit. Dedicated test suite tests/scenarios/test_s04_capabilities.py passing 6/6 tests, master suite 39/39 tests passing (100%), and demo.sh passing with exit code 0.
-- **2026-10-17 - Scenario S05 Verified (ARB Governance & Pre-Merge Policy Gate)** - Verified EA Sentinel pre-merge gate enforcing EA-POL-001 (unapproved datastores: Cassandra, MongoDB, unapproved engines), EA-POL-002 (mandatory KMS CMK encryption for customer PII storage and transmission), and EA-POL-003 (mandatory OwnerTeam and Tier criticality governance tags). Implemented conformed audit ledger `ea.gold.arb_audit_ledger` in Databricks Unity Catalog client, compiled Archify visual delta diffs (`diagram_delta.html` / `.svg`) with zero black box defects, and integrated ledger view and visual diffs into Tab 4 in `apps/ea_navigator/app.py`. Dedicated test suite `tests/scenarios/test_s05_arb_governance.py` passing 7/7 tests, master suite 46/46 tests passing, and `./demo.sh` passing end-to-end with exit code 0.
-- **2026-10-17 - Scenario S06 Verified (Continuous ServiceNow CMDB Synchronization & Baseline Hygiene)** - Implemented ServiceNow CMDB modular ingestion connector (`src/ingestion/ingest_servicenow_cmdb.py`) populating conformed Bronze table `ea.bronze.cmdb_ci`. Implemented continuous 3-way baseline reconciliation in `dlt_metamodel_pipeline.py` and `src/navigator/engine.py` across CMDB CIs, Git PAM graph, and live runtime cloud resources, identifying Orphan CIs (`recommendations-ai-legacy`, `elastic-search-v6-logging`), Shadow IT (`customer-pii-stream`, `payments-service`), and Attribute/Lifecycle Drift (`checkout-service`, `cassandra-legacy-cluster`). Populated conformed gold mart `ea.gold.drift_reconciled` with complete discrepancy taxonomy and automated ServiceNow Table API REST remediation payloads. Integrated Tab 8 into Databricks App Cockpit in `apps/ea_navigator/app.py`. Dedicated test suite `tests/scenarios/test_s06_cmdb_sync.py` passing 7/7 tests, master suite 53/53 tests passing (100%), and `./demo.sh` passing end-to-end with exit code 0.
-- **2026-10-17 - Scenario S07 Verified (M&A Day-One IT Landscape Discovery & Overlap Analysis)** - Implemented M&A Estate modular ingestion connector (`src/ingestion/ingest_ma_estate.py`) simulating zero-footprint ingestion of an acquired entity (`acquired-target-org`, tenant `acq-target-corp`, AWS account `998877665544`) into Bronze Delta tables (`ea.bronze.git_repos`, `ea.bronze.cloud_resources`). Conformed acquired assets into PAM graph (`urn:ea:acquired:*`) with domain realization edges. Implemented M&A landscape analysis in `src/navigator/engine.py` identifying duplicate capabilities (`Payment Processing`, `Identity & Access Management`), tech stack divergence (PHP 8.1, Node.js 16, MySQL 5.7 past EOL 2024-10-31, AWS Redshift vs enterprise Go 1.22, Java 21, Unity Catalog / Postgres), and debt disparity (acquired avg 72.5 vs core 35.4). Calculated Day-One combined run cost ($431,799.76/yr = $307,799.76 core + $124,000.00 acquired), identified rationalization synergies ($84,000.00/yr savings; target run cost: $347,799.76/yr), and populated `ea.gold.ma_synergies`. Compiled merged Archify living architecture map (`data/diagrams/ma_landscape_view.html` / `.svg`) and integrated Tab 9 into Databricks App Cockpit (`apps/ea_navigator/app.py`). Dedicated test suite `tests/scenarios/test_s07_ma_discovery.py` passing 7/7 tests, master test suite 60/60 tests passing (100%), and `./demo.sh` passing end-to-end with exit code 0.
-- **2026-10-17 - Scenario S08 Verified (Regulatory Compliance & Data Privacy Impact Mapping GDPR / DORA)** - Enriched PAM metamodel nodes and relationship edges with data classification tiers (PII:High, PII:Medium, Internal, Public), sovereign jurisdictions (EU-West-1, US-East-1), and cryptographic transport/rest specifications (tls_1_3, plaintext, kms, none). Created and populated conformed gold compliance mart `ea.gold.compliance_lineage` via Databricks Unity Catalog client across 7 canonical flows. Implemented `analyze_compliance_lineage()` in `src/navigator/engine.py` performing BFS graph traversal to trace customer PII flows from ingress gateways (`web-storefront`, `payments-api`) to datastores and egress points, identifying GDPR Article 32 violations (unencrypted plaintext CQL transit & rest none on `cassandra-legacy-cluster`), GDPR Article 44-49 violations (unauthorized cross-border EU➔US egress to `customer-pii-stream`), and DORA ICT resilience vulnerabilities (unreplicated SPOF past EOL). Implemented `compile_compliance_lineage_diagram()` generating jurisdiction-isolated Archify living maps (`gdpr_dora_lineage.html` / `.svg`) with zero black box defects. Integrated Tab 10 into Databricks App UI Cockpit (`apps/ea_navigator/app.py`). Dedicated scenario test suite `tests/scenarios/test_s08_gdpr_dora.py` passing 7/7 tests, master automated test suite expanded to 67/67 passing tests (100%), and `./demo.sh` passing end-to-end with exit code 0.
-- **2026-10-17 - Scenario S09 Verified (Interface & Integration Landscape Rationalization)** - Ingested runtime API gateway traffic logs into conformed Bronze table `ea.bronze.api_gateway_logs`. Defined and populated conformed gold mart `ea.gold.interface_rationalization` via Databricks Unity Catalog client across 8 canonical interfaces. Implemented `analyze_interface_landscape()` in `src/navigator/engine.py` reconciling declared OpenAPI contracts against runtime traffic to detect Zombie/Shadow APIs (`/v1/internal/debug-dump`), Dead/Orphan APIs (`/v1/legacy-inventory-sync`), and Protocol Sprawl (`/soap/v1/customer` over HTTP-Basic auth). Extended Archify bridge to compile both interactive checkout/payment transaction sequence flows (`interface_sequence.html` / `.svg`) and interface landscape topology maps (`interface_landscape.html` / `.svg`) with zero black box defects. Integrated Tab 11 into Databricks App Cockpit (`apps/ea_navigator/app.py`). Dedicated scenario test suite `tests/scenarios/test_s09_interfaces.py` passing 7/7 tests, master automated test suite expanded to 74/74 passing tests (100%), and `./demo.sh` passing end-to-end with exit code 0.
-- **2026-10-18 - Scenario S10 Verified (Business Process Optimization & Customer Journey Traceability)** - Defined and conformed `ea.bronze.process_event_logs` (15 execution trace spans across 3 trace instances) and `ea.gold.process_optimization` (5 sequential Order-to-Cash journey stages) in Databricks Unity Catalog client. Implemented `analyze_business_processes()` in `src/navigator/engine.py` calculating journey cycle times (p50: 1,190ms, p95: 1,495ms, p99: 2,025ms), detecting SLA breach (+495ms over 1,000ms SLA), and isolating Step 2 (`Customer Profile & Loyalty Lookup` on `cassandra-legacy-cluster`) as the primary bottleneck driving 58.86% of total journey latency (880ms vs 250ms target). Formulated target-state Lakehouse replatforming roadmap reducing Step 2 latency to 160ms (-720ms / -48%) and bringing journey p95 to 775ms (225ms SLA headroom). Extended Archify bridge with schema v2 workflow compilation (`customer_journey_workflow.html` / `.svg`) preserving `<defs><style>` styling. Integrated Tab 12 into Databricks App UI Cockpit (`apps/ea_navigator/app.py`). Dedicated scenario test suite `tests/scenarios/test_s10_process_mining.py` passing 7/7 tests, master automated test suite expanded to 81/81 passing tests (100%), and `./demo.sh` passing end-to-end with exit code 0.
-- **2026-10-18 - Scenario S11 Verified (AI Governance & ML Model Cataloging EU AI Act)** - Implemented AI models ingestion connector (`src/ingestion/ingest_ai_models.py`) populating conformed Bronze table `ea.bronze.ai_models`. Defined and populated conformed gold mart `ea.gold.ai_governance` via Databricks Unity Catalog client across 4 models spanning all EU AI Act risk tiers: Prohibited / Unacceptable Risk (`candidate-biometric-evaluator` ➔ `DECOMMISSION_IMMEDIATELY`), High-Risk (`fraud-risk-scorer-v2` ➔ `ENFORCE_HUMAN_OVERSIGHT`), Limited-Risk (`customer-support-llm-v1` ➔ `ATTACH_AI_DISCLOSURE`), and Minimal-Risk (`product-recommender-v3` ➔ `RETAIN`). Seeded PAM metamodel graph with 12 AI pipeline nodes and 8 ArchiMate lineage edges connecting training datasets to MLflow model registry and serving endpoints. Implemented `analyze_ai_governance()` and `compile_ai_model_lineage_diagram()` in `src/navigator/engine.py` and extended Archify bridge to compile interactive model lineage topology maps (`ai_model_lineage.html` / `.svg`) with zero black box defects. Integrated Tab 13 into Databricks App Cockpit (`apps/ea_navigator/app.py`). Dedicated scenario test suite `tests/scenarios/test_s11_ai_governance.py` passing 7/7 tests, master automated test suite expanded to 88/88 passing tests (100%), and `./demo.sh` passing end-to-end with exit code 0.
-- **2026-10-20 - Group 1 Verified: Scenarios S12–S16 (Enterprise Resilience, Tech Debt, Zero-Trust, SBOM & FinOps Hub)** - Implemented and validated conformed Databricks Unity Catalog gold tables (`ea.gold.resilience_dr`, `ea.gold.tech_debt_hotspots`, `ea.gold.security_zero_trust`, `ea.gold.supply_chain_sbom`, `ea.gold.finops_unit_economics`) across 5 synthesized operational disciplines: S12 DR SLA evaluation (Cassandra Tier-1 SPOF breaching RTO 240m/15m and RPO 120m/5m), S13 Tech Debt Hotspots (Cassandra debt 92 #1 rank, checkout-service debt 74 #2 rank with 12,400 churn lines and 31.8 cyclomatic complexity), S14 Zero-Trust Microsegmentation (60% compliance, detecting plaintext CQL transit and unauthorized cross-zone egress to `customer-pii-stream`), S15 SBOM & Licensing (flagging `crypto-legacy-utils` under GPL-3.0 prohibited copyleft and critical CVE-2024-4321), and S16 FinOps Unit Economics ($0.042 cost per order transaction, flagging $8,400.00/yr [$700/mo] in untagged idle compute waste on Cassandra). Extended Archify bridge with `resilience_perimeter` boundary mode compiling `resilience_and_perimeter_view.html` / `.svg` with perimeter region boundaries (DMZ Ingress, Core Application Mesh, Secure Data Vault, External Egress). Integrated Tab 14 into Databricks App UI Cockpit (`apps/ea_navigator/app.py`). Dedicated scenario test suite `tests/scenarios/test_grouped_s12_s16_resilience_finops.py` passing 10/10 tests, master automated test suite expanded to 98/98 passing tests (100% success), and `./demo.sh` passing end-to-end with exit code 0.
-- **2026-10-20 - Group 2 Verified: Scenarios S17–S20 (Strategic Enterprise Governance, ESG, Team Topologies & Vendor Exit Hub)** - Implemented and validated conformed Databricks Unity Catalog gold tables (`ea.gold.mdm_golden_records`, `ea.gold.esg_carbon_accounting`, `ea.gold.team_topologies`, `ea.gold.vendor_lockin_exit`) completing all 20 enterprise architecture scenarios across: S17 Master Data Management (reconciling CustomerProfile golden record divergence between Cassandra and billing-db with SCD2 delta history), S18 ESG & Green IT Regional Carbon Accounting (evaluating 781.40 kgCO2/mo estate footprint and isolating 420.00 kgCO2/mo avoidable carbon from idle Cassandra in us-east-1 at 380 gCO2/kWh), S19 Team Topologies & Conway's Law (identifying monolithic friction across 3 stream-aligned teams editing monolithic checkout-service with 0.84 commit friction index), and S20 Strategic Vendor Lock-In & Open Exit Planning (evaluating proprietary Kinesis 85/100 and Cassandra CQL 90/100 dependencies and specifying open Delta Lake / Kafka exit paths). Extended Archify bridge with `strategic_ecosystem` boundary mode compiling `strategic_governance_and_ecosystem_view.html` / `.svg` (Master Golden Data Core, Stream-Aligned Application Mesh, Ingress & Digital Touchpoints, Proprietary Cloud & Egress Fabric). Integrated Tab 15 into Databricks App UI Cockpit (`apps/ea_navigator/app.py`). Dedicated scenario test suite `tests/scenarios/test_grouped_s17_s20_governance_ecosystem.py` passing 10/10 tests, master automated test suite expanded to 108/108 passing tests (100% success), and `./demo.sh` passing end-to-end with exit code 0.
-- **2026-10-20 - Executive UI Workspace Consolidation (apps/ea_navigator/app.py)** - Refactored the Streamlit UI layout from a single 15-tab horizontal strip into an executive-grade 4-workspace left-sidebar navigation model (Executive & Strategy, Autonomous Governance & Compliance, Engineering Modernization, Operations, Resilience & FinOps) with live Databricks Unity Catalog connection badge and estate quick stats (Nodes, Edges, Spend, Avoidable CO2). Preserved 100% test compatibility across all 108 automated pytest assertions and verified clean execution of master demonstration script (`./demo.sh` exit code 0).
-- **2026-10-20 - Production Enterprise Connectors Framework (GitHub, ServiceNow, Jira, Backstage)** - Built production-grade enterprise connectors framework in `src/connectors/` with abstract base `EnterpriseConnector`, dynamic secret resolution (`resolve_secret`) checking Databricks secret scopes (`dbutils.secrets.get`) with environment variable fallback and aliases, resilient HTTP session pooling with exponential retries (429, 500, 502, 503, 504), standardized health check contract (`test_connection()`), GitHub REST API connector (repository scanning, base64 file decoding, PR comments, commit status checks), ServiceNow Table API connector (CMDB CI querying, automated change request creation, conformed bronze transformation), Jira Cloud/Server connector (ADF v3 formatting, JQL search, issue linking, component discovery), Spotify Backstage connector (bi-directional Backstage entity <-> PAM metamodel node translation, catalog-info.yaml generation, TechDocs package generation), and `ConnectorManager` for parallel health checks and unified bronze synchronization. Authored comprehensive test suite `tests/connectors/test_enterprise_connectors.py` passing 21/21 tests, bringing total test suite to 129/129 passing tests (100% success), and verified `./demo.sh` passing end-to-end with exit code 0.
-- **2026-10-20 - Live Unity Catalog Seeding & Databricks App Ecosystem Sync Integration** - Connected directly to the live Databricks SQL Warehouse (df4dc09688caf6d8 on dbc-2d6963b0-153b.cloud.databricks.com) via `src/data_backbone/seed_databricks_uc.py`, executed DDLs across all 27 tables in `ea.metamodel.*`, `ea.bronze.*`, `ea.silver.*`, and `ea.gold.*`, and populated all 27 Delta tables using high-throughput multi-row batch inserts (36 metamodel nodes, 37 edges, 415 audit records, 23 drift records, 165 process event logs). Integrated the live "🔌 Ecosystem Connectors & Backstage Sync" panel into the Engineering Modernization workspace in `apps/ea_navigator/app.py` with multi-system connection telemetry, Spotify Backstage PAM-to-catalog translation, Backstage TechDocs package generation, and simulated GitHub EA Sentinel PR gate dispatch. Redeployed live to Databricks Apps via `databricks apps deploy --auto-approve` and verified active compute and running application state at https://ea-navigator-cockpit-3671477545521222.aws.databricksapps.com with 100% test suite compatibility (129/129 tests passing, ./demo.sh exit code 0).
-- **2026-10-20 - Phase 2 DLT Pipeline Finalized & Executed on Databricks Serverless Compute** - Updated PySpark DLT table declarations in `src/ingestion/dlt_metamodel_pipeline.py` for Unity Catalog serverless execution: removed legacy path arguments, read directly from conformed Bronze Unity Catalog tables (`ea.bronze.git_repos`, `ea.bronze.cloud_resources`, `ea.bronze.cmdb_ci`), and enforced DLT expectations on conformed Silver entities (`silver_nodes`, `silver_edges`) and Gold marts (`gold_time_matrix`, `gold_drift_reconciled`). Deployed bundle (`databricks bundle deploy`), triggered live Serverless DLT pipeline update (`6ad15fa7-b4f5-4d96-b6ce-a4552e36756d` on pipeline `901138d7-92e5-4c26-b3a7-133ed7dd5f53`), and verified update completion (`COMPLETED`) creating materialized views in `ea.dev_shaundavidanderson_silver` (`silver_nodes`: 12 rows, `silver_edges`: 7 rows, `gold_time_matrix`: 11 rows, `gold_drift_reconciled`: 18 rows). All 129 local tests and `./demo.sh` pass cleanly with exit code 0.
-- **2026-10-20 - Live Databricks SQL Warehouse Integration & Local SQLite Shortcut Elimination** - Connected UnityCatalogClient directly to the live Databricks SQL Warehouse (df4dc09688caf6d8 on dbc-2d6963b0-153b.cloud.databricks.com) with resilient connection pooling, clean atexit teardown, and bidirectional namespace translation via TABLE_MAP (`ea.metamodel.*`, `ea.bronze.*`, `ea.gold.*`). Refactored all 26 domain `get_*` methods to route through `execute_query()`, reading from live Unity Catalog Delta tables when cloud mode is active with seamless local SQLite fallback for offline execution. Updated `app.yaml` with Databricks Apps runtime environment variables (`DATABRICKS_HOST`, `DATABRICKS_HTTP_PATH`, `DATABRICKS_WAREHOUSE_ID`, `DATABRICKS_TOKEN`) and updated `apps/ea_navigator/app.py` with dynamic connection status and real-time query latency. Added `tests/test_databricks_cloud_client.py`, expanding automated test suite to 134/134 passing tests (100% success), validated `./demo.sh` exit code 0, deployed to Databricks Apps workspace, and confirmed active RUNNING status at https://ea-navigator-cockpit-3671477545521222.aws.databricksapps.com.
-- **2026-10-20 - Python 3.11 Databricks Apps Compatibility Hotfix** - Fixed PEP 701 f-string expression syntax error in `src/connectors/backstage.py` where backslashes (`\n`) within f-string expressions were incompatible with the Databricks Apps Python 3.11 container runtime. Extracted default consequence strings to local variables before template interpolation. Validated Python 3.11 bytecode compilation across all 51 `.py` files with zero errors. All 134 tests pass. Redeployed to Databricks Apps and verified live `RUNNING` status and active compute.
-- **2026-10-20 - SQL Warehouse Auto-Start Retries, Dynamic Reconnect & Fallback Auto-Seeding** - Resolved operational failure modes identified during live container testing: added exponential backoff retries (`_connect_to_cloud(max_retries=3, backoff_base=2.0)`) in `UnityCatalogClient` to tolerate cold-start warming on Databricks Serverless SQL Warehouse (`df4dc09688caf6d8`), added dynamic reconnection retry triggers in `execute_query()`, `execute_statement()`, and `get_unity_catalog_client()`, integrated automatic local SQLite baseline seeding when initializing empty local fallback stores, and added a manual "🔄 Reconnect to Databricks SQL" trigger in the Streamlit sidebar with cache invalidation (`st.cache_resource.clear()`). Verified Python 3.11 bytecode compilation (51 files, 0 errors), 134/134 pytest assertions passing, bundle deployed, and live Databricks App verified in `RUNNING` status with `ACTIVE` compute.
-- **2026-10-20 - Frontend Error Remediation & Browser Verification** - Resolved 3 critical frontend failure modes across all 4 UI workspaces: defined `ROOT_DIR = PROJECT_ROOT` in `apps/ea_navigator/app.py` resolving unbound name errors across 10 diagram paths; unignored and bundled pre-compiled Archify diagrams (`data/diagrams/*.html`, `data/diagrams/*.svg`) via `.gitignore` whitelist and `databricks.yml` sync config; implemented resilient standalone SVG/CSS HTML fallback in `src/archify/bridge.py` eliminating `MODULE_NOT_FOUND` / `RuntimeError` crashes in cloud containers. Verified Python 3.11 bytecode compilation (51 files, 0 errors), 134/134 pytest assertions passing, bundle deployed, and live Databricks App verified in `RUNNING` status with `ACTIVE` compute. Executed end-to-end browser traversal via `opencli browser` across all 15 tabs confirming 0 exceptions across the entire platform.
-- **2026-10-20 - High-Contrast Dark Theme & Crisp Metric Typography** - Configured global dark theme via `.streamlit/config.toml` (base="dark", primaryColor="#38bdf8", backgroundColor="#0b0f19", secondaryBackgroundColor="#131b2e", textColor="#f1f5f9"), configured explicit theme flags in `app.yaml`, and updated CSS styling rules in `apps/ea_navigator/app.py` enforcing high-contrast pure white typography (`rgb(255, 255, 255)`) on `[data-testid='stMetricValue']`, muted uppercase slate labels (`rgb(148, 163, 184)`) on `[data-testid='stMetricLabel']`, and elevated dark navy card backgrounds (`#131b2e`) across all dashboard widgets. Validated 134/134 pytest assertions passing, deployed bundle, and verified live computed CSS color `rgb(255, 255, 255)` in browser via `opencli browser` across the running Databricks App.
-- **2026-10-20 - Modern FastAPI + React 19 Frontend Migration (Streamlit Replaced)** - Replaced legacy Streamlit application with high-performance FastAPI REST API backend (`server/main.py`) and modern React 19 + TypeScript + Vite + Tailwind CSS frontend (`frontend/`). Built 10 conformed REST endpoints (`/api/health`, `/api/stats`, `/api/time-matrix`, `/api/governance/sentinel`, `/api/drift`, `/api/nodes`, `/api/edges`, `/api/capabilities`, `/api/diagrams`, `/api/diagrams/{name}`) connecting directly to live Databricks Unity Catalog Delta tables. Designed enterprise UI matching Stripe/Datadog aesthetic (`#0b0f19` bg, `#131b2e` card, `#1e293b` border, `#ffffff` metrics) with strictly 0 emojis and pure Lucide SVG icons. Configured 4 core workspaces: Executive & Strategy (4 stat cards, TIME matrix quadrants, FinOps spend), Autonomous Governance & Compliance (Sentinel policy gate, live ARB ledger table, regulatory lineage), Engineering Modernization (PAM graph explorer, living architecture map viewer with 12 diagrams), and Operations & FinOps (ServiceNow CMDB drift table, discrepancy taxonomy, sync triggers). Updated `app.yaml` to run `uvicorn server.main:app --host 0.0.0.0 --port 8000`. Deployed bundle and app to Databricks Apps, verified deployment `SUCCEEDED` and app `RUNNING`. Validated in live Chrome browser via `opencli browser` confirming computed card bg `rgb(19, 27, 46)`, metric text `rgb(255, 255, 255)`, 0 console errors, and real Databricks data across all workspaces.
-- **2026-10-21 - Modern Enterprise SaaS Elevation (Linear/Datadog Caliber)** - Overhauled frontend per `SAAS_MODERNIZATION_SPEC.md` from static dashboard to interactive professional SaaS tool: built collapsible left navigation rail (`Sidebar.tsx`) with brand logo, live Databricks warehouse status badge (`df4dc09688caf6d8`), 4 workspace tabs, and `⌘K` command palette indicator; implemented top global utility bar (`TopNav.tsx`) with breadcrumbs, command search trigger, "Evaluate PR", "Sync CMDB", refresh trigger, and role badge; built modal Command Palette (`CommandPalette.tsx`) with fast fuzzy search across applications, PAM nodes, policies, and Archify diagrams; engineered deep slide-over Entity Inspector Drawer (`EntityInspectorDrawer.tsx`, 520px) with 4 tabs (Overview, Lineage & Graph, Governance & Rules, Raw JSON), live `/api/entity/{urn}` endpoint, copy URN/JSON actions, and Escape-to-close handler; created interactive 2D TIME Matrix Cartesian plane (`ExecutiveWorkspace.tsx`, X=Business Value, Y=Technical Health) with spend-scaled clickable bubbles, quadrant gradient backdrops, and table toggle; integrated pre-merge PR Policy Simulator (`GovernanceWorkspace.tsx`, `/api/governance/simulate`, `/api/governance/sample-patches`) evaluating live IaC diffs against Sentinel rules with violations, policy pass/fail badges, and visual delta diagram links; implemented side-by-side ServiceNow CMDB vs Cloud Telemetry reconciliation console (`OperationsWorkspace.tsx`, `/api/drift/reconcile`) with discrepancy taxonomy filtering and row-level reconciliation steppers. Enforced strictly ZERO emojis (100% Lucide SVG icons) and Linear/Datadog dark palette (`#080c14`, `#0d1322`, `#131b2e`, `#1e293b`, `#ffffff`). Deployed bundle and app to Databricks Apps (`ea-navigator-cockpit`), confirmed `ACTIVE` compute and `RUNNING` app status. Executed live browser traversal via `opencli browser` validating computed CSS (`rgb(13, 19, 34)` sidebar, `rgb(19, 27, 46)` cards, `rgb(255, 255, 255)` text), 2D canvas bubble click opening slide-over drawer, PR simulator live execution (BLOCKED on Cassandra patch with 3 violations; APPROVED on UC Delta patch with 0 violations), CMDB reconciliation console, command palette `⌘K` search, 0 console errors, and 0 emojis.
-- **2026-10-21 - Official Product Launch Video (1080p 60fps Deliverable)** - Produced official 115.5-second technical product demo video (`data/video/the_agentic_ea_launch.mp4`) companion piece to the LinkedIn thought leadership post ("Confusing the Diagram with the System"). Scripted and executed automated 1080p 60fps Playwright screencast recordings across 6 sequential scenes: Scene 1 (The Trap: 142-day stale shelfware & unmanaged cloud drift), Scene 2 (Shift 1: Metamodel as Lakehouse Data across `ea.metamodel.*`, `ea.bronze.*`, `ea.silver.*`, `ea.gold.*` Unity Catalog Delta tables, Serverless DLT Medallion Pipeline, and 4 modular connectors), Scene 3 (Shift 2: Governance in the PR Flow with Sentinel PR Simulator executing against Cassandra IaC diff, showing real-time `BLOCKED` receipt, 3 violations, and Archify visual delta map), Scene 4 (Shift 3: Estate Intelligence & Blast Radius showing Archify living maps, BFS traversal on `payments-api-compute` with $235k financial exposure, and GDPR/DORA cross-border transit), Scene 5 (Shift 4: Real Executive Value with interactive 2D TIME Matrix, spend-scaled bubbles, 520px Slide-Over Entity Inspector Drawer animating in, 4 drawer tabs, Command Palette `⌘K` search, and ServiceNow CMDB reconciliation console), and Scene 6 (The Payoff: Architecture as Velocity closed-loop montage and hero launch card). Enforced strictly NO voice narration and burned in sleek, synchronized Linear-style subtitle and lower-third ribbons (`#0d1322` dark glass container, `#38bdf8` accent border, pure white `#ffffff` typography, 0 emojis). Conformed and encoded to high-profile H.264 MP4 (`yuv420p`, 1920x1080, 60fps, 115.5s, 12.3MB).
-- **2026-10-25 - Official Product Demo Video (10/10 Master Cut Deliverable)** - Recorded and compiled the 10/10 Master Cut video (`data/video/the_agentic_ea_launch.mp4`) capturing 100% real live software at 1080p 60fps across all 8 core scenes directly from Google Chrome (window `0x04000004`): Scene 1 (Databricks Workspace Home & user resources), Scene 2 (Databricks Catalog Explorer drilling into `ea.metamodel.nodes` schema columns and live Sample Data), Scene 3 (Databricks Apps console showing `ea-navigator-cockpit` in `Running` status on serverless compute), Scene 4 (Databricks DLT Medallion Pipeline DAG `EA Medallion Ingestion & Conformance`), Scene 5 (Executive Strategy & 2D Cartesian TIME Matrix with glowing spend bubbles, Structured Table view, and 520px Slide-Over Entity Inspector Drawer cycling Lineage/Governance/JSON tabs), Scene 6 (Engineering Modernization with interactive Archify Living Architecture Viewer, dynamic Blast Radius Payments API vector tracing down to `cassandra-legacy-cluster`, GDPR/DORA regulatory lineage, and PAM Metamodel Explorer), Scene 7 (Sentinel Governance evaluating Delta table PR as `APPROVED` vs Cassandra PR as `BLOCKED` with 3 violations and live ARB audit ledger), and Scene 8 (Operations & FinOps ServiceNow CMDB drift sync and universal `⌘K` command palette search). Enforced stable 1080p full frame with zero artificial wobble/sway, zero subtitles, zero audio, and verified exact 92.00s runtime (5520 frames at 60fps CFR).
-
-
-
-
-
-
-
-
+Apache 2.0. Built with pride to advance data-driven Enterprise Architecture and AI Engineering.

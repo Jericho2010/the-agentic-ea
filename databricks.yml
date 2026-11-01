@@ -42,11 +42,11 @@ resources:
       name: gold
       comment: "Scenario Analytics Marts (TIME Matrix, EOL Timeline, Blast Radius Index)"
 
-  # 2. Databricks Apps: EA Navigator Cockpit (Streamlit)
+  # 2. Databricks Apps: EA Navigator Cockpit (FastAPI + React SaaS)
   apps:
     ea_navigator_app:
       name: "ea-navigator-cockpit"
-      description: "Databricks-native Enterprise Architecture Navigator Cockpit"
+      description: "Enterprise Architecture Navigator Cockpit (Databricks Apps SaaS)"
       source_code_path: .
 
   # 3. Delta Live Tables Ingestion & Graph Conformance Pipeline

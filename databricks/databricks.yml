@@ -1,6 +1,14 @@
 bundle:
   name: the-agentic-ea
 
+sync:
+  include:
+    - ".streamlit/**"
+    - "apps/ea_navigator/.streamlit/**"
+    - "data/diagrams/**"
+    - "data/backstage/**"
+    - "frontend/dist/**"
+
 targets:
   dev:
     default: true
@@ -24,7 +32,7 @@ resources:
     ea_bronze:
       catalog_name: ea
       name: bronze
-      comment: "Raw Ingestion Feeds (Git AST, Cloud CUR, CMDB)"
+      comment: "Raw Ingestion Feeds (Git AST, Cloud CUR, CMDB, Jira, Backstage)"
     ea_silver:
       catalog_name: ea
       name: silver
@@ -34,12 +42,12 @@ resources:
       name: gold
       comment: "Scenario Analytics Marts (TIME Matrix, EOL Timeline, Blast Radius Index)"
 
-  # 2. Databricks Apps: EA Navigator Cockpit (Streamlit)
+  # 2. Databricks Apps: EA Navigator Cockpit (FastAPI + React SaaS)
   apps:
     ea_navigator_app:
       name: "ea-navigator-cockpit"
-      description: "Databricks-native Enterprise Architecture Navigator Cockpit"
-      source_code_path: ../apps/ea_navigator
+      description: "Enterprise Architecture Navigator Cockpit (Databricks Apps SaaS)"
+      source_code_path: .
 
   # 3. Delta Live Tables Ingestion & Graph Conformance Pipeline
   pipelines:
@@ -50,3 +58,7 @@ resources:
       catalog: ea
       target: silver
       continuous: false
+      serverless: true
+      libraries:
+        - file:
+            path: src/ingestion/dlt_metamodel_pipeline.py
