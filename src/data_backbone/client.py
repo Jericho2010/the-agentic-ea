@@ -25,7 +25,7 @@ LOCAL_DB_PATH = ROOT_DIR / "data" / "unity_catalog" / "ea_metamodel.db"
 DEFAULT_DATABRICKS_HOST = "https://dbc-2d6963b0-153b.cloud.databricks.com/"
 DEFAULT_WAREHOUSE_ID = "df4dc09688caf6d8"
 DEFAULT_HTTP_PATH = f"/sql/1.0/warehouses/{DEFAULT_WAREHOUSE_ID}"
-DEFAULT_DATABRICKS_TOKEN = ""
+DEFAULT_DATABRICKS_TOKEN = os.getenv("DATABRICKS_TOKEN", "")
 
 TABLE_MAP: Dict[str, str] = {
     "metamodel_nodes": "ea.metamodel.nodes",
